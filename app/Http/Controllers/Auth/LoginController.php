@@ -12,6 +12,7 @@ class LoginController extends Controller
     {
         return Inertia::render('Auth/Login', [
             'institution' => config('branding.institution'),
+            'demoEnabled' => (bool) config('security.demo_login'),
         ]);
     }
 }

@@ -5,4 +5,11 @@ declare global {
     const route: typeof routeFn;
 }
 
+// route() también disponible dentro de los <template> (lo inyecta ZiggyVue)
+declare module 'vue' {
+    interface ComponentCustomProperties {
+        route: typeof routeFn;
+    }
+}
+
 export {};

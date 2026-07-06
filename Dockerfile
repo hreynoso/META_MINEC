@@ -25,10 +25,15 @@ RUN npm run build
 # 3) Runtime
 FROM serversideup/php:8.4-fpm-nginx AS runtime
 
-# gd para DomPDF, mariadb-client para backups
+# gd para DomPDF, pdo_mysql para la BD, mariadb-client para backups.
+# serversideup/php v3 es base Debian/Ubuntu (apt); se deja tolerante a Alpine (apk).
 USER root
-RUN install-php-extensions gd \
-    && apk add --no-cache mariadb-client
+RUN install-php-extensions gd pdo_mysql \
+    && if command -v apt-get >/dev/null 2>&1; then \
+         apt-get update && apt-get install -y --no-install-recommends mariadb-client && rm -rf /var/lib/apt/lists/*; \
+       elif command -v apk >/dev/null 2>&1; then \
+         apk add --no-cache mariadb-client; \
+       fi
 USER www-data
 
 ENV AUTORUN_ENABLED=true \
@@ -50,4 +55,11 @@ COPY --chown=root:root docker/s6-overlay/s6-rc.d /etc/s6-overlay/s6-rc.d
 # La subida web de GitHub no conserva el bit de ejecucion: lo forzamos aqui.
 USER root
 RUN chmod +x /etc/s6-overlay/s6-rc.d/horizon/run
+# Script de seed opcional (corre tras la migración de AUTORUN si el flag está activo)
+COPY --chown=root:root docker/entrypoint.d/99-seed.sh /etc/entrypoint.d/99-seed.sh
+RUN chmod +x /etc/entrypoint.d/99-seed.sh
 USER www-data
+
+# Asegurar carpetas de storage/cache (por si una subida web omitió los .gitignore).
+RUN mkdir -p storage/framework/cache storage/framework/sessions \
+       storage/framework/views storage/logs bootstrap/cache

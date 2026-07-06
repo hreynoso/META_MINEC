@@ -1,62 +1,108 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { Link, usePage } from '@inertiajs/vue3';
-import { LayoutDashboard, Users, FileBarChart, Settings, LogOut, Menu } from 'lucide-vue-next';
-import ConfirmDialog from '@/Components/ConfirmDialog.vue';
-import Toast from 'primevue/toast';
+import {
+    LayoutDashboard, Crown, FolderKanban, Gauge, FileBarChart,
+    Sparkles, BookText, MessagesSquare, Settings, LogOut, Menu,
+} from 'lucide-vue-next';
 
 const page = usePage();
 const sidebarOpen = ref(true);
 
+// route: nombre de ruta Ziggy si ya existe; null = módulo de fase posterior.
 const nav = [
-    { label: 'Inicio', icon: LayoutDashboard, route: 'dashboard' },
-    { label: 'Usuarios', icon: Users, route: 'dashboard' },
-    { label: 'Reportes', icon: FileBarChart, route: 'dashboard' },
-    { label: 'Configuración', icon: Settings, route: 'dashboard' },
+    { label: 'Dashboard', icon: LayoutDashboard, route: 'dashboard' },
+    { label: 'Ministra', icon: Crown, route: null },
+    { label: 'Proyectos', icon: FolderKanban, route: 'proyectos.index' },
+    { label: 'KPIs', icon: Gauge, route: null },
+    { label: 'Reportes', icon: FileBarChart, route: null },
+    { label: 'IA Predictiva', icon: Sparkles, route: null },
+    { label: 'Memorias', icon: BookText, route: null },
+    { label: 'Red de Gestores', icon: MessagesSquare, route: null },
+    { label: 'Configuración', icon: Settings, route: null },
 ];
+
+function isActive(name: string | null): boolean {
+    if (!name) return false;
+    try { return route().current(name); } catch { return false; }
+}
 </script>
 
 <template>
     <div class="min-h-screen bg-slate-50 text-slate-800 dark:bg-slate-900 dark:text-slate-100">
-        <Toast />
-        <ConfirmDialog />
-
-        <!-- Topbar -->
-        <header class="flex h-14 items-center justify-between border-b border-slate-200 bg-white px-4 dark:border-slate-700 dark:bg-slate-800">
-            <div class="flex items-center gap-3">
-                <button class="rounded p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700" @click="sidebarOpen = !sidebarOpen">
-                    <Menu class="h-5 w-5" />
-                </button>
-                <span class="font-semibold text-brand">META MINEC</span>
-            </div>
-            <div class="flex items-center gap-3 text-sm">
-                <span>{{ (page.props.auth as any)?.user?.name }}</span>
-                <Link href="/logout" method="post" as="button" class="inline-flex items-center gap-1 text-slate-500 hover:text-brand">
-                    <LogOut class="h-4 w-4" /> Salir
-                </Link>
-            </div>
-        </header>
-
-        <div class="flex">
+        <div class="flex min-h-screen">
             <!-- Sidebar -->
-            <aside v-if="sidebarOpen" class="w-56 shrink-0 border-r border-slate-200 bg-white p-3 dark:border-slate-700 dark:bg-slate-800">
-                <nav class="space-y-1">
-                    <Link
-                        v-for="item in nav"
-                        :key="item.label"
-                        :href="route(item.route)"
-                        class="flex items-center gap-2 rounded-lg px-3 py-2 text-sm hover:bg-teal-50 hover:text-brand dark:hover:bg-slate-700"
-                    >
-                        <component :is="item.icon" class="h-4 w-4" />
-                        {{ item.label }}
-                    </Link>
+            <aside
+                v-if="sidebarOpen"
+                class="flex w-64 shrink-0 flex-col bg-shell text-slate-300"
+            >
+                <div class="flex items-center gap-3 px-5 py-4">
+                    <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-brand/20 text-brand">
+                        <LayoutDashboard class="h-5 w-5" />
+                    </div>
+                    <div class="leading-tight">
+                        <p class="text-sm font-semibold text-white">Sistema META</p>
+                        <p class="text-[11px] text-slate-400">MINEC · El Salvador</p>
+                    </div>
+                </div>
+
+                <nav class="mt-2 flex-1 space-y-1 px-3">
+                    <template v-for="item in nav" :key="item.label">
+                        <Link
+                            v-if="item.route"
+                            :href="route(item.route)"
+                            class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition"
+                            :class="isActive(item.route)
+                                ? 'bg-brand text-white'
+                                : 'hover:bg-shell-hover hover:text-white'"
+                        >
+                            <component :is="item.icon" class="h-4 w-4" />
+                            {{ item.label }}
+                        </Link>
+                        <span
+                            v-else
+                            class="flex cursor-default items-center gap-3 rounded-lg px-3 py-2 text-sm text-slate-500"
+                            title="Disponible en próxima fase"
+                        >
+                            <component :is="item.icon" class="h-4 w-4" />
+                            {{ item.label }}
+                        </span>
+                    </template>
                 </nav>
+
+                <div class="border-t border-slate-700/60 p-3">
+                    <Link
+                        href="/logout"
+                        method="post"
+                        as="button"
+                        class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm hover:bg-shell-hover hover:text-white"
+                    >
+                        <LogOut class="h-4 w-4" /> Salir
+                    </Link>
+                </div>
             </aside>
 
-            <!-- Content -->
-            <main class="flex-1 p-6">
-                <slot />
-            </main>
+            <!-- Main -->
+            <div class="flex flex-1 flex-col">
+                <header class="flex h-16 items-center justify-between border-b border-slate-200 bg-white px-6 dark:border-slate-700 dark:bg-slate-800">
+                    <button class="rounded p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700" @click="sidebarOpen = !sidebarOpen">
+                        <Menu class="h-5 w-5" />
+                    </button>
+                    <div class="flex items-center gap-3">
+                        <div class="text-right leading-tight">
+                            <p class="text-sm font-medium">{{ (page.props.auth as any)?.user?.name ?? 'Usuario' }}</p>
+                            <p class="text-xs text-slate-500">Administrador · MINEC</p>
+                        </div>
+                        <div class="flex h-9 w-9 items-center justify-center rounded-full bg-brand font-semibold text-white">
+                            {{ ((page.props.auth as any)?.user?.name ?? 'U').slice(0, 1) }}
+                        </div>
+                    </div>
+                </header>
+
+                <main class="flex-1 p-6">
+                    <slot />
+                </main>
+            </div>
         </div>
     </div>
 </template>

@@ -8,19 +8,17 @@ use Spatie\Permission\Models\Role;
 
 class RolePermissionSeeder extends Seeder
 {
-    /**
-     * Roles base. En SED eran 6; aqui se dejan como punto de partida —
-     * ajustar a la estructura funcional real de MINEC.
-     */
+    /** Roles observados en el módulo de Configuración del prototipo. */
     public function run(): void
     {
         Artisan::call('permission:cache-reset');
 
         $roles = [
             'Administrador',
-            'Supervisor',
+            'Directivo',
+            'Gestor de Proyectos',
             'Analista',
-            'Consulta',
+            'Consultor',
         ];
 
         foreach ($roles as $role) {

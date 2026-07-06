@@ -4,6 +4,9 @@ return [
     // A.9.4.2 se cubre con SSO institucional; NO se implementa 2FA/TOTP.
     'sso_only' => true,
 
+    // Acceso temporal de demo (correo+contraseña). Apagar en producción con SSO.
+    'demo_login' => (bool) env('DEMO_LOGIN_ENABLED', false),
+
     // Historial de contrasenas (PasswordHistory)
     'password_history' => [
         'enabled' => true,
