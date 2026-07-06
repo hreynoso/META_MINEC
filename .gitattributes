@@ -1,0 +1,16 @@
+* text=auto eol=lf
+
+*.blade.php diff=html
+*.css diff=css
+*.html diff=html
+*.md diff=markdown
+*.php diff=php
+
+# Scripts que deben conservar LF siempre (se ejecutan en Linux/Docker)
+*.sh text eol=lf
+docker/s6-overlay/** text eol=lf
+
+/.github export-ignore
+.gitattributes export-ignore
+.gitignore export-ignore
+CHANGELOG.md export-ignore
