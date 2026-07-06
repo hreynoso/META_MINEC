@@ -42,7 +42,12 @@ ENV AUTORUN_ENABLED=true \
     AUTORUN_LARAVEL_QUEUE_WORKER=false \
     AUTORUN_LARAVEL_STORAGE_LINK=true \
     PHP_OPCACHE_ENABLE=1 \
-    SSL_MODE=off
+    SSL_MODE=off \
+    # Base de datos: MySQL únicamente. Se fija aquí para que el contenedor
+    # nunca caiga al default 'sqlite' del framework si falta la variable en
+    # Dokploy. Host/BD/usuario/clave se inyectan como env en Dokploy.
+    DB_CONNECTION=mysql \
+    DB_PORT=3306
 
 WORKDIR /var/www/html
 

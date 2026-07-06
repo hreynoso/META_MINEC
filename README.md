@@ -14,13 +14,13 @@ Inertia con Laravel en el backend y Vue 3 en el cliente, sin API REST separada.
 - **Frontend**: Vue 3 (`<script setup>` + Composition API), TypeScript, Vite 8,
   Tailwind 4 (config CSS-first), PrimeVue 4 (preset Aura), vue-i18n, lucide.
 - **Infra**: Docker multi-stage → runtime `serversideup/php:8.4-fpm-nginx`,
-  Horizon como servicio s6-overlay, Redis para colas, SQLite en volumen, detrás de
-  Traefik en Dokploy + Docker Swarm.
+  Horizon como servicio s6-overlay, Redis para colas, MySQL/MariaDB como base de
+  datos (recurso aparte en Dokploy), detrás de Traefik en Dokploy + Docker Swarm.
 
 ## Puesta en marcha (local)
 
 ```bash
-composer setup     # install + .env + key + sqlite + migrate + npm build
+composer setup     # install + .env + key + migrate (MySQL) + npm build
 composer dev       # server + queue + logs (pail) + vite, todo en paralelo
 ```
 
