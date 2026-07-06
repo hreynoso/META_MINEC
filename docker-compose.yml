@@ -49,7 +49,7 @@ services:
       - internal
     labels:
       - traefik.enable=true
-      - traefik.http.routers.meta-minec.rule=Host(`meta.minec.gob.sv`)
+      - traefik.http.routers.meta-minec.rule=Host(`minec.hrm.com.do`)
       - traefik.http.routers.meta-minec.entrypoints=websecure
       - traefik.http.routers.meta-minec.tls.certresolver=letsencrypt
       - traefik.http.services.meta-minec.loadbalancer.server.port=8080
