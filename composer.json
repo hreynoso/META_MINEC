@@ -1,8 +1,91 @@
-/** Datos institucionales del sistema (MINEC — El Salvador). */
-export const ORGANIZATION = {
-    name: 'Ministerio de Economía de El Salvador',
-    shortName: 'MINEC',
-    country: 'El Salvador',
-    system: 'META MINEC',
-    collaboration: 'Cooperación técnica República Dominicana → El Salvador',
-} as const;
+{
+    "name": "minpre/meta-minec",
+    "type": "project",
+    "description": "META MINEC — plataforma institucional (colaboración RD → Ministerio de Economía de El Salvador). Stack Laravel + Inertia + Vue 3.",
+    "keywords": ["laravel", "inertia", "vue", "minec", "gobierno"],
+    "license": "proprietary",
+    "require": {
+        "php": "^8.3",
+        "barryvdh/laravel-dompdf": "^3.1",
+        "inertiajs/inertia-laravel": "^2.0",
+        "laravel/framework": "^13.7",
+        "laravel/horizon": "^5.34",
+        "laravel/socialite": "^5.18",
+        "laravel/tinker": "^3.0",
+        "openspout/openspout": "^4.30",
+        "predis/predis": "^2.2",
+        "socialiteproviders/microsoft-azure": "^5.2",
+        "spatie/laravel-activitylog": "^4.11",
+        "spatie/laravel-permission": "^6.24",
+        "symfony/http-client": "^7.0",
+        "symfony/mailgun-mailer": "^7.0",
+        "tightenco/ziggy": "^2.5"
+    },
+    "require-dev": {
+        "fakerphp/faker": "^1.23",
+        "laravel/pail": "^1.2",
+        "laravel/pint": "^1.18",
+        "mockery/mockery": "^1.6",
+        "nunomaduro/collision": "^8.5",
+        "phpunit/phpunit": "^12.5"
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "app/",
+            "Database\\Factories\\": "database/factories/",
+            "Database\\Seeders\\": "database/seeders/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "post-autoload-dump": [
+            "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
+            "@php artisan package:discover --ansi"
+        ],
+        "post-update-cmd": [
+            "@php artisan vendor:publish --tag=laravel-assets --ansi --force"
+        ],
+        "post-root-package-install": [
+            "@php -r \"file_exists('.env') || copy('.env.example', '.env');\""
+        ],
+        "post-create-project-cmd": [
+            "@php artisan key:generate --ansi"
+        ],
+        "setup": [
+            "@composer install",
+            "@php -r \"file_exists('.env') || copy('.env.example', '.env');\"",
+            "@php artisan key:generate --ansi",
+            "@php -r \"file_exists('database/database.sqlite') || touch('database/database.sqlite');\"",
+            "@php artisan migrate --graceful --ansi",
+            "npm install --legacy-peer-deps",
+            "npm run build"
+        ],
+        "dev": [
+            "Composer\\Config::disableProcessTimeout",
+            "npx concurrently -c \"#93c5fd,#c4b5fd,#fdba74,#67e8f9\" \"php artisan serve\" \"php artisan queue:listen --tries=1\" \"php artisan pail --timeout=0\" \"npm run dev\" --names=server,queue,logs,vite"
+        ],
+        "test": [
+            "@php artisan config:clear --ansi",
+            "@php artisan test"
+        ]
+    },
+    "extra": {
+        "laravel": {
+            "dont-discover": []
+        }
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "preferred-install": "dist",
+        "sort-packages": true,
+        "allow-plugins": {
+            "php-http/discovery": true
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}

@@ -1,10 +1,29 @@
-<?php
+import { defineConfig } from 'vite';
+import laravel from 'laravel-vite-plugin';
+import vue from '@vitejs/plugin-vue';
+import tailwindcss from '@tailwindcss/vite';
+import path from 'path';
 
-use App\Services\Backup\DropboxBackupService;
-use Illuminate\Support\Facades\Schedule;
-
-// Backup diario 02:00 (A.12.3)
-Schedule::call(fn () => app(DropboxBackupService::class)->run())
-    ->dailyAt('02:00')
-    ->name('backup:daily')
-    ->onOneServer();
+export default defineConfig({
+    plugins: [
+        laravel({
+            input: ['resources/css/app.css', 'resources/js/app.ts'],
+            refresh: true,
+        }),
+        vue({
+            template: {
+                transformAssetUrls: {
+                    base: null,
+                    includeAbsolute: false,
+                },
+            },
+        }),
+        tailwindcss(),
+    ],
+    resolve: {
+        alias: {
+            '@': path.resolve(__dirname, 'resources/js'),
+            'ziggy-js': path.resolve(__dirname, 'vendor/tightenco/ziggy'),
+        },
+    },
+});

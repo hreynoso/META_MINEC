@@ -1,68 +1,85 @@
-import '../css/app.css';
+# NOTA: en Dokploy se despliega la app vía Dockerfile (tipo "Application").
+# Este compose es de REFERENCIA / uso local. En Dokploy, MySQL y Redis se crean
+# como servicios/recursos aparte y la app los consume por variables de entorno.
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: meta-minec:latest
+    environment:
+      APP_NAME: "Sistema META"
+      APP_ENV: production
+      APP_DEBUG: "false"
+      APP_KEY: ${APP_KEY}          # definir en Dokploy (base64:...)
+      APP_URL: ${APP_URL}
+      LOG_CHANNEL: stderr
+      # Base de datos MySQL
+      DB_CONNECTION: mysql
+      DB_HOST: mysql
+      DB_PORT: "3306"
+      DB_DATABASE: meta_minec
+      DB_USERNAME: meta_minec
+      DB_PASSWORD: ${DB_PASSWORD}
+      # Sesión y caché en archivo
+      SESSION_DRIVER: file
+      CACHE_STORE: file
+      # Colas: Redis (supervisadas por Horizon)
+      QUEUE_CONNECTION: redis
+      REDIS_CLIENT: predis
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      SSL_MODE: "off"
+      # SSO Azure AD
+      AZURE_CLIENT_ID: ${AZURE_CLIENT_ID}
+      AZURE_CLIENT_SECRET: ${AZURE_CLIENT_SECRET}
+      AZURE_TENANT_ID: ${AZURE_TENANT_ID}
+      AZURE_REDIRECT_URI: ${APP_URL}/auth/azure/callback
+      # Sembrar la BD en el arranque (solo primer deploy; luego "false")
+      AUTORUN_LARAVEL_SEED: "false"
+      # Acceso demo temporal (opcional)
+      DEMO_LOGIN_ENABLED: "false"
+    volumes:
+      - storage-data:/var/www/html/storage
+    depends_on:
+      - mysql
+      - redis
+    networks:
+      - dokploy-network
+      - internal
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.meta-minec.rule=Host(`meta.minec.gob.sv`)
+      - traefik.http.routers.meta-minec.entrypoints=websecure
+      - traefik.http.routers.meta-minec.tls.certresolver=letsencrypt
+      - traefik.http.services.meta-minec.loadbalancer.server.port=8080
 
-import { createApp, h, type DefineComponent } from 'vue';
-import { createInertiaApp } from '@inertiajs/vue3';
-import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
-import PrimeVue from 'primevue/config';
-import Aura from '@primevue/themes/aura';
-import ConfirmationService from 'primevue/confirmationservice';
-import ToastService from 'primevue/toastservice';
-import { ZiggyVue } from 'ziggy-js';
-import { i18n } from './i18n';
+  mysql:
+    image: mariadb:11
+    environment:
+      MARIADB_DATABASE: meta_minec
+      MARIADB_USER: meta_minec
+      MARIADB_PASSWORD: ${DB_PASSWORD}
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+    volumes:
+      - mysql-data:/var/lib/mysql
+    networks:
+      - internal
 
-const appName = import.meta.env.VITE_APP_NAME || 'META MINEC';
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis-data:/data
+    networks:
+      - internal
 
-createInertiaApp({
-    title: (title) => (title ? `${title} — ${appName}` : appName),
-    resolve: (name) =>
-        resolvePageComponent(
-            `./Pages/${name}.vue`,
-            import.meta.glob<DefineComponent>('./Pages/**/*.vue'),
-        ),
-    setup({ el, App, props, plugin }) {
-        const app = createApp({ render: () => h(App, props) })
-            .use(plugin)
-            .use(i18n)
-            .use(ZiggyVue)
-            .use(PrimeVue, {
-                theme: {
-                    preset: Aura,
-                    options: {
-                        darkModeSelector: '.dark',
-                    },
-                },
-            })
-            .use(ConfirmationService)
-            .use(ToastService);
+volumes:
+  storage-data:
+  mysql-data:
+  redis-data:
 
-        app.mount(el);
-    },
-    progress: {
-        color: '#0d9488',
-    },
-});
-
-/* Keep-alive: cada 15 min mientras la pestana este visible.
-   Ante 401/419 redirige a /login. */
-const KEEP_ALIVE_MS = 15 * 60 * 1000;
-
-setInterval(() => {
-    if (document.visibilityState !== 'visible') return;
-
-    const token = document
-        .querySelector('meta[name="csrf-token"]')
-        ?.getAttribute('content');
-
-    fetch('/keep-alive', {
-        method: 'POST',
-        headers: {
-            'X-CSRF-TOKEN': token ?? '',
-            'X-Requested-With': 'XMLHttpRequest',
-            Accept: 'application/json',
-        },
-    }).then((res) => {
-        if (res.status === 401 || res.status === 419) {
-            window.location.href = '/login';
-        }
-    }).catch(() => {});
-}, KEEP_ALIVE_MS);
+networks:
+  dokploy-network:
+    external: true
+  internal:

@@ -1,42 +1,36 @@
-/** Formato de moneda USD y etiquetas/colores de estado y riesgo (Sistema META). */
-
-export function currency(value: number): string {
-    return new Intl.NumberFormat('es-SV', {
-        style: 'currency', currency: 'USD', maximumFractionDigits: 0,
-    }).format(value ?? 0);
-}
-
-export function number(value: number): string {
-    return new Intl.NumberFormat('es-SV').format(value ?? 0);
-}
-
-export const STATUS_LABEL: Record<string, string> = {
-    planificado: 'Planificado',
-    en_ejecucion: 'En ejecución',
-    en_riesgo: 'En riesgo',
-    completado: 'Completado',
-};
-
-export function statusClass(status: string): string {
-    switch (status) {
-        case 'en_ejecucion': return 'bg-sky-100 text-sky-700 dark:bg-sky-900/40 dark:text-sky-300';
-        case 'completado': return 'bg-teal-100 text-teal-700 dark:bg-teal-900/40 dark:text-teal-300';
-        case 'en_riesgo': return 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300';
-        default: return 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300';
-    }
-}
-
-export function riskClass(risk: string): string {
-    switch (risk) {
-        case 'alto': return 'text-red-600';
-        case 'medio': return 'text-amber-600';
-        default: return 'text-teal-600';
-    }
-}
-
-/** Color de la barra de avance según el % (semáforo). */
-export function progressBarClass(pct: number): string {
-    if (pct >= 67) return 'bg-teal-500';
-    if (pct >= 34) return 'bg-sky-500';
-    return 'bg-amber-500';
-}
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
+         bootstrap="vendor/autoload.php"
+         colors="true"
+>
+    <testsuites>
+        <testsuite name="Unit">
+            <directory>tests/Unit</directory>
+        </testsuite>
+        <testsuite name="Feature">
+            <directory>tests/Feature</directory>
+        </testsuite>
+    </testsuites>
+    <source>
+        <include>
+            <directory>app</directory>
+        </include>
+    </source>
+    <php>
+        <env name="APP_ENV" value="testing"/>
+        <env name="APP_MAINTENANCE_DRIVER" value="file"/>
+        <env name="BCRYPT_ROUNDS" value="4"/>
+        <env name="BROADCAST_CONNECTION" value="null"/>
+        <env name="CACHE_STORE" value="array"/>
+        <env name="DB_CONNECTION" value="sqlite"/>
+        <env name="DB_DATABASE" value=":memory:"/>
+        <env name="DB_URL" value=""/>
+        <env name="MAIL_MAILER" value="array"/>
+        <env name="QUEUE_CONNECTION" value="sync"/>
+        <env name="SESSION_DRIVER" value="array"/>
+        <env name="PULSE_ENABLED" value="false"/>
+        <env name="TELESCOPE_ENABLED" value="false"/>
+        <env name="NIGHTWATCH_ENABLED" value="false"/>
+    </php>
+</phpunit>
