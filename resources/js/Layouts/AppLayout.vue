@@ -36,7 +36,7 @@ const nav = [
     { label: 'Proyectos', icon: FolderKanban, route: 'proyectos.index' },
     { label: 'KPIs', icon: Gauge, route: 'kpis.index' },
     { label: 'Reportes', icon: FileBarChart, route: 'reportes.index' },
-    { label: 'IA Predictiva', icon: Sparkles, route: null },
+    { label: 'IA Predictiva', icon: Sparkles, route: 'ia-predictiva.index' },
     { label: 'Memorias', icon: BookText, route: null },
     { label: 'Red de Gestores', icon: MessagesSquare, route: null },
     { label: 'Configuración', icon: Settings, route: 'configuracion.edit' },

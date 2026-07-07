@@ -1,0 +1,171 @@
+<script setup lang="ts">
+import { ref } from 'vue';
+import AppLayout from '@/Layouts/AppLayout.vue';
+import { Sparkles, TriangleAlert, Bot } from 'lucide-vue-next';
+
+interface Prediction {
+    id: number; code: string; name: string; institution: string; responsible: string | null;
+    physical_progress: number; financial_progress: number;
+    risk: string; risk_label: string; status: string; status_label: string;
+    score: number; expected: number | null; failing: boolean;
+    factors: string[]; recommendation: string;
+}
+
+const props = defineProps<{ ranking: Prediction[] }>();
+
+const selected = ref<Prediction | null>(props.ranking[0] ?? null);
+const recommendation = ref<string>(props.ranking[0]?.recommendation ?? '');
+const aiUsed = ref(false);
+const aiLoading = ref(false);
+const aiMessage = ref<string | null>(null);
+
+function select(p: Prediction) {
+    selected.value = p;
+    recommendation.value = p.recommendation;
+    aiUsed.value = false;
+    aiMessage.value = null;
+}
+
+function scoreClass(s: number): string {
+    if (s < 30) return 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300';
+    if (s < 60) return 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300';
+    return 'bg-teal-100 text-teal-700 dark:bg-teal-900/40 dark:text-teal-300';
+}
+
+async function generateAi() {
+    if (!selected.value) return;
+    aiLoading.value = true;
+    aiMessage.value = null;
+    try {
+        const res = await fetch(route('ia-predictiva.recommendation', selected.value.id), {
+            headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+        });
+        const data = await res.json();
+        recommendation.value = data.recommendation ?? recommendation.value;
+        aiUsed.value = Boolean(data.ai);
+        aiMessage.value = data.message ?? null;
+    } catch {
+        aiMessage.value = 'No se pudo consultar la IA. Intenta de nuevo.';
+    } finally {
+        aiLoading.value = false;
+    }
+}
+</script>
+
+<template>
+    <AppLayout>
+        <header class="mb-6">
+            <h1 class="text-2xl font-semibold">IA Predictiva</h1>
+            <p class="text-sm text-slate-500">Modelo de predicción de éxito o fracaso basado en avance físico, financiero, riesgo y estado</p>
+        </header>
+
+        <!-- Descripción del modelo -->
+        <div class="mb-6 rounded-2xl border border-sky-100 bg-sky-50/60 p-5 dark:border-sky-900/40 dark:bg-sky-900/10">
+            <p class="flex items-center gap-2 text-sm font-semibold text-brand">
+                <Sparkles class="h-4 w-4" /> MODELO META-PREDICT V1.0
+            </p>
+            <p class="mt-2 text-sm text-slate-600 dark:text-slate-300">
+                El modelo evalúa la probabilidad de éxito de cada proyecto combinando el avance físico esperado según cronograma, la eficiencia entre avance y ejecución financiera, el nivel de riesgo declarado y el estado operativo. Los resultados se actualizan automáticamente con cada reporte de avance registrado en la plataforma.
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 gap-6 lg:grid-cols-[380px_1fr]">
+            <!-- Ranking de riesgo -->
+            <section class="rounded-xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800">
+                <div class="border-b border-slate-200 px-4 py-3 dark:border-slate-700">
+                    <h2 class="text-sm font-semibold uppercase tracking-wide text-slate-500">Ranking de riesgo</h2>
+                    <p class="text-xs text-slate-400">Ordenado de menor a mayor probabilidad de éxito</p>
+                </div>
+                <div class="max-h-[70vh] overflow-y-auto">
+                    <button
+                        v-for="p in ranking" :key="p.id"
+                        class="flex w-full items-center justify-between gap-3 border-b border-slate-100 px-4 py-3 text-left transition last:border-0 dark:border-slate-700/60"
+                        :class="selected?.id === p.id ? 'bg-brand/5' : 'hover:bg-slate-50 dark:hover:bg-slate-700/40'"
+                        @click="select(p)"
+                    >
+                        <div class="min-w-0">
+                            <p class="truncate text-sm font-medium">{{ p.name }}</p>
+                            <p class="truncate text-xs text-slate-400">{{ p.institution }} · {{ p.code }}</p>
+                        </div>
+                        <span class="shrink-0 rounded px-1.5 py-0.5 text-xs font-semibold" :class="scoreClass(p.score)">{{ p.score }}%</span>
+                    </button>
+                    <p v-if="!ranking.length" class="px-4 py-8 text-center text-sm text-slate-400">No hay proyectos para evaluar.</p>
+                </div>
+            </section>
+
+            <!-- Detalle del proyecto seleccionado -->
+            <section v-if="selected" class="rounded-xl border border-slate-200 bg-white p-6 dark:border-slate-700 dark:bg-slate-800">
+                <div class="flex items-start justify-between gap-3">
+                    <div>
+                        <p class="font-mono text-xs text-slate-400">{{ selected.code }}</p>
+                        <h2 class="mt-1 text-xl font-semibold">{{ selected.name }}</h2>
+                        <p class="mt-0.5 text-sm text-slate-500">{{ selected.institution }}<span v-if="selected.responsible"> · {{ selected.responsible }}</span></p>
+                    </div>
+                    <span v-if="selected.failing" class="inline-flex items-center gap-1 rounded-full border border-red-300 px-2 py-0.5 text-xs text-red-700 dark:border-red-800 dark:text-red-400">
+                        <TriangleAlert class="h-3.5 w-3.5" /> Riesgo de fracaso
+                    </span>
+                </div>
+
+                <!-- Probabilidad de éxito -->
+                <p class="mt-5 text-xs uppercase tracking-wide text-slate-400">Probabilidad de éxito</p>
+                <div class="mt-1 flex items-center gap-4">
+                    <p class="text-3xl font-bold">{{ selected.score }}<span class="text-lg font-normal text-slate-400">%</span></p>
+                    <div class="flex-1">
+                        <div class="relative h-2.5 w-full rounded-full bg-slate-100 dark:bg-slate-700">
+                            <div class="h-2.5 rounded-full" :style="{ width: Math.max(selected.score, 2) + '%', background: 'linear-gradient(to right, #ef4444, #f59e0b, #10b981)' }" />
+                        </div>
+                        <div class="mt-1 flex justify-between text-[10px] text-slate-400">
+                            <span>0%</span><span>50%</span><span>100%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Métricas -->
+                <div class="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
+                    <div class="rounded-lg border border-slate-200 p-3 dark:border-slate-700">
+                        <p class="text-xs uppercase tracking-wide text-slate-400">Avance físico</p>
+                        <p class="mt-1 text-lg font-semibold">{{ selected.physical_progress }}%</p>
+                    </div>
+                    <div class="rounded-lg border border-slate-200 p-3 dark:border-slate-700">
+                        <p class="text-xs uppercase tracking-wide text-slate-400">Ejecución fin.</p>
+                        <p class="mt-1 text-lg font-semibold">{{ selected.financial_progress }}%</p>
+                    </div>
+                    <div class="rounded-lg border border-slate-200 p-3 dark:border-slate-700">
+                        <p class="text-xs uppercase tracking-wide text-slate-400">Riesgo</p>
+                        <p class="mt-1 text-lg font-semibold">{{ selected.risk_label }}</p>
+                    </div>
+                    <div class="rounded-lg border border-slate-200 p-3 dark:border-slate-700">
+                        <p class="text-xs uppercase tracking-wide text-slate-400">Estado</p>
+                        <p class="mt-1 text-lg font-semibold">{{ selected.status_label }}</p>
+                    </div>
+                </div>
+
+                <!-- Factores considerados -->
+                <p class="mt-6 text-xs uppercase tracking-wide text-slate-400">Factores considerados</p>
+                <ul class="mt-2 space-y-2">
+                    <li v-for="(f, i) in selected.factors" :key="i" class="flex items-center gap-2 rounded-lg bg-slate-50 px-3 py-2 text-sm dark:bg-slate-900/50">
+                        <span class="h-1.5 w-1.5 rounded-full bg-brand" /> {{ f }}
+                    </li>
+                </ul>
+
+                <!-- Recomendación del modelo (enriquecible con IA) -->
+                <div class="mt-6 rounded-lg border border-sky-100 bg-sky-50/60 p-4 dark:border-sky-900/40 dark:bg-sky-900/10">
+                    <div class="flex items-center justify-between gap-2">
+                        <p class="text-xs font-semibold uppercase tracking-wide text-brand">
+                            {{ aiUsed ? 'Recomendación de la IA' : 'Recomendación del modelo' }}
+                        </p>
+                        <button
+                            class="inline-flex items-center gap-1.5 rounded-lg border border-brand px-2.5 py-1 text-xs font-medium text-brand transition hover:bg-brand hover:text-white disabled:opacity-50"
+                            :disabled="aiLoading"
+                            @click="generateAi"
+                        >
+                            <Bot class="h-3.5 w-3.5" /> {{ aiLoading ? 'Consultando…' : 'Generar con IA' }}
+                        </button>
+                    </div>
+                    <p class="mt-2 text-sm text-slate-700 dark:text-slate-200">{{ recommendation }}</p>
+                    <p v-if="aiMessage" class="mt-2 text-xs text-amber-600">{{ aiMessage }}</p>
+                </div>
+            </section>
+        </div>
+    </AppLayout>
+</template>

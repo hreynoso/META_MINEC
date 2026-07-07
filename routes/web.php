@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\BrandingController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\KpiController;
 use App\Http\Controllers\MinisterController;
+use App\Http\Controllers\PredictiveController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SessionController;
@@ -29,6 +30,10 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/kpis', [KpiController::class, 'store'])->name('kpis.store');
     Route::put('/kpis/{kpi}', [KpiController::class, 'update'])->name('kpis.update');
     Route::delete('/kpis/{kpi}', [KpiController::class, 'destroy'])->name('kpis.destroy');
+
+    // IA Predictiva (modelo META-PREDICT + recomendación vía API de IA configurado)
+    Route::get('/ia-predictiva', [PredictiveController::class, 'index'])->name('ia-predictiva.index');
+    Route::get('/ia-predictiva/{project}/recomendacion', [PredictiveController::class, 'recommendation'])->name('ia-predictiva.recommendation');
 
     // Reportes institucionales (PDF vía DomPDF, XLSX vía OpenSpout)
     Route::get('/reportes', [ReportController::class, 'index'])->name('reportes.index');

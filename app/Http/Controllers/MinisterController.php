@@ -6,6 +6,7 @@ use App\Models\Institution;
 use App\Models\Kpi;
 use App\Models\Project;
 use App\Services\Ai\AiReportService;
+use App\Services\PredictionService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -14,6 +15,8 @@ use Throwable;
 
 class MinisterController extends Controller
 {
+    public function __construct(private readonly PredictionService $pred) {}
+
     private const STATUS_LABEL = [
         'planificado' => 'Planificado',
         'en_ejecucion' => 'En ejecución',
@@ -113,18 +116,6 @@ class MinisterController extends Controller
             ->all();
     }
 
-    /** Probabilidad de éxito heurística (0–100) de un proyecto. */
-    private function successScore(Project $p): int
-    {
-        if ($p->status === 'completado') {
-            return 100;
-        }
-
-        $factor = ['bajo' => 1.0, 'medio' => 0.7, 'alto' => 0.35][$p->risk_level] ?? 0.7;
-
-        return (int) round($p->physical_progress * $factor);
-    }
-
     /** Proyectos con riesgo de fracaso, ordenados del más crítico al menos. */
     private function alerts(): array
     {
@@ -135,7 +126,7 @@ class MinisterController extends Controller
                 'institution' => $p->institution?->short_name ?? '',
                 'physical_progress' => $p->physical_progress,
                 'risk' => self::RISK_LABEL[$p->risk_level] ?? $p->risk_level,
-                'success' => $this->successScore($p),
+                'success' => $this->pred->score($p),
             ])
             ->filter(fn (array $a) => $a['success'] < 60)
             ->sortBy('success')
@@ -151,7 +142,7 @@ class MinisterController extends Controller
             ->map(fn (Project $p) => [
                 'name' => $p->name,
                 'responsible' => $p->responsible,
-                'success' => $this->successScore($p),
+                'success' => $this->pred->score($p),
             ])
             ->filter(fn (array $r) => $r['success'] < 40)
             ->sortBy('success')
