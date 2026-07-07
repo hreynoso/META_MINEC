@@ -32,7 +32,7 @@ const nav = [
     { label: 'Dashboard', icon: LayoutDashboard, route: 'dashboard' },
     { label: 'Ministra', icon: Crown, route: null },
     { label: 'Proyectos', icon: FolderKanban, route: 'proyectos.index' },
-    { label: 'KPIs', icon: Gauge, route: null },
+    { label: 'KPIs', icon: Gauge, route: 'kpis.index' },
     { label: 'Reportes', icon: FileBarChart, route: null },
     { label: 'IA Predictiva', icon: Sparkles, route: null },
     { label: 'Memorias', icon: BookText, route: null },
