@@ -9,6 +9,6 @@ export const HELP_ARTICLES: HelpArticle[] = [
     {
         slug: 'inicio-sesion',
         title: '¿Cómo inicio sesión?',
-        body: 'El acceso es exclusivamente con su cuenta institucional de Office 365. Pulse "Iniciar sesión con Office 365".',
+        body: 'El acceso es exclusivamente con su cuenta institucional de Google Workspace. Pulse "Iniciar sesión con Google Workspace".',
     },
 ];

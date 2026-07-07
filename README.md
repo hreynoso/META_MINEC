@@ -9,7 +9,7 @@ Inertia con Laravel en el backend y Vue 3 en el cliente, sin API REST separada.
 ## Stack
 
 - **Backend**: PHP 8.3+, Laravel 13, Inertia (adapter Laravel), Horizon, Socialite
-  (SSO Azure AD), spatie/permission, spatie/activitylog, DomPDF, OpenSpout, Predis,
+  (SSO Google Workspace), spatie/permission, spatie/activitylog, DomPDF, OpenSpout, Predis,
   Mailgun, Ziggy.
 - **Frontend**: Vue 3 (`<script setup>` + Composition API), TypeScript, Vite 8,
   Tailwind 4 (config CSS-first), PrimeVue 4 (preset Aura), vue-i18n, lucide.
@@ -39,9 +39,10 @@ composer test
 
 ## SSO
 
-El acceso es solo con cuenta institucional Office 365 / Azure AD. **No hay 2FA**:
+El acceso es solo con cuenta institucional de Google Workspace. **No hay 2FA**:
 el control A.9.4.2 de ISO 27001 se cubre con el SSO. Configurar las variables
-`AZURE_*` en el `.env`.
+`GOOGLE_*` en el `.env` (incluido `GOOGLE_HOSTED_DOMAIN` para restringir el acceso
+al dominio de la organización).
 
 ## Convenciones de UI (obligatorias)
 
@@ -60,7 +61,7 @@ app/Http/Middleware/   SecurityHeaders, EnsureUserIsNotBlocked, EnforceSystemLoc
 app/Services/          Backup/ (Dropbox), Auth/, Erp/
 app/Support/           TokenSearch (espejo backend del buscador por tokens)
 resources/js/          app.ts, i18n.ts, Pages/, Layouts/, Components/, Composables/, Constants/, data/, locales/
-config/                branding, security, anthropic, erp, services (Azure/Mailgun), horizon
+config/                branding, security, anthropic, erp, services (Google/Mailgun), horizon
 docker/                s6-overlay → servicio Horizon
 ```
 

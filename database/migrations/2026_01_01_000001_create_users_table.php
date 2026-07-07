@@ -13,7 +13,7 @@ return new class extends Migration
                 $table->id();
                 $table->string('name');
                 $table->string('email')->unique();
-                $table->string('azure_id')->nullable()->index();
+                $table->string('google_id')->nullable()->index();
                 $table->timestamp('email_verified_at')->nullable();
                 $table->string('password')->nullable();
                 $table->timestamp('blocked_at')->nullable();

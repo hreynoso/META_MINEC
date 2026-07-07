@@ -18,7 +18,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'azure_id',
+        'google_id',
         'blocked_at',
         'institution_id',
         'last_seen_at',

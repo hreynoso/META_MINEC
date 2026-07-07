@@ -25,6 +25,6 @@
         "delete": "Eliminar"
     },
     "auth": {
-        "login_with_office": "Iniciar sesión con Office 365"
+        "login_with_office": "Iniciar sesión con Google Workspace"
     }
 }

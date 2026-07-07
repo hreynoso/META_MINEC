@@ -9,27 +9,44 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Laravel\Socialite\Facades\Socialite;
 
-class AzureController extends Controller
+class GoogleController extends Controller
 {
     public function redirect(): RedirectResponse
     {
-        return Socialite::driver('azure')->redirect();
+        $driver = Socialite::driver('google');
+
+        // Restringe el selector de cuentas al dominio de Google Workspace.
+        if ($domain = config('services.google.hosted_domain')) {
+            $driver->with(['hd' => $domain]);
+        }
+
+        return $driver->redirect();
     }
 
     public function callback(): RedirectResponse
     {
         try {
-            $azureUser = Socialite::driver('azure')->user();
+            $googleUser = Socialite::driver('google')->user();
         } catch (\Throwable $e) {
             return redirect()->route('login')
-                ->with('error', 'No fue posible autenticar con Office 365.');
+                ->with('error', 'No fue posible autenticar con Google Workspace.');
+        }
+
+        $email = $googleUser->getEmail();
+
+        // Verificación de dominio del lado del servidor (el parámetro hd no es una
+        // garantía por sí solo): solo se permite el dominio de la organización.
+        $domain = config('services.google.hosted_domain');
+        if ($domain && ! Str::endsWith(Str::lower((string) $email), '@'.Str::lower($domain))) {
+            return redirect()->route('login')
+                ->with('error', 'Solo se permite el acceso con cuentas de '.$domain.'.');
         }
 
         $user = User::updateOrCreate(
-            ['email' => $azureUser->getEmail()],
+            ['email' => $email],
             [
-                'name' => $azureUser->getName() ?: $azureUser->getNickname(),
-                'azure_id' => $azureUser->getId(),
+                'name' => $googleUser->getName() ?: $googleUser->getNickname(),
+                'google_id' => $googleUser->getId(),
             ],
         );
 

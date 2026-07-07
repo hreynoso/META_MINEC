@@ -30,11 +30,11 @@ services:
       REDIS_HOST: redis
       REDIS_PORT: "6379"
       SSL_MODE: "off"
-      # SSO Azure AD
-      AZURE_CLIENT_ID: ${AZURE_CLIENT_ID}
-      AZURE_CLIENT_SECRET: ${AZURE_CLIENT_SECRET}
-      AZURE_TENANT_ID: ${AZURE_TENANT_ID}
-      AZURE_REDIRECT_URI: ${APP_URL}/auth/azure/callback
+      # SSO Google Workspace
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      GOOGLE_REDIRECT_URI: ${APP_URL}/auth/google/callback
+      GOOGLE_HOSTED_DOMAIN: ${GOOGLE_HOSTED_DOMAIN}
       # Sembrar la BD en el arranque (solo primer deploy; luego "false")
       AUTORUN_LARAVEL_SEED: "false"
       # Acceso demo temporal (opcional)

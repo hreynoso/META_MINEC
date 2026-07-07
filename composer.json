@@ -14,7 +14,6 @@
         "laravel/tinker": "^3.0",
         "openspout/openspout": "^4.30",
         "predis/predis": "^2.2",
-        "socialiteproviders/microsoft-azure": "^5.2",
         "spatie/laravel-activitylog": "^4.11",
         "spatie/laravel-permission": "^6.24",
         "symfony/http-client": "^7.0",
