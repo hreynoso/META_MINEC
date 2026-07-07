@@ -50,7 +50,7 @@ class UserController extends Controller
                 $u->blocked_at !== null ? 'Bloqueado' : 'Activo',
             ])->all();
 
-        return SheetExport::stream('usuarios', ['Nombre', 'Correo', 'Institución', 'Roles', 'Estado'], $rows);
+        return SheetExport::stream('usuarios', ['Nombres y Apellidos', 'Correo', 'Institución', 'Roles', 'Estado'], $rows);
     }
 
     public function store(Request $request): RedirectResponse

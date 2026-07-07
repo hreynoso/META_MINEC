@@ -24,7 +24,7 @@ const pageSize = ref(25);
 const fRole = ref('');
 const fStatus = ref('');
 const columns = ref<GridColumn[]>([
-    { key: 'name', label: 'Nombre', visible: true },
+    { key: 'name', label: 'Nombres y Apellidos', visible: true },
     { key: 'email', label: 'Correo', visible: true },
     { key: 'institution', label: 'Institución', visible: true },
     { key: 'roles', label: 'Roles', visible: true },
@@ -139,7 +139,7 @@ function confirmDelete(u: User) {
                 <table class="w-full text-sm">
                     <thead class="border-b border-slate-200 text-left text-xs uppercase tracking-wide text-slate-400 dark:border-slate-700">
                         <tr>
-                            <th v-if="vis('name')" class="px-4 py-3 font-medium">Nombre</th>
+                            <th v-if="vis('name')" class="px-4 py-3 font-medium">Nombres y Apellidos</th>
                             <th v-if="vis('email')" class="px-4 py-3 font-medium">Correo</th>
                             <th v-if="vis('institution')" class="px-4 py-3 font-medium">Institución</th>
                             <th v-if="vis('roles')" class="px-4 py-3 font-medium">Roles</th>
