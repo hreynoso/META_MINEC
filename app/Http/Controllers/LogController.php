@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\SheetExport;
 use Inertia\Inertia;
 use Inertia\Response;
 use Spatie\Activitylog\Models\Activity;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class LogController extends Controller
 {
@@ -41,6 +43,20 @@ class LogController extends Controller
             ]);
 
         return Inertia::render('Logs/Index', ['logs' => $logs]);
+    }
+
+    public function export(): StreamedResponse
+    {
+        $rows = Activity::with('causer')->latest()->limit(2000)->get()
+            ->map(fn (Activity $a) => [
+                $a->created_at?->format('d/m/Y h:i A'),
+                $a->causer?->name ?? 'Sistema',
+                self::EVENT[$a->event] ?? ($a->description ?: '—'),
+                $this->section($a->subject_type),
+                $this->detail($a),
+            ])->all();
+
+        return SheetExport::stream('logs-sistema', ['Fecha y hora', 'Usuario', 'Acción', 'Sección', 'Detalle'], $rows);
     }
 
     private function section(?string $type): string

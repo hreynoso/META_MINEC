@@ -7,6 +7,9 @@
         * { font-family: 'DejaVu Sans', sans-serif; }
         body { color: #1e293b; font-size: 11px; margin: 24px; }
         .header { border-bottom: 2px solid #0d9488; padding-bottom: 8px; margin-bottom: 14px; }
+        .header table { width: 100%; border-collapse: collapse; margin: 0; }
+        .header td { border: 0; padding: 0; vertical-align: middle; }
+        .logo { height: 48px; }
         .brand { color: #0d9488; font-weight: bold; font-size: 12px; letter-spacing: .5px; }
         h1 { font-size: 16px; margin: 4px 0 2px; }
         .subtitle { color: #64748b; font-size: 11px; }
@@ -20,10 +23,21 @@
 </head>
 <body>
     <div class="header">
-        <div class="brand">MINEC · Sistema META</div>
-        <h1>{{ $title }}</h1>
-        <div class="subtitle">{{ $subtitle }}</div>
-        <div class="meta">Generado el {{ $generated_at }}</div>
+        <table>
+            <tr>
+                <td>
+                    <div class="brand">{{ $institution ?? 'MINEC' }} · Sistema META</div>
+                    <h1>{{ $title }}</h1>
+                    <div class="subtitle">{{ $subtitle }}</div>
+                    <div class="meta">Generado el {{ $generated_at }}</div>
+                </td>
+                @if (!empty($logo))
+                    <td style="text-align: right; width: 180px;">
+                        <img src="{{ $logo }}" class="logo" alt="Logo institucional">
+                    </td>
+                @endif
+            </tr>
+        </table>
     </div>
 
     <table>

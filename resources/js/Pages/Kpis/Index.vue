@@ -7,7 +7,6 @@ import { number } from '@/Composables/useProjectFormat';
 import { TREND_LABEL, trendClass, achievementBarClass } from '@/Composables/useKpiFormat';
 import { useConfirm } from '@/Composables/useConfirm';
 import { matchesAllTokens } from '@/Composables/useTokenSearch';
-import { downloadCsv } from '@/Composables/useCsvExport';
 import GridToolbar, { type GridColumn } from '@/Components/GridToolbar.vue';
 import KpiFormModal from '@/Components/KpiFormModal.vue';
 
@@ -42,14 +41,6 @@ const filtered = computed(() =>
     }),
 );
 const visibleRows = computed(() => filtered.value.slice(0, pageSize.value));
-
-function exportCsv() {
-    downloadCsv(
-        'kpis',
-        ['Indicador', 'Clave', 'Valor', 'Unidad', 'Meta', 'Logro', 'Tendencia', 'Estratégico'],
-        filtered.value.map((k) => [k.label, k.key, k.value, k.unit ?? '', k.target, `${k.achievement}%`, TREND_LABEL[k.trend] ?? k.trend, k.strategic ? 'Sí' : 'No']),
-    );
-}
 
 const formOpen = ref(false);
 const editing = ref<Kpi | null>(null);
@@ -125,7 +116,7 @@ function confirmDelete(k: Kpi) {
                 v-model:columns="columns"
                 :total="filtered.length"
                 search-placeholder="Buscar por indicador, clave o unidad…"
-                @export="exportCsv"
+                :export-url="route('kpis.export')"
             >
                 <template #filters>
                     <div>

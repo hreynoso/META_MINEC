@@ -4,7 +4,6 @@ import AppLayout from '@/Layouts/AppLayout.vue';
 import { FileText, Download, Eye } from 'lucide-vue-next';
 import { currency, number } from '@/Composables/useProjectFormat';
 import { matchesAllTokens } from '@/Composables/useTokenSearch';
-import { downloadCsv } from '@/Composables/useCsvExport';
 import GridToolbar, { type GridColumn } from '@/Components/GridToolbar.vue';
 
 interface InstitutionRow {
@@ -33,14 +32,6 @@ const filtered = computed(() =>
     props.byInstitution.filter((i) => !search.value.trim() || matchesAllTokens(`${i.short_name} ${i.name} ${i.code}`, search.value)),
 );
 const visibleRows = computed(() => filtered.value.slice(0, pageSize.value));
-
-function exportCsv() {
-    downloadCsv(
-        'ejecucion-por-institucion',
-        ['Institución', 'Proyectos', 'Presupuesto', 'Ejecutado', '%'],
-        filtered.value.map((i) => [`${i.short_name} — ${i.name}`, i.projects_count, i.budget, i.executed, `${i.pct}%`]),
-    );
-}
 </script>
 
 <template>
@@ -116,7 +107,7 @@ function exportCsv() {
                 v-model:columns="columns"
                 :total="filtered.length"
                 search-placeholder="Buscar institución…"
-                @export="exportCsv"
+                :export-url="route('reportes.institution-export')"
             />
             <div class="overflow-x-auto">
                 <table class="w-full text-sm">

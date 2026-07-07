@@ -11,6 +11,7 @@ const props = withDefaults(defineProps<{
     searchPlaceholder?: string;
     columns?: GridColumn[];
     pageSizes?: number[];
+    exportUrl?: string;
 }>(), {
     searchPlaceholder: 'Buscar…',
     pageSizes: () => [10, 25, 50, 100],
@@ -51,8 +52,11 @@ function toggleColumn(key: string) {
                 </div>
             </div>
 
-            <!-- XLSX -->
-            <button class="inline-flex items-center gap-1.5 rounded-lg bg-brand px-2.5 py-1.5 text-sm font-medium text-white hover:opacity-90" type="button" @click="emit('export')">
+            <!-- XLSX (descarga nativa server-side si hay exportUrl) -->
+            <a v-if="exportUrl" :href="exportUrl" class="inline-flex items-center gap-1.5 rounded-lg bg-brand px-2.5 py-1.5 text-sm font-medium text-white hover:opacity-90">
+                <FileSpreadsheet class="h-4 w-4" /> XLSX
+            </a>
+            <button v-else class="inline-flex items-center gap-1.5 rounded-lg bg-brand px-2.5 py-1.5 text-sm font-medium text-white hover:opacity-90" type="button" @click="emit('export')">
                 <FileSpreadsheet class="h-4 w-4" /> XLSX
             </button>
 
@@ -75,7 +79,7 @@ function toggleColumn(key: string) {
                 <button v-if="hasFilters" class="tbtn" type="button" @click="showFilters = !showFilters">
                     <Filter class="h-4 w-4" /> Filtros
                 </button>
-                <div class="flex items-center gap-2 rounded-lg border border-slate-300 px-2 dark:border-slate-600">
+                <div class="flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-2 dark:border-slate-600 dark:bg-slate-900">
                     <Search class="h-4 w-4 opacity-50" />
                     <input
                         :value="search" type="text" :placeholder="searchPlaceholder"

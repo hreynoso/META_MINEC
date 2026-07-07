@@ -4,7 +4,6 @@ import { useForm, router } from '@inertiajs/vue3';
 import ConfigLayout from '@/Components/ConfigLayout.vue';
 import { useConfirm } from '@/Composables/useConfirm';
 import { matchesAllTokens } from '@/Composables/useTokenSearch';
-import { downloadCsv } from '@/Composables/useCsvExport';
 import GridToolbar, { type GridColumn } from '@/Components/GridToolbar.vue';
 import { Plus, Pencil, Trash2, X, Save, ShieldCheck } from 'lucide-vue-next';
 
@@ -43,14 +42,6 @@ const filtered = computed(() =>
     }),
 );
 const visibleRows = computed(() => filtered.value.slice(0, pageSize.value));
-
-function exportCsv() {
-    downloadCsv(
-        'usuarios',
-        ['Nombre', 'Correo', 'Institución', 'Roles', 'Estado'],
-        filtered.value.map((u) => [u.name, u.email, u.institution ?? '', u.roles.join(', '), u.blocked ? 'Bloqueado' : 'Activo']),
-    );
-}
 
 const { ask } = useConfirm();
 const open = ref(false);
@@ -123,7 +114,7 @@ function confirmDelete(u: User) {
                 v-model:columns="columns"
                 :total="filtered.length"
                 search-placeholder="Buscar por nombre, correo, institución o rol…"
-                @export="exportCsv"
+                :export-url="route('configuracion.usuarios.export')"
             >
                 <template #filters>
                     <div>

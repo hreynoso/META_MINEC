@@ -6,7 +6,7 @@ import { useToast } from 'primevue/usetoast';
 import ConfirmDialog from '@/Components/ConfirmDialog.vue';
 import {
     LayoutDashboard, Crown, FolderKanban, Gauge, FileBarChart,
-    Sparkles, BookText, MessagesSquare, Settings, LogOut, Menu, ScrollText,
+    Sparkles, BookText, MessagesSquare, Settings, LogOut, ChevronLeft, ChevronRight, ScrollText,
 } from 'lucide-vue-next';
 
 const page = usePage();
@@ -63,8 +63,16 @@ function isActive(name: string | null): boolean {
             <!-- Sidebar fijo: no se desplaza con el scroll del contenido -->
             <aside
                 v-if="sidebarOpen"
-                class="flex h-screen w-64 shrink-0 flex-col overflow-y-auto bg-shell text-slate-300"
+                class="relative flex h-screen w-64 shrink-0 flex-col overflow-y-auto bg-shell text-slate-300"
             >
+                <!-- Botón circular de colapso (estilo SED), sobre el borde derecho -->
+                <button
+                    class="absolute -right-3 top-5 z-10 flex h-6 w-6 items-center justify-center rounded-full border border-slate-300 bg-white text-slate-500 shadow transition hover:text-brand dark:border-slate-600 dark:bg-slate-800"
+                    title="Ocultar menú"
+                    @click="sidebarOpen = false"
+                >
+                    <ChevronLeft class="h-4 w-4" />
+                </button>
                 <!-- Logo institucional a todo el ancho del sidebar -->
                 <div v-if="logoSidebar" class="px-3 py-4">
                     <img
@@ -122,9 +130,17 @@ function isActive(name: string | null): boolean {
             <!-- Main -->
             <div class="flex flex-1 flex-col overflow-hidden">
                 <header class="flex h-16 shrink-0 items-center justify-between border-b border-slate-200 bg-white px-6 dark:border-slate-700 dark:bg-slate-800">
-                    <button class="rounded p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700" @click="sidebarOpen = !sidebarOpen">
-                        <Menu class="h-5 w-5" />
-                    </button>
+                    <div class="flex items-center gap-3">
+                        <button
+                            v-if="!sidebarOpen"
+                            class="flex h-8 w-8 items-center justify-center rounded-full border border-slate-300 bg-white text-slate-600 shadow-sm transition hover:text-brand dark:border-slate-600 dark:bg-slate-800"
+                            title="Mostrar menú"
+                            @click="sidebarOpen = true"
+                        >
+                            <ChevronRight class="h-4 w-4" />
+                        </button>
+                        <p class="text-lg font-bold tracking-tight text-slate-800 dark:text-slate-100">Sistema META</p>
+                    </div>
                     <div class="flex items-center gap-3">
                         <div class="text-right leading-tight">
                             <p class="text-sm font-medium">{{ (page.props.auth as any)?.user?.name ?? 'Usuario' }}</p>

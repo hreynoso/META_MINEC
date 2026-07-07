@@ -7,7 +7,9 @@ use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\KpiController;
+use App\Http\Controllers\Admin\MailSettingsController;
 use App\Http\Controllers\LogController;
+use App\Http\Controllers\MailWebhookController;
 use App\Http\Controllers\MemoirController;
 use App\Http\Controllers\MinisterController;
 use App\Http\Controllers\NetworkController;
@@ -32,6 +34,7 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/proyectos/{project}', [ProjectController::class, 'destroy'])->name('proyectos.destroy');
 
     // Indicadores de gestión (KPIs)
+    Route::get('/kpis/export', [KpiController::class, 'export'])->name('kpis.export');
     Route::get('/kpis', [KpiController::class, 'index'])->name('kpis.index');
     Route::post('/kpis', [KpiController::class, 'store'])->name('kpis.store');
     Route::put('/kpis/{kpi}', [KpiController::class, 'update'])->name('kpis.update');
@@ -53,10 +56,12 @@ Route::middleware(['auth'])->group(function () {
 
     // Reportes institucionales (PDF vía DomPDF, XLSX vía OpenSpout)
     Route::get('/reportes', [ReportController::class, 'index'])->name('reportes.index');
+    Route::get('/reportes/ejecucion-instituciones/export', [ReportController::class, 'institutionExport'])->name('reportes.institution-export');
     Route::get('/reportes/{report}/vista-previa', [ReportController::class, 'preview'])->name('reportes.preview');
     Route::get('/reportes/{report}/descargar', [ReportController::class, 'download'])->name('reportes.download');
 
     // Logs del Sistema (bitácora de actividad)
+    Route::get('/logs/export', [LogController::class, 'export'])->name('logs.export');
     Route::get('/logs', [LogController::class, 'index'])->name('logs.index');
 
     // Configuración → Branding (logos, imágenes y colores del sistema)
@@ -65,6 +70,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/configuracion/branding/colores', [BrandingController::class, 'updateColors'])->name('configuracion.branding.colors');
 
     // Configuración → Usuarios
+    Route::get('/configuracion/usuarios/export', [UserController::class, 'export'])->name('configuracion.usuarios.export');
     Route::get('/configuracion/usuarios', [UserController::class, 'index'])->name('configuracion.usuarios.index');
     Route::post('/configuracion/usuarios', [UserController::class, 'store'])->name('configuracion.usuarios.store');
     Route::put('/configuracion/usuarios/{user}', [UserController::class, 'update'])->name('configuracion.usuarios.update');
@@ -75,6 +81,11 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/configuracion/roles', [RoleController::class, 'store'])->name('configuracion.roles.store');
     Route::put('/configuracion/roles/{role}', [RoleController::class, 'update'])->name('configuracion.roles.update');
     Route::delete('/configuracion/roles/{role}', [RoleController::class, 'destroy'])->name('configuracion.roles.destroy');
+
+    // Configuración → Correo (proveedor Mailgun/SMTP + envío de prueba)
+    Route::get('/configuracion/correo', [MailSettingsController::class, 'edit'])->name('configuracion.correo.edit');
+    Route::post('/configuracion/correo', [MailSettingsController::class, 'update'])->name('configuracion.correo.update');
+    Route::post('/configuracion/correo/prueba', [MailSettingsController::class, 'test'])->name('configuracion.correo.test');
 
     // Configuración → Notificaciones
     Route::get('/configuracion/notificaciones', [NotificationSettingsController::class, 'edit'])->name('configuracion.notificaciones.edit');
@@ -87,3 +98,6 @@ Route::middleware(['auth'])->group(function () {
     // Keep-alive de sesion (cada 15 min desde el cliente)
     Route::post('/keep-alive', [SessionController::class, 'keepAlive'])->name('keep-alive');
 });
+
+// Webhook público de Mailgun (sin auth ni CSRF; excluido en bootstrap/app.php).
+Route::post('/webhooks/mailgun', [MailWebhookController::class, 'mailgun'])->name('webhooks.mailgun');

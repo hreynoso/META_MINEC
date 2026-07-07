@@ -5,8 +5,10 @@ namespace App\Http\Controllers;
 use App\Models\Institution;
 use App\Models\Kpi;
 use App\Models\Project;
+use App\Support\Branding;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Response as HttpResponse;
+use Illuminate\Support\Facades\Storage;
 use OpenSpout\Common\Entity\Row;
 use OpenSpout\Writer\XLSX\Writer;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -86,6 +88,24 @@ class ReportController extends Controller
         return $this->xlsx($report, $data);
     }
 
+    /** Exporta la tabla "Ejecución por institución" a XLSX. */
+    public function institutionExport(): StreamedResponse
+    {
+        $rows = collect($this->institutionExecution())->map(fn (array $i) => [
+            $i['short_name'].' — '.$i['name'],
+            $i['projects_count'],
+            $i['budget'],
+            $i['executed'],
+            $i['pct'].'%',
+        ])->all();
+
+        return \App\Support\SheetExport::stream(
+            'ejecucion-por-institucion',
+            ['Institución', 'Proyectos', 'Presupuesto', 'Ejecutado', '%'],
+            $rows,
+        );
+    }
+
     /** Definición del reporte o 404 si no existe. */
     private function find(string $report): array
     {
@@ -137,9 +157,25 @@ class ReportController extends Controller
             'title' => $def['title'],
             'subtitle' => $def['description'],
             'generated_at' => now()->format('d/m/Y H:i'),
+            'logo' => $this->logoDataUri(),
+            'institution' => config('branding.institution'),
             'columns' => $body['columns'],
             'rows' => $body['rows'],
         ];
+    }
+
+    /** Logo del login como data URI (para incrustarlo en el PDF). Null si no hay. */
+    private function logoDataUri(): ?string
+    {
+        $path = Branding::path('logo_login');
+
+        if (! $path || ! Storage::disk('public')->exists($path)) {
+            return null;
+        }
+
+        $mime = Storage::disk('public')->mimeType($path) ?: 'image/png';
+
+        return 'data:'.$mime.';base64,'.base64_encode(Storage::disk('public')->get($path));
     }
 
     private function money(float|int|null $v): string
@@ -259,6 +295,13 @@ class ReportController extends Controller
         return response()->streamDownload(function () use ($data) {
             $writer = new Writer();
             $writer->openToFile('php://output');
+
+            // Encabezado institucional (OpenSpout no incrusta imágenes; va como texto).
+            $writer->addRow(Row::fromValues([(string) config('branding.institution').' · Sistema META']));
+            $writer->addRow(Row::fromValues([$data['title']]));
+            $writer->addRow(Row::fromValues(['Generado el '.$data['generated_at']]));
+            $writer->addRow(Row::fromValues([]));
+
             $writer->addRow(Row::fromValues($data['columns']));
 
             foreach ($data['rows'] as $row) {

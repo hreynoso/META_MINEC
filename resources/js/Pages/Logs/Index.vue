@@ -3,7 +3,6 @@ import { ref, computed } from 'vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { ScrollText } from 'lucide-vue-next';
 import { matchesAllTokens } from '@/Composables/useTokenSearch';
-import { downloadCsv } from '@/Composables/useCsvExport';
 import GridToolbar, { type GridColumn } from '@/Components/GridToolbar.vue';
 
 interface LogEntry { id: number; datetime: string | null; user: string; action: string; section: string; detail: string }
@@ -42,14 +41,6 @@ const actionClass = (a: string) => ({
     'Actualización': 'bg-sky-100 text-sky-700 dark:bg-sky-900/40 dark:text-sky-300',
     'Eliminación': 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300',
 }[a] ?? 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300');
-
-function exportCsv() {
-    downloadCsv(
-        'logs-sistema',
-        columns.value.filter((c) => c.visible).map((c) => c.label),
-        filtered.value.map((l) => columns.value.filter((c) => c.visible).map((c) => (l as any)[c.key])),
-    );
-}
 </script>
 
 <template>
@@ -66,7 +57,7 @@ function exportCsv() {
                 v-model:columns="columns"
                 :total="filtered.length"
                 search-placeholder="Buscar por usuario, acción, sección, detalle…"
-                @export="exportCsv"
+                :export-url="route('logs.export')"
             >
                 <template #filters>
                     <div>

@@ -43,6 +43,9 @@ return Application::configure(basePath: dirname(__DIR__))
             'permission' => PermissionMiddleware::class,
             'role_or_permission' => RoleOrPermissionMiddleware::class,
         ]);
+
+        // El webhook de Mailgun llega sin token CSRF.
+        $middleware->validateCsrfTokens(except: ['webhooks/mailgun']);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

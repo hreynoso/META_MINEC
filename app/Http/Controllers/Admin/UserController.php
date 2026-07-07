@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Institution;
 use App\Models\User;
+use App\Support\SheetExport;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -12,6 +13,7 @@ use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 use Spatie\Permission\Models\Role;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class UserController extends Controller
 {
@@ -35,6 +37,20 @@ class UserController extends Controller
             'roles' => Role::orderBy('name')->pluck('name'),
             'institutions' => Institution::orderBy('name')->get(['id', 'short_name', 'name']),
         ]);
+    }
+
+    public function export(): StreamedResponse
+    {
+        $rows = User::with(['roles:id,name', 'institution:id,short_name'])->orderBy('name')->get()
+            ->map(fn (User $u) => [
+                $u->name,
+                $u->email,
+                $u->institution?->short_name ?? '',
+                $u->roles->pluck('name')->implode(', '),
+                $u->blocked_at !== null ? 'Bloqueado' : 'Activo',
+            ])->all();
+
+        return SheetExport::stream('usuarios', ['Nombre', 'Correo', 'Institución', 'Roles', 'Estado'], $rows);
     }
 
     public function store(Request $request): RedirectResponse

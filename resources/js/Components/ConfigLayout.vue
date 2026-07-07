@@ -2,7 +2,7 @@
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { Link, usePage } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
-import { Palette, Users, ShieldCheck, Bell, Sparkles, ChevronRight } from 'lucide-vue-next';
+import { Palette, Mail, Users, ShieldCheck, Bell, Sparkles, ChevronRight } from 'lucide-vue-next';
 
 const props = defineProps<{ section: string }>();
 
@@ -12,6 +12,7 @@ const online = computed(() => (page.props.auth as any)?.online ?? 1);
 
 const sections = [
     { key: 'branding', label: 'Branding', sub: 'Logos, imágenes y colores', icon: Palette, route: 'configuracion.edit' },
+    { key: 'correo', label: 'Correo', sub: 'SMTP / Mailgun + prueba', icon: Mail, route: 'configuracion.correo.edit' },
     { key: 'usuarios', label: 'Usuarios', sub: 'Usuarios del sistema', icon: Users, route: 'configuracion.usuarios.index' },
     { key: 'roles', label: 'Roles y permisos', sub: 'Atributos de acceso', icon: ShieldCheck, route: 'configuracion.roles.index' },
     { key: 'notificaciones', label: 'Notificaciones', sub: 'Correos automáticos del sistema', icon: Bell, route: 'configuracion.notificaciones.edit' },

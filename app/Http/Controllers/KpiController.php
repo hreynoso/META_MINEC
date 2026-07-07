@@ -4,9 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\KpiRequest;
 use App\Models\Kpi;
+use App\Support\SheetExport;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class KpiController extends Controller
 {
@@ -31,6 +33,28 @@ class KpiController extends Controller
         return Inertia::render('Kpis/Index', [
             'kpis' => $kpis,
         ]);
+    }
+
+    public function export(): StreamedResponse
+    {
+        $trend = ['up' => 'Al alza', 'down' => 'A la baja', 'flat' => 'Estable'];
+
+        $rows = Kpi::orderBy('sort')->orderBy('label')->get()->map(function (Kpi $k) use ($trend) {
+            $ach = $k->target > 0 ? (int) round($k->value / $k->target * 100) : 0;
+
+            return [
+                $k->label,
+                $k->key,
+                $k->value,
+                $k->unit ?? '',
+                $k->target,
+                $ach.'%',
+                $trend[$k->trend] ?? $k->trend,
+                $k->strategic ? 'Sí' : 'No',
+            ];
+        })->all();
+
+        return SheetExport::stream('kpis', ['Indicador', 'Clave', 'Valor', 'Unidad', 'Meta', 'Logro', 'Tendencia', 'Estratégico'], $rows);
     }
 
     public function store(KpiRequest $request): RedirectResponse
