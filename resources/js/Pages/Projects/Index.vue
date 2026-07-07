@@ -1,14 +1,18 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
+import { router } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
-import { Search, Download, Upload, Plus, X, MapPin, Building2 } from 'lucide-vue-next';
+import { Search, Download, Upload, Plus, X, MapPin, Building2, Pencil, Trash2 } from 'lucide-vue-next';
 import { matchesAllTokens } from '@/Composables/useTokenSearch';
+import { useConfirm } from '@/Composables/useConfirm';
+import ProjectFormModal from '@/Components/ProjectFormModal.vue';
 import {
-    currency, number, STATUS_LABEL, statusClass, riskClass, progressBarClass,
+    currency, number, STATUS_LABEL, STATUS_OPTIONS, statusClass, riskClass, progressBarClass,
 } from '@/Composables/useProjectFormat';
 
 interface Project {
-    id: number; code: string; name: string; institution: string; goal: string;
+    id: number; code: string; name: string; institution: string; institution_id: number | null;
+    goal: string; presidential_goal_id: number | null;
     status: string; risk_level: string; budget: number; executed: number;
     financial_progress: number; physical_progress: number;
     start_date: string | null; end_date: string | null; source: string | null;
@@ -18,13 +22,50 @@ interface Project {
 
 const props = defineProps<{
     projects: Project[];
-    institutions: { code: string; short_name: string; name: string }[];
+    institutions: { id: number; code: string; short_name: string; name: string }[];
+    goals: { id: number; name: string }[];
 }>();
 
 const q = ref('');
 const institution = ref('');
 const status = ref('');
 const selected = ref<Project | null>(null);
+
+// Modal de crear/editar: null = cerrado; se distingue crear (editing === null) de editar.
+const formOpen = ref(false);
+const editing = ref<Project | null>(null);
+
+const { ask } = useConfirm();
+
+function openCreate() {
+    editing.value = null;
+    formOpen.value = true;
+}
+
+function openEdit(p: Project) {
+    editing.value = p;
+    selected.value = null;
+    formOpen.value = true;
+}
+
+function onSaved() {
+    formOpen.value = false;
+    editing.value = null;
+}
+
+function confirmDelete(p: Project) {
+    ask({
+        header: 'Eliminar proyecto',
+        message: `¿Eliminar el proyecto "${p.name}" (${p.code})? Esta acción no se puede deshacer.`,
+        acceptLabel: 'Eliminar',
+        accept: () => {
+            router.delete(route('proyectos.destroy', p.id), {
+                preserveScroll: true,
+                onSuccess: () => { selected.value = null; },
+            });
+        },
+    });
+}
 
 const filtered = computed(() =>
     props.projects.filter((p) => {
@@ -53,7 +94,7 @@ const filtered = computed(() =>
                 <button class="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 px-3 py-2 text-sm hover:bg-slate-50 dark:border-slate-600 dark:hover:bg-slate-700">
                     <Upload class="h-4 w-4" /> Cargar plantilla
                 </button>
-                <button class="inline-flex items-center gap-1.5 rounded-lg bg-brand px-3 py-2 text-sm font-medium text-white hover:opacity-90">
+                <button class="inline-flex items-center gap-1.5 rounded-lg bg-brand px-3 py-2 text-sm font-medium text-white hover:opacity-90" @click="openCreate">
                     <Plus class="h-4 w-4" /> Crear proyecto
                 </button>
             </div>
@@ -73,10 +114,7 @@ const filtered = computed(() =>
                 </select>
                 <select v-model="status" class="rounded-lg border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-800">
                     <option value="">Cualquier estado</option>
-                    <option value="planificado">Planificado</option>
-                    <option value="en_ejecucion">En ejecución</option>
-                    <option value="en_riesgo">En riesgo</option>
-                    <option value="completado">Completado</option>
+                    <option v-for="s in STATUS_OPTIONS" :key="s.value" :value="s.value">{{ s.label }}</option>
                 </select>
             </div>
         </div>
@@ -161,10 +199,35 @@ const filtered = computed(() =>
                     </div>
                 </div>
 
-                <div class="mt-6 flex justify-end">
-                    <button class="rounded-lg bg-brand px-4 py-2 text-sm font-medium text-white hover:opacity-90" @click="selected = null">Cerrar</button>
+                <div class="mt-6 flex items-center justify-between">
+                    <button
+                        class="inline-flex items-center gap-1.5 rounded-lg border border-red-300 px-3 py-2 text-sm text-red-700 hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/30"
+                        @click="confirmDelete(selected)"
+                    >
+                        <Trash2 class="h-4 w-4" /> Eliminar
+                    </button>
+                    <div class="flex gap-2">
+                        <button
+                            class="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 px-4 py-2 text-sm hover:bg-slate-50 dark:border-slate-600 dark:hover:bg-slate-700"
+                            @click="openEdit(selected)"
+                        >
+                            <Pencil class="h-4 w-4" /> Editar
+                        </button>
+                        <button class="rounded-lg bg-brand px-4 py-2 text-sm font-medium text-white hover:opacity-90" @click="selected = null">Cerrar</button>
+                    </div>
                 </div>
             </div>
         </div>
+
+        <!-- Modal crear/editar proyecto. key fuerza remontaje para reinicializar el form. -->
+        <ProjectFormModal
+            v-if="formOpen"
+            :key="editing?.id ?? 'new'"
+            :project="editing"
+            :institutions="institutions"
+            :goals="goals"
+            @close="formOpen = false"
+            @saved="onSaved"
+        />
     </AppLayout>
 </template>

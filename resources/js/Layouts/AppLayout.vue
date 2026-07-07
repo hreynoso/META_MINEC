@@ -1,6 +1,9 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { Link, usePage } from '@inertiajs/vue3';
+import Toast from 'primevue/toast';
+import { useToast } from 'primevue/usetoast';
+import ConfirmDialog from '@/Components/ConfirmDialog.vue';
 import {
     LayoutDashboard, Crown, FolderKanban, Gauge, FileBarChart,
     Sparkles, BookText, MessagesSquare, Settings, LogOut, Menu,
@@ -8,6 +11,18 @@ import {
 
 const page = usePage();
 const sidebarOpen = ref(true);
+
+// Toast global de éxito: escucha el flash compartido por el backend. Se observa
+// la referencia del objeto flash (Inertia crea uno nuevo por visita) para que
+// dos acciones con el MISMO mensaje disparen el toast ambas veces.
+const toast = useToast();
+watch(
+    () => page.props.flash,
+    (flash) => {
+        const msg = (flash as any)?.success as string | undefined;
+        if (msg) toast.add({ severity: 'success', summary: 'Listo', detail: msg, life: 3500 });
+    },
+);
 
 // Logo del sidebar administrable desde Configuración (null = usa el ícono).
 const logoSidebar = computed(() => (page.props.branding as any)?.assets?.logo_sidebar as string | undefined);
@@ -115,5 +130,9 @@ function isActive(name: string | null): boolean {
                 </main>
             </div>
         </div>
+
+        <!-- Servicios globales de UI: confirmaciones y toasts -->
+        <ConfirmDialog />
+        <Toast position="top-right" />
     </div>
 </template>

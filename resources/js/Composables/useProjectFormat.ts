@@ -27,7 +27,24 @@ export const STATUS_LABEL: Record<string, string> = {
     en_ejecucion: 'En ejecución',
     en_riesgo: 'En riesgo',
     completado: 'Completado',
+    retrasado: 'Retrasado',
 };
+
+/** Estados válidos para selects/filtros, en el orden de presentación. */
+export const STATUS_OPTIONS: { value: string; label: string }[] = [
+    { value: 'planificado', label: 'Planificado' },
+    { value: 'en_ejecucion', label: 'En ejecución' },
+    { value: 'en_riesgo', label: 'En riesgo' },
+    { value: 'retrasado', label: 'Retrasado' },
+    { value: 'completado', label: 'Completado' },
+];
+
+/** Niveles de riesgo válidos para selects. */
+export const RISK_OPTIONS: { value: string; label: string }[] = [
+    { value: 'bajo', label: 'Bajo' },
+    { value: 'medio', label: 'Medio' },
+    { value: 'alto', label: 'Alto' },
+];
 
 /** Etiquetas legibles de nivel de riesgo. */
 export const RISK_LABEL: Record<string, string> = {
@@ -41,7 +58,8 @@ export function statusClass(status: string): string {
     const map: Record<string, string> = {
         planificado: 'bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-200',
         en_ejecucion: 'bg-teal-100 text-teal-800 dark:bg-teal-900/40 dark:text-teal-300',
-        en_riesgo: 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300',
+        en_riesgo: 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300',
+        retrasado: 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300',
         completado: 'bg-sky-100 text-sky-800 dark:bg-sky-900/40 dark:text-sky-300',
     };
 

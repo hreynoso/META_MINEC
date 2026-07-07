@@ -12,6 +12,9 @@ Route::middleware(['auth'])->group(function () {
 
     // Portafolio de proyectos de inversión pública
     Route::get('/proyectos', [ProjectController::class, 'index'])->name('proyectos.index');
+    Route::post('/proyectos', [ProjectController::class, 'store'])->name('proyectos.store');
+    Route::put('/proyectos/{project}', [ProjectController::class, 'update'])->name('proyectos.update');
+    Route::delete('/proyectos/{project}', [ProjectController::class, 'destroy'])->name('proyectos.destroy');
 
     // Configuración → identidad visual (logo sidebar, logo/fondo de login, favicon)
     Route::get('/configuracion', [BrandingController::class, 'edit'])->name('configuracion.edit');
