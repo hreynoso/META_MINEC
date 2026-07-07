@@ -75,7 +75,7 @@ function submitDemo() {
             </div>
 
             <p class="mt-6 text-xs text-slate-400">
-                Cooperación técnica República Dominicana → El Salvador
+                Developed by CityWorks, Powered by Google Cloud Platform
             </p>
         </div>
     </div>
