@@ -19,8 +19,10 @@ const toast = useToast();
 watch(
     () => page.props.flash,
     (flash) => {
-        const msg = (flash as any)?.success as string | undefined;
-        if (msg) toast.add({ severity: 'success', summary: 'Listo', detail: msg, life: 3500 });
+        const ok = (flash as any)?.success as string | undefined;
+        const err = (flash as any)?.error as string | undefined;
+        if (ok) toast.add({ severity: 'success', summary: 'Listo', detail: ok, life: 3500 });
+        if (err) toast.add({ severity: 'error', summary: 'Error', detail: err, life: 6000 });
     },
 );
 
@@ -30,7 +32,7 @@ const logoSidebar = computed(() => (page.props.branding as any)?.assets?.logo_si
 // route: nombre de ruta Ziggy si ya existe; null = módulo de fase posterior.
 const nav = [
     { label: 'Dashboard', icon: LayoutDashboard, route: 'dashboard' },
-    { label: 'Ministra', icon: Crown, route: null },
+    { label: 'Ministra', icon: Crown, route: 'ministra.index' },
     { label: 'Proyectos', icon: FolderKanban, route: 'proyectos.index' },
     { label: 'KPIs', icon: Gauge, route: 'kpis.index' },
     { label: 'Reportes', icon: FileBarChart, route: 'reportes.index' },

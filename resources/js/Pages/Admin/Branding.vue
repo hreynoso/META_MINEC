@@ -2,6 +2,7 @@
 import { reactive, computed } from 'vue';
 import { useForm, usePage } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
+import ConfigTabs from '@/Components/ConfigTabs.vue';
 import { UploadCloud, ImageIcon, CheckCircle2 } from 'lucide-vue-next';
 
 interface Assets {
@@ -68,6 +69,8 @@ function submit() {
             <h1 class="text-2xl font-semibold">Configuración · Identidad visual</h1>
             <p class="text-sm text-slate-500">Carga el logo del menú, el logo y el fondo del login, y el favicon del sistema.</p>
         </header>
+
+        <ConfigTabs />
 
         <p v-if="flashSuccess" class="mb-4 flex items-center gap-2 rounded-lg border border-teal-200 bg-teal-50 px-4 py-2 text-sm text-teal-800">
             <CheckCircle2 class="h-4 w-4" /> {{ flashSuccess }}

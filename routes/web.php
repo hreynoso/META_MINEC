@@ -1,8 +1,10 @@
 <?php
 
+use App\Http\Controllers\Admin\AiSettingsController;
 use App\Http\Controllers\Admin\BrandingController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\KpiController;
+use App\Http\Controllers\MinisterController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SessionController;
@@ -11,6 +13,10 @@ use Illuminate\Support\Facades\Route;
 Route::middleware(['auth'])->group(function () {
     Route::get('/', DashboardController::class.'@index')->name('dashboard');
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.index');
+
+    // Despacho de la Ministra (tablero ejecutivo + informe presidencial con IA)
+    Route::get('/ministra', [MinisterController::class, 'index'])->name('ministra.index');
+    Route::post('/ministra/informe', [MinisterController::class, 'generateReport'])->name('ministra.report');
 
     // Portafolio de proyectos de inversión pública
     Route::get('/proyectos', [ProjectController::class, 'index'])->name('proyectos.index');
@@ -32,6 +38,10 @@ Route::middleware(['auth'])->group(function () {
     // Configuración → identidad visual (logo sidebar, logo/fondo de login, favicon)
     Route::get('/configuracion', [BrandingController::class, 'edit'])->name('configuracion.edit');
     Route::post('/configuracion/branding', [BrandingController::class, 'update'])->name('configuracion.branding.update');
+
+    // Configuración → Inteligencia Artificial (proveedor, clave del API, modelo)
+    Route::get('/configuracion/ia', [AiSettingsController::class, 'edit'])->name('configuracion.ia.edit');
+    Route::post('/configuracion/ia', [AiSettingsController::class, 'update'])->name('configuracion.ia.update');
 
     // Keep-alive de sesion (cada 15 min desde el cliente)
     Route::post('/keep-alive', [SessionController::class, 'keepAlive'])->name('keep-alive');
