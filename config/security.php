@@ -22,6 +22,24 @@ return [
         'Permissions-Policy' => 'geolocation=(), microphone=(), camera=()',
     ],
 
+    // HSTS (A.8.24) — solo se envía sobre HTTPS (Traefik termina el TLS).
+    'hsts' => [
+        'enabled' => (bool) env('HSTS_ENABLED', true),
+        'max_age' => (int) env('HSTS_MAX_AGE', 31536000),
+        'include_subdomains' => (bool) env('HSTS_INCLUDE_SUBDOMAINS', true),
+        'preload' => (bool) env('HSTS_PRELOAD', false),
+    ],
+
+    // Content-Security-Policy (A.8.24). %s = nonce por petición (scripts).
+    // style-src usa 'unsafe-inline' por los estilos en línea de Vue/PrimeVue.
+    // Si tras un deploy la app se ve en blanco, poner CSP_REPORT_ONLY=true para
+    // diagnosticar sin bloquear, o CSP_ENABLED=false como último recurso.
+    'csp' => [
+        'enabled' => (bool) env('CSP_ENABLED', true),
+        'report_only' => (bool) env('CSP_REPORT_ONLY', false),
+        'policy' => "default-src 'self'; script-src 'self' 'nonce-%s'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'",
+    ],
+
     // Bloqueo global del sistema (EnforceSystemLock) via Setting
     'system_lock_setting_key' => 'system.locked',
 

@@ -10,7 +10,7 @@
     <link rel="icon" href="{{ \App\Support\Branding::url('favicon') ?? '/favicon.ico' }}">
 
 
-    @routes
+    @routes(nonce: \Illuminate\Support\Facades\Vite::cspNonce())
     @vite(['resources/css/app.css', 'resources/js/app.ts'])
     @inertiaHead
 </head>

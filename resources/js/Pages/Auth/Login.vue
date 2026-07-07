@@ -95,8 +95,8 @@ function submitDemo() {
             <div v-if="demoEnabled" class="mt-6 border-t border-slate-200 pt-6 text-left">
                 <p class="mb-3 text-center text-xs uppercase tracking-wide text-slate-400">Acceso temporal (demo)</p>
 
-                <p v-if="flashError" class="mb-3 rounded-lg bg-red-50 px-3 py-2 text-center text-xs text-red-600">
-                    {{ flashError }}
+                <p v-if="flashError || form.errors.email" class="mb-3 rounded-lg bg-red-50 px-3 py-2 text-center text-xs text-red-600">
+                    {{ form.errors.email || flashError }}
                 </p>
 
                 <label class="mb-1 block text-xs text-slate-500">Correo</label>

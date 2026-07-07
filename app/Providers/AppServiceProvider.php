@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Listeners\LogAuthenticationEvents;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 
@@ -21,5 +23,8 @@ class AppServiceProvider extends ServiceProvider
 
         // El SSO usa el driver "google" nativo de laravel/socialite; no requiere
         // registrar un proveedor externo.
+
+        // Bitácora de eventos de acceso (ISO 27001 A.8.15/A.8.16).
+        Event::subscribe(LogAuthenticationEvents::class);
     }
 }
