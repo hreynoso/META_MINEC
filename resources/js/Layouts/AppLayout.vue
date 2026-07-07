@@ -67,7 +67,7 @@ function isActive(name: string | null): boolean {
             >
                 <!-- Botón circular de colapso (estilo SED), sobre el borde derecho -->
                 <button
-                    class="absolute -right-3 top-5 z-10 flex h-6 w-6 items-center justify-center rounded-full border border-slate-300 bg-white text-slate-500 shadow transition hover:text-brand dark:border-slate-600 dark:bg-slate-800"
+                    class="absolute -right-3 top-5 z-10 flex h-6 w-6 items-center justify-center rounded-full border border-white/20 bg-shell text-slate-200 shadow transition hover:text-white"
                     title="Ocultar menú"
                     @click="sidebarOpen = false"
                 >

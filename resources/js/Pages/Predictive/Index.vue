@@ -69,7 +69,7 @@ async function generateAi() {
             </p>
         </div>
 
-        <div class="grid grid-cols-1 gap-6 lg:grid-cols-[380px_1fr]">
+        <div class="grid grid-cols-1 gap-6 lg:grid-cols-[400px_1fr]">
             <!-- Ranking de riesgo -->
             <section class="rounded-xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800">
                 <div class="border-b border-slate-200 px-4 py-3 dark:border-slate-700">
