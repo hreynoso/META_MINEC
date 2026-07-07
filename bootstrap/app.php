@@ -8,6 +8,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
+use Illuminate\Support\Facades\Route;
 use Spatie\Permission\Middleware\PermissionMiddleware;
 use Spatie\Permission\Middleware\RoleMiddleware;
 use Spatie\Permission\Middleware\RoleOrPermissionMiddleware;
@@ -18,7 +19,9 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
         then: function () {
-            require __DIR__.'/../routes/auth.php';
+            // Las rutas de autenticación deben ir en el grupo `web` para tener
+            // sesión, cookies y CSRF (StartSession). Sin esto, session() falla.
+            Route::middleware('web')->group(__DIR__.'/../routes/auth.php');
         },
     )
     ->withMiddleware(function (Middleware $middleware) {
