@@ -39,22 +39,22 @@ function isActive(name: string | null): boolean {
                 v-if="sidebarOpen"
                 class="flex w-64 shrink-0 flex-col bg-shell text-slate-300"
             >
-                <div class="flex items-center gap-3 px-5 py-4">
+                <!-- Logo institucional a todo el ancho del sidebar -->
+                <div v-if="logoSidebar" class="px-3 py-4">
                     <img
-                        v-if="logoSidebar"
                         :src="logoSidebar"
                         alt="Logo institucional"
-                        class="h-10 w-auto max-w-[10rem] object-contain"
+                        class="h-auto w-full object-contain"
                     />
-                    <template v-else>
-                        <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-brand/20 text-brand">
-                            <LayoutDashboard class="h-5 w-5" />
-                        </div>
-                        <div class="leading-tight">
-                            <p class="text-sm font-semibold text-white">Sistema META</p>
-                            <p class="text-[11px] text-slate-400">MINEC · El Salvador</p>
-                        </div>
-                    </template>
+                </div>
+                <div v-else class="flex items-center gap-3 px-5 py-4">
+                    <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-brand/20 text-brand">
+                        <LayoutDashboard class="h-5 w-5" />
+                    </div>
+                    <div class="leading-tight">
+                        <p class="text-sm font-semibold text-white">Sistema META</p>
+                        <p class="text-[11px] text-slate-400">MINEC · El Salvador</p>
+                    </div>
                 </div>
 
                 <nav class="mt-2 flex-1 space-y-1 px-3">
