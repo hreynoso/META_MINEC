@@ -6,11 +6,19 @@ import { useToast } from 'primevue/usetoast';
 import ConfirmDialog from '@/Components/ConfirmDialog.vue';
 import {
     LayoutDashboard, Crown, FolderKanban, Gauge, FileBarChart,
-    Sparkles, BookText, MessagesSquare, Settings, LogOut, Menu,
+    Sparkles, BookText, MessagesSquare, Settings, LogOut, Menu, ScrollText,
 } from 'lucide-vue-next';
 
 const page = usePage();
 const sidebarOpen = ref(true);
+
+// Colores administrables (Configuración → Branding) aplicados como variables CSS.
+const colors = computed(() => (page.props.branding as any)?.colors ?? {});
+const themeVars = computed(() => ({
+    '--color-shell': colors.value.sidebar,
+    '--color-shell-hover': colors.value.sidebar_hover,
+    '--color-brand': colors.value.brand,
+}));
 
 // Toast global de éxito: escucha el flash compartido por el backend. Se observa
 // la referencia del objeto flash (Inertia crea uno nuevo por visita) para que
@@ -39,6 +47,7 @@ const nav = [
     { label: 'IA Predictiva', icon: Sparkles, route: 'ia-predictiva.index' },
     { label: 'Memorias', icon: BookText, route: 'memorias.index' },
     { label: 'Red de Gestores', icon: MessagesSquare, route: 'red-gestores.index' },
+    { label: 'Logs del Sistema', icon: ScrollText, route: 'logs.index' },
     { label: 'Configuración', icon: Settings, route: 'configuracion.edit' },
 ];
 
@@ -49,7 +58,7 @@ function isActive(name: string | null): boolean {
 </script>
 
 <template>
-    <div class="min-h-screen bg-slate-50 text-slate-800 dark:bg-slate-900 dark:text-slate-100">
+    <div class="min-h-screen bg-slate-50 text-slate-800 dark:bg-slate-900 dark:text-slate-100" :style="themeVars">
         <div class="flex min-h-screen">
             <!-- Sidebar -->
             <aside
@@ -79,7 +88,7 @@ function isActive(name: string | null): boolean {
                         <Link
                             v-if="item.route"
                             :href="route(item.route)"
-                            class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition"
+                            class="flex items-center gap-3 rounded-lg px-3 py-2 text-[15px] transition"
                             :class="isActive(item.route)
                                 ? 'bg-brand text-white'
                                 : 'hover:bg-shell-hover hover:text-white'"
@@ -89,7 +98,7 @@ function isActive(name: string | null): boolean {
                         </Link>
                         <span
                             v-else
-                            class="flex cursor-default items-center gap-3 rounded-lg px-3 py-2 text-sm text-slate-500"
+                            class="flex cursor-default items-center gap-3 rounded-lg px-3 py-2 text-[15px] text-slate-500"
                             title="Disponible en próxima fase"
                         >
                             <component :is="item.icon" class="h-4 w-4" />
@@ -130,6 +139,10 @@ function isActive(name: string | null): boolean {
                 <main class="flex-1 p-6">
                     <slot />
                 </main>
+
+                <footer class="border-t border-slate-200 px-6 py-4 text-center text-xs text-slate-400 dark:border-slate-700">
+                    Desarrollado por José David Montilla. Todos los derechos reservados 2026.
+                </footer>
             </div>
         </div>
 

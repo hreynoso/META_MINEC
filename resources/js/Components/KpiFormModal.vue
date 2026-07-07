@@ -27,7 +27,7 @@ const form = useForm({
     value: (props.kpi?.value ?? '') as number | string,
     unit: props.kpi?.unit ?? '',
     target: (props.kpi?.target ?? '') as number | string,
-    trend: props.kpi?.trend ?? 'flat',
+    trend: props.kpi?.trend ?? '',
     strategic: props.kpi?.strategic ?? false,
     sort: (props.kpi?.sort ?? 0) as number | string,
 });
@@ -57,7 +57,7 @@ function submit() {
             <div class="flex items-start justify-between">
                 <div>
                     <h2 class="text-xl font-semibold">{{ isEdit ? 'Editar indicador' : 'Crear indicador' }}</h2>
-                    <p class="mt-1 text-sm text-slate-500">Complete la información. Los campos con * son obligatorios.</p>
+                    <p class="mt-1 text-sm text-slate-500">Complete la información. Los campos con <span class="text-red-600">*</span> son obligatorios.</p>
                 </div>
                 <button class="rounded p-1 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700" @click="emit('close')">
                     <X class="h-5 w-5" />
@@ -66,13 +66,13 @@ function submit() {
 
             <form class="mt-5 grid grid-cols-1 gap-4 md:grid-cols-2" @submit.prevent="submit">
                 <div class="md:col-span-2">
-                    <label :class="label">Nombre del indicador *</label>
+                    <label :class="label">Nombre del indicador <span class="text-red-600">*</span></label>
                     <input v-model="form.label" :class="input" placeholder="Ej. Ejecución presupuestaria global" />
                     <p v-if="form.errors.label" class="mt-1 text-xs text-red-600">{{ form.errors.label }}</p>
                 </div>
 
                 <div>
-                    <label :class="label">Clave *</label>
+                    <label :class="label">Clave <span class="text-red-600">*</span></label>
                     <input v-model="form.key" :class="input" placeholder="ejecucion_presupuestaria" />
                     <p class="mt-1 text-xs text-slate-400">Identificador único (sin espacios).</p>
                     <p v-if="form.errors.key" class="mt-1 text-xs text-red-600">{{ form.errors.key }}</p>
@@ -84,7 +84,7 @@ function submit() {
                 </div>
 
                 <div>
-                    <label :class="label">Valor actual *</label>
+                    <label :class="label">Valor actual <span class="text-red-600">*</span></label>
                     <input v-model="form.value" type="number" step="0.01" :class="input" placeholder="0" />
                     <p v-if="form.errors.value" class="mt-1 text-xs text-red-600">{{ form.errors.value }}</p>
                 </div>
@@ -95,8 +95,9 @@ function submit() {
                 </div>
 
                 <div>
-                    <label :class="label">Tendencia</label>
+                    <label :class="label">Tendencia <span class="text-red-600">*</span></label>
                     <select v-model="form.trend" :class="input">
+                        <option value="" disabled>Seleccione…</option>
                         <option v-for="t in TREND_OPTIONS" :key="t.value" :value="t.value">{{ t.label }}</option>
                     </select>
                     <p v-if="form.errors.trend" class="mt-1 text-xs text-red-600">{{ form.errors.trend }}</p>

@@ -17,7 +17,27 @@ class BrandingController extends Controller
     {
         return Inertia::render('Admin/Branding', [
             'assets' => Branding::urls(),
+            'colors' => Branding::colors(),
         ]);
+    }
+
+    public function updateColors(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'sidebar' => ['required', 'regex:/^#[0-9a-fA-F]{6}$/'],
+            'sidebar_hover' => ['required', 'regex:/^#[0-9a-fA-F]{6}$/'],
+            'brand' => ['required', 'regex:/^#[0-9a-fA-F]{6}$/'],
+        ], [], [
+            'sidebar' => 'color del sidebar',
+            'sidebar_hover' => 'color activo del sidebar',
+            'brand' => 'color primario',
+        ]);
+
+        foreach (array_keys(Branding::COLORS) as $key) {
+            Setting::put("branding.color.{$key}", $data[$key]);
+        }
+
+        return back()->with('success', 'Colores del sistema actualizados.');
     }
 
     public function update(Request $request): RedirectResponse

@@ -23,20 +23,20 @@ function submitDemo() {
 </script>
 
 <template>
-    <div class="flex min-h-screen items-center justify-center bg-slate-900 bg-cover bg-center text-slate-100" :style="bgStyle">
-        <div class="w-full max-w-sm rounded-2xl border border-slate-700 bg-slate-800/95 p-8 text-center shadow-xl backdrop-blur">
+    <div class="flex min-h-screen items-center justify-center bg-slate-900 bg-cover bg-center px-6 text-slate-100 lg:justify-end lg:pr-24 xl:pr-40" :style="bgStyle">
+        <div class="w-full max-w-sm rounded-2xl border border-slate-200 bg-white p-8 text-center text-slate-700 shadow-2xl">
             <img
                 v-if="logoLogin"
                 :src="logoLogin"
                 alt="Logo institucional"
                 class="mx-auto h-16 w-auto max-w-[12rem] object-contain"
             />
-            <div v-else class="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-brand/20 text-brand">
+            <div v-else class="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-brand/10 text-brand">
                 <span class="text-lg font-bold">M</span>
             </div>
-            <h1 class="mt-4 text-2xl font-bold">Sistema META</h1>
-            <p class="mt-1 text-sm text-slate-400">Monitoreo Estratégico de Acciones</p>
-            <p class="text-xs text-slate-500">{{ institution }}</p>
+            <h1 class="mt-4 text-2xl font-bold text-slate-900">Sistema META</h1>
+            <p class="mt-1 text-sm text-slate-500">Monitoreo Estratégico de Acciones</p>
+            <p class="text-xs text-slate-400">{{ institution }}</p>
 
             <a
                 :href="route('azure.redirect')"
@@ -46,23 +46,23 @@ function submitDemo() {
             </a>
 
             <!-- Acceso temporal de demo -->
-            <div v-if="demoEnabled" class="mt-6 border-t border-slate-700 pt-6 text-left">
-                <p class="mb-3 text-center text-xs uppercase tracking-wide text-slate-500">Acceso temporal (demo)</p>
+            <div v-if="demoEnabled" class="mt-6 border-t border-slate-200 pt-6 text-left">
+                <p class="mb-3 text-center text-xs uppercase tracking-wide text-slate-400">Acceso temporal (demo)</p>
 
-                <p v-if="flashError" class="mb-3 rounded-lg bg-red-500/10 px-3 py-2 text-center text-xs text-red-300">
+                <p v-if="flashError" class="mb-3 rounded-lg bg-red-50 px-3 py-2 text-center text-xs text-red-600">
                     {{ flashError }}
                 </p>
 
-                <label class="mb-1 block text-xs text-slate-400">Correo</label>
+                <label class="mb-1 block text-xs text-slate-500">Correo</label>
                 <input
                     v-model="form.email" type="email" autocomplete="username"
-                    class="mb-3 w-full rounded-lg border border-slate-600 bg-slate-900 px-3 py-2 text-sm outline-none focus:border-brand"
+                    class="mb-3 w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-800 outline-none focus:border-brand focus:bg-white"
                     @keyup.enter="submitDemo"
                 />
-                <label class="mb-1 block text-xs text-slate-400">Contraseña</label>
+                <label class="mb-1 block text-xs text-slate-500">Contraseña</label>
                 <input
                     v-model="form.password" type="password" autocomplete="current-password"
-                    class="mb-4 w-full rounded-lg border border-slate-600 bg-slate-900 px-3 py-2 text-sm outline-none focus:border-brand"
+                    class="mb-4 w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-800 outline-none focus:border-brand focus:bg-white"
                     @keyup.enter="submitDemo"
                 />
                 <button
@@ -74,7 +74,7 @@ function submitDemo() {
                 </button>
             </div>
 
-            <p class="mt-6 text-xs text-slate-500">
+            <p class="mt-6 text-xs text-slate-400">
                 Cooperación técnica República Dominicana → El Salvador
             </p>
         </div>

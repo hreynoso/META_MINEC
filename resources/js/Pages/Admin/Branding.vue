@@ -12,10 +12,29 @@ interface Assets {
     favicon: string | null;
 }
 
-const props = defineProps<{ assets: Assets }>();
+interface Colors { sidebar: string; sidebar_hover: string; brand: string }
+
+const props = defineProps<{ assets: Assets; colors: Colors }>();
 
 const page = usePage();
 const flashSuccess = computed(() => (page.props.flash as any)?.success as string | undefined);
+
+// Colores del sistema (variables CSS del tema).
+const colorForm = useForm({
+    sidebar: props.colors.sidebar,
+    sidebar_hover: props.colors.sidebar_hover,
+    brand: props.colors.brand,
+});
+
+const colorFields: { key: keyof Colors; title: string; hint: string }[] = [
+    { key: 'sidebar', title: 'Fondo del sidebar', hint: 'Color de fondo del menú lateral.' },
+    { key: 'sidebar_hover', title: 'Sidebar activo / hover', hint: 'Resaltado del ítem activo y al pasar el cursor.' },
+    { key: 'brand', title: 'Color primario', hint: 'Botones, enlaces y acentos del sistema.' },
+];
+
+function submitColors() {
+    colorForm.post(route('configuracion.branding.colors'), { preserveScroll: true });
+}
 
 type FieldKey = keyof Assets;
 
@@ -66,8 +85,8 @@ function submit() {
 <template>
     <AppLayout>
         <header class="mb-6">
-            <h1 class="text-2xl font-semibold">Configuración · Identidad visual</h1>
-            <p class="text-sm text-slate-500">Carga el logo del menú, el logo y el fondo del login, y el favicon del sistema.</p>
+            <h1 class="text-2xl font-semibold">Configuración · Branding</h1>
+            <p class="text-sm text-slate-500">Logos, imágenes y colores de identidad visual del sistema.</p>
         </header>
 
         <ConfigTabs />
@@ -126,6 +145,32 @@ function submit() {
                 </button>
                 <span v-if="!hasChanges" class="text-xs text-slate-400">Selecciona al menos un archivo para guardar.</span>
             </div>
+        </form>
+
+        <!-- Colores del sistema -->
+        <form class="mt-8" @submit.prevent="submitColors">
+            <h2 class="text-sm font-semibold text-slate-800 dark:text-slate-200">Colores del sistema</h2>
+            <p class="mb-4 text-xs text-slate-500">Personaliza el color del left sidebar y el color primario del sistema.</p>
+
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                <div v-for="c in colorFields" :key="c.key" class="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-800">
+                    <p class="text-sm font-medium">{{ c.title }}</p>
+                    <p class="mt-0.5 text-xs text-slate-500">{{ c.hint }}</p>
+                    <div class="mt-3 flex items-center gap-3">
+                        <input v-model="colorForm[c.key]" type="color" class="h-10 w-14 cursor-pointer rounded border border-slate-300 dark:border-slate-600" />
+                        <input v-model="colorForm[c.key]" type="text" class="w-28 rounded-lg border border-slate-300 bg-slate-50 px-2 py-1.5 font-mono text-sm outline-none focus:border-brand focus:bg-white dark:border-slate-600 dark:bg-slate-900" />
+                    </div>
+                    <p v-if="colorForm.errors[c.key]" class="mt-1 text-xs text-red-600">{{ colorForm.errors[c.key] }}</p>
+                </div>
+            </div>
+
+            <button
+                type="submit"
+                :disabled="colorForm.processing"
+                class="mt-6 rounded-lg bg-brand px-5 py-2.5 text-sm font-medium text-white transition hover:opacity-90 disabled:opacity-50"
+            >
+                {{ colorForm.processing ? 'Guardando…' : 'Guardar colores' }}
+            </button>
         </form>
     </AppLayout>
 </template>

@@ -7,7 +7,7 @@ interface Institution { id: number; code: string; short_name: string; name: stri
 
 const props = defineProps<{ institutions: Institution[]; provider: string }>();
 
-const institutionId = ref<number | null>(props.institutions[0]?.id ?? null);
+const institutionId = ref<number | null>(null);
 const periodo = ref('Enero – Diciembre 2025');
 const draft = ref('');
 const loading = ref(false);
@@ -75,6 +75,7 @@ const label = 'mb-1 block text-xs font-medium uppercase tracking-wide text-slate
                     <div>
                         <label :class="label">Institución</label>
                         <select v-model="institutionId" :class="input">
+                            <option :value="null" disabled>Seleccione…</option>
                             <option v-for="i in institutions" :key="i.id" :value="i.id">{{ i.short_name }} — {{ i.name }}</option>
                         </select>
                     </div>

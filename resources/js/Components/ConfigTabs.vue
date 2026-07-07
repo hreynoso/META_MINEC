@@ -1,9 +1,12 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
-import { ImageIcon, Sparkles } from 'lucide-vue-next';
+import { Palette, Users, ShieldCheck, Bell, Sparkles } from 'lucide-vue-next';
 
 const tabs = [
-    { label: 'Identidad visual', icon: ImageIcon, route: 'configuracion.edit' },
+    { label: 'Branding', icon: Palette, route: 'configuracion.edit' },
+    { label: 'Usuarios', icon: Users, route: 'configuracion.usuarios.index' },
+    { label: 'Roles y permisos', icon: ShieldCheck, route: 'configuracion.roles.index' },
+    { label: 'Notificaciones', icon: Bell, route: 'configuracion.notificaciones.edit' },
     { label: 'Inteligencia Artificial', icon: Sparkles, route: 'configuracion.ia.edit' },
 ];
 

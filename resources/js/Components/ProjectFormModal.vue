@@ -38,10 +38,10 @@ const isEdit = props.project !== null;
 const form = useForm({
     code: props.project?.code ?? '',
     name: props.project?.name ?? '',
-    institution_id: props.project?.institution_id ?? (props.institutions[0]?.id ?? null),
+    institution_id: props.project?.institution_id ?? null,
     presidential_goal_id: props.project?.presidential_goal_id ?? null,
-    status: props.project?.status ?? 'planificado',
-    risk_level: props.project?.risk_level ?? 'bajo',
+    status: props.project?.status ?? '',
+    risk_level: props.project?.risk_level ?? '',
     budget: (props.project?.budget ?? '') as number | string,
     executed: (props.project?.executed ?? 0) as number | string,
     physical_progress: (props.project?.physical_progress ?? 0) as number | string,
@@ -83,7 +83,7 @@ function submit() {
             <div class="flex items-start justify-between">
                 <div>
                     <h2 class="text-xl font-semibold">{{ isEdit ? 'Editar proyecto' : 'Crear nuevo proyecto' }}</h2>
-                    <p class="mt-1 text-sm text-slate-500">Complete la información. Los campos con * son obligatorios.</p>
+                    <p class="mt-1 text-sm text-slate-500">Complete la información. Los campos con <span class="text-red-600">*</span> son obligatorios.</p>
                 </div>
                 <button class="rounded p-1 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700" @click="emit('close')">
                     <X class="h-5 w-5" />
@@ -92,37 +92,38 @@ function submit() {
 
             <form class="mt-5 grid grid-cols-1 gap-4 md:grid-cols-2" @submit.prevent="submit">
                 <div>
-                    <label :class="label">Código *</label>
+                    <label :class="label">Código <span class="text-red-600">*</span></label>
                     <input v-model="form.code" :class="input" placeholder="MINEC-2026-001" />
                     <p v-if="form.errors.code" class="mt-1 text-xs text-red-600">{{ form.errors.code }}</p>
                 </div>
                 <div>
-                    <label :class="label">Institución *</label>
+                    <label :class="label">Institución <span class="text-red-600">*</span></label>
                     <select v-model="form.institution_id" :class="input">
+                        <option :value="null" disabled>Seleccione…</option>
                         <option v-for="i in institutions" :key="i.id" :value="i.id">{{ i.short_name }}</option>
                     </select>
                     <p v-if="form.errors.institution_id" class="mt-1 text-xs text-red-600">{{ form.errors.institution_id }}</p>
                 </div>
 
                 <div class="md:col-span-2">
-                    <label :class="label">Nombre del proyecto *</label>
+                    <label :class="label">Nombre del proyecto <span class="text-red-600">*</span></label>
                     <input v-model="form.name" :class="input" placeholder="Ej. Modernización de …" />
                     <p v-if="form.errors.name" class="mt-1 text-xs text-red-600">{{ form.errors.name }}</p>
                 </div>
 
                 <div>
-                    <label :class="label">Fecha inicio *</label>
+                    <label :class="label">Fecha inicio <span class="text-red-600">*</span></label>
                     <input v-model="form.start_date" type="date" :class="input" />
                     <p v-if="form.errors.start_date" class="mt-1 text-xs text-red-600">{{ form.errors.start_date }}</p>
                 </div>
                 <div>
-                    <label :class="label">Fecha fin *</label>
+                    <label :class="label">Fecha fin <span class="text-red-600">*</span></label>
                     <input v-model="form.end_date" type="date" :class="input" />
                     <p v-if="form.errors.end_date" class="mt-1 text-xs text-red-600">{{ form.errors.end_date }}</p>
                 </div>
 
                 <div>
-                    <label :class="label">Presupuesto (USD) *</label>
+                    <label :class="label">Presupuesto (USD) <span class="text-red-600">*</span></label>
                     <input v-model="form.budget" type="number" min="0" step="0.01" :class="input" placeholder="1000000" />
                     <p v-if="form.errors.budget" class="mt-1 text-xs text-red-600">{{ form.errors.budget }}</p>
                 </div>
@@ -138,7 +139,7 @@ function submit() {
                     <p v-if="form.errors.source" class="mt-1 text-xs text-red-600">{{ form.errors.source }}</p>
                 </div>
                 <div>
-                    <label :class="label">Responsable *</label>
+                    <label :class="label">Responsable <span class="text-red-600">*</span></label>
                     <input v-model="form.responsible" :class="input" placeholder="Dirección responsable" />
                     <p v-if="form.errors.responsible" class="mt-1 text-xs text-red-600">{{ form.errors.responsible }}</p>
                 </div>
@@ -146,7 +147,7 @@ function submit() {
                 <div>
                     <label :class="label">Meta presidencial</label>
                     <select v-model="form.presidential_goal_id" :class="input">
-                        <option :value="null">— Ninguna —</option>
+                        <option :value="null">Seleccione…</option>
                         <option v-for="g in goals" :key="g.id" :value="g.id">{{ g.name }}</option>
                     </select>
                     <p v-if="form.errors.presidential_goal_id" class="mt-1 text-xs text-red-600">{{ form.errors.presidential_goal_id }}</p>
@@ -158,15 +159,17 @@ function submit() {
                 </div>
 
                 <div>
-                    <label :class="label">Estado</label>
+                    <label :class="label">Estado <span class="text-red-600">*</span></label>
                     <select v-model="form.status" :class="input">
+                        <option value="" disabled>Seleccione…</option>
                         <option v-for="s in STATUS_OPTIONS" :key="s.value" :value="s.value">{{ s.label }}</option>
                     </select>
                     <p v-if="form.errors.status" class="mt-1 text-xs text-red-600">{{ form.errors.status }}</p>
                 </div>
                 <div>
-                    <label :class="label">Nivel de riesgo</label>
+                    <label :class="label">Nivel de riesgo <span class="text-red-600">*</span></label>
                     <select v-model="form.risk_level" :class="input">
+                        <option value="" disabled>Seleccione…</option>
                         <option v-for="r in RISK_OPTIONS" :key="r.value" :value="r.value">{{ r.label }}</option>
                     </select>
                     <p v-if="form.errors.risk_level" class="mt-1 text-xs text-red-600">{{ form.errors.risk_level }}</p>

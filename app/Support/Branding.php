@@ -16,6 +16,25 @@ class Branding
     /** Claves de assets administrables. */
     public const KEYS = ['logo_sidebar', 'logo_login', 'login_background', 'favicon'];
 
+    /** Colores administrables y sus valores por defecto (variables CSS del tema). */
+    public const COLORS = [
+        'sidebar' => '#1b2a63',        // fondo del left sidebar (--color-shell)
+        'sidebar_hover' => '#29397a',  // hover/activo del sidebar (--color-shell-hover)
+        'brand' => '#0d9488',          // color primario del sistema (--color-brand)
+    ];
+
+    /** Colores actuales (settings o valor por defecto). */
+    public static function colors(): array
+    {
+        $colors = [];
+
+        foreach (static::COLORS as $key => $default) {
+            $colors[$key] = Setting::value("branding.color.{$key}", $default);
+        }
+
+        return $colors;
+    }
+
     /** Ruta relativa guardada en settings (o null). */
     public static function path(string $key): ?string
     {

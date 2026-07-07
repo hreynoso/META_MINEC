@@ -2,8 +2,12 @@
 
 use App\Http\Controllers\Admin\AiSettingsController;
 use App\Http\Controllers\Admin\BrandingController;
+use App\Http\Controllers\Admin\NotificationSettingsController;
+use App\Http\Controllers\Admin\RoleController;
+use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\KpiController;
+use App\Http\Controllers\LogController;
 use App\Http\Controllers\MemoirController;
 use App\Http\Controllers\MinisterController;
 use App\Http\Controllers\NetworkController;
@@ -52,9 +56,29 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/reportes/{report}/vista-previa', [ReportController::class, 'preview'])->name('reportes.preview');
     Route::get('/reportes/{report}/descargar', [ReportController::class, 'download'])->name('reportes.download');
 
-    // Configuración → identidad visual (logo sidebar, logo/fondo de login, favicon)
+    // Logs del Sistema (bitácora de actividad)
+    Route::get('/logs', [LogController::class, 'index'])->name('logs.index');
+
+    // Configuración → Branding (logos, imágenes y colores del sistema)
     Route::get('/configuracion', [BrandingController::class, 'edit'])->name('configuracion.edit');
     Route::post('/configuracion/branding', [BrandingController::class, 'update'])->name('configuracion.branding.update');
+    Route::post('/configuracion/branding/colores', [BrandingController::class, 'updateColors'])->name('configuracion.branding.colors');
+
+    // Configuración → Usuarios
+    Route::get('/configuracion/usuarios', [UserController::class, 'index'])->name('configuracion.usuarios.index');
+    Route::post('/configuracion/usuarios', [UserController::class, 'store'])->name('configuracion.usuarios.store');
+    Route::put('/configuracion/usuarios/{user}', [UserController::class, 'update'])->name('configuracion.usuarios.update');
+    Route::delete('/configuracion/usuarios/{user}', [UserController::class, 'destroy'])->name('configuracion.usuarios.destroy');
+
+    // Configuración → Roles y permisos
+    Route::get('/configuracion/roles', [RoleController::class, 'index'])->name('configuracion.roles.index');
+    Route::post('/configuracion/roles', [RoleController::class, 'store'])->name('configuracion.roles.store');
+    Route::put('/configuracion/roles/{role}', [RoleController::class, 'update'])->name('configuracion.roles.update');
+    Route::delete('/configuracion/roles/{role}', [RoleController::class, 'destroy'])->name('configuracion.roles.destroy');
+
+    // Configuración → Notificaciones
+    Route::get('/configuracion/notificaciones', [NotificationSettingsController::class, 'edit'])->name('configuracion.notificaciones.edit');
+    Route::post('/configuracion/notificaciones', [NotificationSettingsController::class, 'update'])->name('configuracion.notificaciones.update');
 
     // Configuración → Inteligencia Artificial (proveedor, clave del API, modelo)
     Route::get('/configuracion/ia', [AiSettingsController::class, 'edit'])->name('configuracion.ia.edit');
