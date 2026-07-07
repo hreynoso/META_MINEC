@@ -1,63 +1,114 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
-import { Search, ScrollText } from 'lucide-vue-next';
+import { ScrollText } from 'lucide-vue-next';
 import { matchesAllTokens } from '@/Composables/useTokenSearch';
+import { downloadCsv } from '@/Composables/useCsvExport';
+import GridToolbar, { type GridColumn } from '@/Components/GridToolbar.vue';
 
 interface LogEntry { id: number; datetime: string | null; user: string; action: string; section: string; detail: string }
 
 const props = defineProps<{ logs: LogEntry[] }>();
 
-const q = ref('');
+const search = ref('');
+const pageSize = ref(50);
+const fSection = ref('');
+const fAction = ref('');
+
+const columns = ref<GridColumn[]>([
+    { key: 'datetime', label: 'Fecha y hora', visible: true },
+    { key: 'user', label: 'Usuario', visible: true },
+    { key: 'action', label: 'Acción', visible: true },
+    { key: 'section', label: 'Sección', visible: true },
+    { key: 'detail', label: 'Detalle', visible: true },
+]);
+const vis = (k: string) => columns.value.find((c) => c.key === k)?.visible ?? true;
+
+const sections = computed(() => [...new Set(props.logs.map((l) => l.section))].sort());
+const actions = computed(() => [...new Set(props.logs.map((l) => l.action))].sort());
+
 const filtered = computed(() =>
     props.logs.filter((l) => {
-        if (!q.value.trim()) return true;
-        return matchesAllTokens(`${l.user} ${l.action} ${l.section} ${l.detail}`, q.value);
+        if (fSection.value && l.section !== fSection.value) return false;
+        if (fAction.value && l.action !== fAction.value) return false;
+        if (search.value.trim() && !matchesAllTokens(`${l.user} ${l.action} ${l.section} ${l.detail}`, search.value)) return false;
+        return true;
     }),
 );
+const visibleRows = computed(() => filtered.value.slice(0, pageSize.value));
 
 const actionClass = (a: string) => ({
     'Creación': 'bg-teal-100 text-teal-700 dark:bg-teal-900/40 dark:text-teal-300',
     'Actualización': 'bg-sky-100 text-sky-700 dark:bg-sky-900/40 dark:text-sky-300',
     'Eliminación': 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300',
 }[a] ?? 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300');
+
+function exportCsv() {
+    downloadCsv(
+        'logs-sistema',
+        columns.value.filter((c) => c.visible).map((c) => c.label),
+        filtered.value.map((l) => columns.value.filter((c) => c.visible).map((c) => (l as any)[c.key])),
+    );
+}
 </script>
 
 <template>
     <AppLayout>
-        <header class="mb-6 flex items-start justify-between">
-            <div>
-                <h1 class="flex items-center gap-2 text-2xl font-semibold"><ScrollText class="h-6 w-6 text-brand" /> Logs del Sistema</h1>
-                <p class="text-sm text-slate-500">Registros y actualizaciones más recientes en el sistema.</p>
-            </div>
-            <div class="flex items-center gap-2 rounded-lg border border-slate-300 px-2 dark:border-slate-600">
-                <Search class="h-4 w-4 opacity-50" />
-                <input v-model="q" type="text" placeholder="Buscar en los logs…" class="w-64 bg-transparent py-2 text-sm outline-none" />
-            </div>
+        <header class="mb-6">
+            <h1 class="flex items-center gap-2 text-2xl font-semibold"><ScrollText class="h-6 w-6 text-brand" /> Logs del Sistema</h1>
+            <p class="text-sm text-slate-500">Registros y actualizaciones más recientes en el sistema.</p>
         </header>
 
-        <div class="overflow-x-auto rounded-xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800">
-            <table class="w-full text-sm">
-                <thead class="border-b border-slate-200 text-left text-xs uppercase tracking-wide text-slate-400 dark:border-slate-700">
-                    <tr>
-                        <th class="px-4 py-3 font-medium">Fecha y hora</th>
-                        <th class="px-4 py-3 font-medium">Usuario</th>
-                        <th class="px-4 py-3 font-medium">Acción</th>
-                        <th class="px-4 py-3 font-medium">Sección</th>
-                        <th class="px-4 py-3 font-medium">Detalle</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr v-for="l in filtered" :key="l.id" class="border-b border-slate-100 last:border-0 dark:border-slate-700/60">
-                        <td class="whitespace-nowrap px-4 py-3 text-slate-500">{{ l.datetime }}</td>
-                        <td class="px-4 py-3 font-medium">{{ l.user }}</td>
-                        <td class="px-4 py-3"><span class="rounded-full px-2 py-0.5 text-xs" :class="actionClass(l.action)">{{ l.action }}</span></td>
-                        <td class="px-4 py-3">{{ l.section }}</td>
-                        <td class="px-4 py-3 text-slate-500">{{ l.detail }}</td>
-                    </tr>
-                    <tr v-if="!filtered.length"><td colspan="5" class="px-4 py-10 text-center text-slate-400">No hay registros de actividad.</td></tr>
-                </tbody>
-            </table>
+        <div class="rounded-xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800">
+            <GridToolbar
+                v-model:search="search"
+                v-model:page-size="pageSize"
+                v-model:columns="columns"
+                :total="filtered.length"
+                search-placeholder="Buscar por usuario, acción, sección, detalle…"
+                @export="exportCsv"
+            >
+                <template #filters>
+                    <div>
+                        <label class="mb-1 block text-xs font-medium uppercase tracking-wide text-slate-500">Sección</label>
+                        <select v-model="fSection" class="rounded-lg border border-slate-300 px-2 py-1.5 text-sm dark:border-slate-600 dark:bg-slate-900">
+                            <option value="">Todas</option>
+                            <option v-for="s in sections" :key="s" :value="s">{{ s }}</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="mb-1 block text-xs font-medium uppercase tracking-wide text-slate-500">Acción</label>
+                        <select v-model="fAction" class="rounded-lg border border-slate-300 px-2 py-1.5 text-sm dark:border-slate-600 dark:bg-slate-900">
+                            <option value="">Todas</option>
+                            <option v-for="a in actions" :key="a" :value="a">{{ a }}</option>
+                        </select>
+                    </div>
+                </template>
+            </GridToolbar>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead class="border-b border-slate-200 text-left text-xs uppercase tracking-wide text-slate-400 dark:border-slate-700">
+                        <tr>
+                            <th v-if="vis('datetime')" class="px-4 py-3 font-medium">Fecha y hora</th>
+                            <th v-if="vis('user')" class="px-4 py-3 font-medium">Usuario</th>
+                            <th v-if="vis('action')" class="px-4 py-3 font-medium">Acción</th>
+                            <th v-if="vis('section')" class="px-4 py-3 font-medium">Sección</th>
+                            <th v-if="vis('detail')" class="px-4 py-3 font-medium">Detalle</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="l in visibleRows" :key="l.id" class="border-b border-slate-100 last:border-0 dark:border-slate-700/60">
+                            <td v-if="vis('datetime')" class="whitespace-nowrap px-4 py-3 text-slate-500">{{ l.datetime }}</td>
+                            <td v-if="vis('user')" class="px-4 py-3 font-medium">{{ l.user }}</td>
+                            <td v-if="vis('action')" class="px-4 py-3"><span class="rounded-full px-2 py-0.5 text-xs" :class="actionClass(l.action)">{{ l.action }}</span></td>
+                            <td v-if="vis('section')" class="px-4 py-3">{{ l.section }}</td>
+                            <td v-if="vis('detail')" class="px-4 py-3 text-slate-500">{{ l.detail }}</td>
+                        </tr>
+                        <tr v-if="!filtered.length"><td colspan="5" class="px-4 py-10 text-center text-slate-400">No hay registros de actividad.</td></tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </AppLayout>
 </template>

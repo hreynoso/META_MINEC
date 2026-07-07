@@ -6,6 +6,9 @@ import { Plus, Pencil, Trash2, Star, TrendingUp, TrendingDown, Minus } from 'luc
 import { number } from '@/Composables/useProjectFormat';
 import { TREND_LABEL, trendClass, achievementBarClass } from '@/Composables/useKpiFormat';
 import { useConfirm } from '@/Composables/useConfirm';
+import { matchesAllTokens } from '@/Composables/useTokenSearch';
+import { downloadCsv } from '@/Composables/useCsvExport';
+import GridToolbar, { type GridColumn } from '@/Components/GridToolbar.vue';
 import KpiFormModal from '@/Components/KpiFormModal.vue';
 
 interface Kpi {
@@ -16,6 +19,37 @@ interface Kpi {
 const props = defineProps<{ kpis: Kpi[] }>();
 
 const strategic = computed(() => props.kpis.filter((k) => k.strategic));
+
+// Toolbar uniforme.
+const search = ref('');
+const pageSize = ref(25);
+const fStrategic = ref('');
+const columns = ref<GridColumn[]>([
+    { key: 'label', label: 'Indicador', visible: true },
+    { key: 'value', label: 'Valor', visible: true },
+    { key: 'target', label: 'Meta', visible: true },
+    { key: 'achievement', label: 'Logro', visible: true },
+    { key: 'trend', label: 'Tendencia', visible: true },
+]);
+const vis = (k: string) => columns.value.find((c) => c.key === k)?.visible ?? true;
+
+const filtered = computed(() =>
+    props.kpis.filter((k) => {
+        if (fStrategic.value === 'si' && !k.strategic) return false;
+        if (fStrategic.value === 'no' && k.strategic) return false;
+        if (search.value.trim() && !matchesAllTokens(`${k.label} ${k.key} ${k.unit ?? ''}`, search.value)) return false;
+        return true;
+    }),
+);
+const visibleRows = computed(() => filtered.value.slice(0, pageSize.value));
+
+function exportCsv() {
+    downloadCsv(
+        'kpis',
+        ['Indicador', 'Clave', 'Valor', 'Unidad', 'Meta', 'Logro', 'Tendencia', 'Estratégico'],
+        filtered.value.map((k) => [k.label, k.key, k.value, k.unit ?? '', k.target, `${k.achievement}%`, TREND_LABEL[k.trend] ?? k.trend, k.strategic ? 'Sí' : 'No']),
+    );
+}
 
 const formOpen = ref(false);
 const editing = ref<Kpi | null>(null);
@@ -84,60 +118,82 @@ function confirmDelete(k: Kpi) {
         </section>
 
         <!-- Tabla de gestión de todos los indicadores -->
-        <div class="overflow-x-auto rounded-xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800">
-            <table class="w-full text-sm">
-                <thead class="border-b border-slate-200 text-left text-xs uppercase tracking-wide text-slate-400 dark:border-slate-700">
-                    <tr>
-                        <th class="px-4 py-3 font-medium">Indicador</th>
-                        <th class="px-4 py-3 font-medium">Valor</th>
-                        <th class="px-4 py-3 font-medium">Meta</th>
-                        <th class="px-4 py-3 font-medium">Logro</th>
-                        <th class="px-4 py-3 font-medium">Tendencia</th>
-                        <th class="px-4 py-3 text-right font-medium">Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr v-for="k in kpis" :key="k.id" class="border-b border-slate-100 last:border-0 dark:border-slate-700/60">
-                        <td class="px-4 py-3">
-                            <div class="flex items-center gap-2">
-                                <Star v-if="k.strategic" class="h-3.5 w-3.5 text-amber-500" fill="currentColor" />
-                                <div>
-                                    <p class="font-medium">{{ k.label }}</p>
-                                    <p class="font-mono text-xs text-slate-400">{{ k.key }}</p>
+        <div class="rounded-xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800">
+            <GridToolbar
+                v-model:search="search"
+                v-model:page-size="pageSize"
+                v-model:columns="columns"
+                :total="filtered.length"
+                search-placeholder="Buscar por indicador, clave o unidad…"
+                @export="exportCsv"
+            >
+                <template #filters>
+                    <div>
+                        <label class="mb-1 block text-xs font-medium uppercase tracking-wide text-slate-500">Estratégico</label>
+                        <select v-model="fStrategic" class="rounded-lg border border-slate-300 px-2 py-1.5 text-sm dark:border-slate-600 dark:bg-slate-900">
+                            <option value="">Todos</option>
+                            <option value="si">Sí</option>
+                            <option value="no">No</option>
+                        </select>
+                    </div>
+                </template>
+            </GridToolbar>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead class="border-b border-slate-200 text-left text-xs uppercase tracking-wide text-slate-400 dark:border-slate-700">
+                        <tr>
+                            <th v-if="vis('label')" class="px-4 py-3 font-medium">Indicador</th>
+                            <th v-if="vis('value')" class="px-4 py-3 font-medium">Valor</th>
+                            <th v-if="vis('target')" class="px-4 py-3 font-medium">Meta</th>
+                            <th v-if="vis('achievement')" class="px-4 py-3 font-medium">Logro</th>
+                            <th v-if="vis('trend')" class="px-4 py-3 font-medium">Tendencia</th>
+                            <th class="px-4 py-3 text-right font-medium">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="k in visibleRows" :key="k.id" class="border-b border-slate-100 last:border-0 dark:border-slate-700/60">
+                            <td v-if="vis('label')" class="px-4 py-3">
+                                <div class="flex items-center gap-2">
+                                    <Star v-if="k.strategic" class="h-3.5 w-3.5 text-amber-500" fill="currentColor" />
+                                    <div>
+                                        <p class="font-medium">{{ k.label }}</p>
+                                        <p class="font-mono text-xs text-slate-400">{{ k.key }}</p>
+                                    </div>
                                 </div>
-                            </div>
-                        </td>
-                        <td class="px-4 py-3">{{ number(k.value) }} <span class="text-xs text-slate-400">{{ k.unit }}</span></td>
-                        <td class="px-4 py-3">{{ number(k.target) }}</td>
-                        <td class="px-4 py-3">
-                            <div class="flex items-center gap-2">
-                                <div class="h-1.5 w-20 rounded-full bg-slate-100 dark:bg-slate-700">
-                                    <div class="h-1.5 rounded-full" :class="achievementBarClass(k.achievement)" :style="{ width: Math.min(k.achievement, 100) + '%' }" />
+                            </td>
+                            <td v-if="vis('value')" class="px-4 py-3">{{ number(k.value) }} <span class="text-xs text-slate-400">{{ k.unit }}</span></td>
+                            <td v-if="vis('target')" class="px-4 py-3">{{ number(k.target) }}</td>
+                            <td v-if="vis('achievement')" class="px-4 py-3">
+                                <div class="flex items-center gap-2">
+                                    <div class="h-1.5 w-20 rounded-full bg-slate-100 dark:bg-slate-700">
+                                        <div class="h-1.5 rounded-full" :class="achievementBarClass(k.achievement)" :style="{ width: Math.min(k.achievement, 100) + '%' }" />
+                                    </div>
+                                    <span class="text-xs text-slate-500">{{ k.achievement }}%</span>
                                 </div>
-                                <span class="text-xs text-slate-500">{{ k.achievement }}%</span>
-                            </div>
-                        </td>
-                        <td class="px-4 py-3">
-                            <span class="inline-flex items-center gap-1" :class="trendClass(k.trend)">
-                                <component :is="trendIcon(k.trend)" class="h-4 w-4" /> {{ TREND_LABEL[k.trend] }}
-                            </span>
-                        </td>
-                        <td class="px-4 py-3">
-                            <div class="flex items-center justify-end gap-1">
-                                <button class="rounded p-1.5 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700" title="Editar" @click="openEdit(k)">
-                                    <Pencil class="h-4 w-4" />
-                                </button>
-                                <button class="rounded p-1.5 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30" title="Eliminar" @click="confirmDelete(k)">
-                                    <Trash2 class="h-4 w-4" />
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr v-if="!kpis.length">
-                        <td colspan="6" class="px-4 py-8 text-center text-slate-400">No hay indicadores registrados.</td>
-                    </tr>
-                </tbody>
-            </table>
+                            </td>
+                            <td v-if="vis('trend')" class="px-4 py-3">
+                                <span class="inline-flex items-center gap-1" :class="trendClass(k.trend)">
+                                    <component :is="trendIcon(k.trend)" class="h-4 w-4" /> {{ TREND_LABEL[k.trend] }}
+                                </span>
+                            </td>
+                            <td class="px-4 py-3">
+                                <div class="flex items-center justify-end gap-1">
+                                    <button class="rounded p-1.5 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700" title="Editar" @click="openEdit(k)">
+                                        <Pencil class="h-4 w-4" />
+                                    </button>
+                                    <button class="rounded p-1.5 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30" title="Eliminar" @click="confirmDelete(k)">
+                                        <Trash2 class="h-4 w-4" />
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr v-if="!filtered.length">
+                            <td colspan="6" class="px-4 py-8 text-center text-slate-400">No hay indicadores registrados.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
 
         <!-- Modal crear/editar KPI -->

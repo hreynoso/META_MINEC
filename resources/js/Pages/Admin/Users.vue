@@ -1,8 +1,11 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { useForm, router } from '@inertiajs/vue3';
 import ConfigLayout from '@/Components/ConfigLayout.vue';
 import { useConfirm } from '@/Composables/useConfirm';
+import { matchesAllTokens } from '@/Composables/useTokenSearch';
+import { downloadCsv } from '@/Composables/useCsvExport';
+import GridToolbar, { type GridColumn } from '@/Components/GridToolbar.vue';
 import { Plus, Pencil, Trash2, X, Save, ShieldCheck } from 'lucide-vue-next';
 
 interface User {
@@ -15,6 +18,39 @@ const props = defineProps<{
     roles: string[];
     institutions: { id: number; short_name: string; name: string }[];
 }>();
+
+// Toolbar uniforme (búsqueda, paginación, columnas, filtros, export).
+const search = ref('');
+const pageSize = ref(25);
+const fRole = ref('');
+const fStatus = ref('');
+const columns = ref<GridColumn[]>([
+    { key: 'name', label: 'Nombre', visible: true },
+    { key: 'email', label: 'Correo', visible: true },
+    { key: 'institution', label: 'Institución', visible: true },
+    { key: 'roles', label: 'Roles', visible: true },
+    { key: 'blocked', label: 'Estado', visible: true },
+]);
+const vis = (k: string) => columns.value.find((c) => c.key === k)?.visible ?? true;
+
+const filtered = computed(() =>
+    props.users.filter((u) => {
+        if (fRole.value && !u.roles.includes(fRole.value)) return false;
+        if (fStatus.value === 'activo' && u.blocked) return false;
+        if (fStatus.value === 'bloqueado' && !u.blocked) return false;
+        if (search.value.trim() && !matchesAllTokens(`${u.name} ${u.email} ${u.institution ?? ''} ${u.roles.join(' ')}`, search.value)) return false;
+        return true;
+    }),
+);
+const visibleRows = computed(() => filtered.value.slice(0, pageSize.value));
+
+function exportCsv() {
+    downloadCsv(
+        'usuarios',
+        ['Nombre', 'Correo', 'Institución', 'Roles', 'Estado'],
+        filtered.value.map((u) => [u.name, u.email, u.institution ?? '', u.roles.join(', '), u.blocked ? 'Bloqueado' : 'Activo']),
+    );
+}
 
 const { ask } = useConfirm();
 const open = ref(false);
@@ -80,42 +116,71 @@ function confirmDelete(u: User) {
             </button>
         </div>
 
-        <div class="overflow-x-auto rounded-xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800">
-            <table class="w-full text-sm">
-                <thead class="border-b border-slate-200 text-left text-xs uppercase tracking-wide text-slate-400 dark:border-slate-700">
-                    <tr>
-                        <th class="px-4 py-3 font-medium">Nombre</th>
-                        <th class="px-4 py-3 font-medium">Correo</th>
-                        <th class="px-4 py-3 font-medium">Institución</th>
-                        <th class="px-4 py-3 font-medium">Roles</th>
-                        <th class="px-4 py-3 font-medium">Estado</th>
-                        <th class="px-4 py-3 text-right font-medium">Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr v-for="u in users" :key="u.id" class="border-b border-slate-100 last:border-0 dark:border-slate-700/60">
-                        <td class="px-4 py-3 font-medium">{{ u.name }}</td>
-                        <td class="px-4 py-3 text-slate-500">{{ u.email }}</td>
-                        <td class="px-4 py-3">{{ u.institution ?? '—' }}</td>
-                        <td class="px-4 py-3">
-                            <span v-for="r in u.roles" :key="r" class="mr-1 inline-block rounded-full bg-brand/10 px-2 py-0.5 text-xs text-brand">{{ r }}</span>
-                            <span v-if="!u.roles.length" class="text-slate-400">—</span>
-                        </td>
-                        <td class="px-4 py-3">
-                            <span class="rounded-full px-2 py-0.5 text-xs" :class="u.blocked ? 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300' : 'bg-teal-100 text-teal-700 dark:bg-teal-900/40 dark:text-teal-300'">
-                                {{ u.blocked ? 'Bloqueado' : 'Activo' }}
-                            </span>
-                        </td>
-                        <td class="px-4 py-3">
-                            <div class="flex items-center justify-end gap-1">
-                                <button class="rounded p-1.5 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700" title="Editar" @click="openEdit(u)"><Pencil class="h-4 w-4" /></button>
-                                <button class="rounded p-1.5 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30" title="Eliminar" @click="confirmDelete(u)"><Trash2 class="h-4 w-4" /></button>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr v-if="!users.length"><td colspan="6" class="px-4 py-8 text-center text-slate-400">No hay usuarios registrados.</td></tr>
-                </tbody>
-            </table>
+        <div class="rounded-xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800">
+            <GridToolbar
+                v-model:search="search"
+                v-model:page-size="pageSize"
+                v-model:columns="columns"
+                :total="filtered.length"
+                search-placeholder="Buscar por nombre, correo, institución o rol…"
+                @export="exportCsv"
+            >
+                <template #filters>
+                    <div>
+                        <label class="mb-1 block text-xs font-medium uppercase tracking-wide text-slate-500">Rol</label>
+                        <select v-model="fRole" class="rounded-lg border border-slate-300 px-2 py-1.5 text-sm dark:border-slate-600 dark:bg-slate-900">
+                            <option value="">Todos</option>
+                            <option v-for="r in roles" :key="r" :value="r">{{ r }}</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="mb-1 block text-xs font-medium uppercase tracking-wide text-slate-500">Estado</label>
+                        <select v-model="fStatus" class="rounded-lg border border-slate-300 px-2 py-1.5 text-sm dark:border-slate-600 dark:bg-slate-900">
+                            <option value="">Todos</option>
+                            <option value="activo">Activo</option>
+                            <option value="bloqueado">Bloqueado</option>
+                        </select>
+                    </div>
+                </template>
+            </GridToolbar>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead class="border-b border-slate-200 text-left text-xs uppercase tracking-wide text-slate-400 dark:border-slate-700">
+                        <tr>
+                            <th v-if="vis('name')" class="px-4 py-3 font-medium">Nombre</th>
+                            <th v-if="vis('email')" class="px-4 py-3 font-medium">Correo</th>
+                            <th v-if="vis('institution')" class="px-4 py-3 font-medium">Institución</th>
+                            <th v-if="vis('roles')" class="px-4 py-3 font-medium">Roles</th>
+                            <th v-if="vis('blocked')" class="px-4 py-3 font-medium">Estado</th>
+                            <th class="px-4 py-3 text-right font-medium">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="u in visibleRows" :key="u.id" class="border-b border-slate-100 last:border-0 dark:border-slate-700/60">
+                            <td v-if="vis('name')" class="px-4 py-3 font-medium">{{ u.name }}</td>
+                            <td v-if="vis('email')" class="px-4 py-3 text-slate-500">{{ u.email }}</td>
+                            <td v-if="vis('institution')" class="px-4 py-3">{{ u.institution ?? '—' }}</td>
+                            <td v-if="vis('roles')" class="px-4 py-3">
+                                <span v-for="r in u.roles" :key="r" class="mr-1 inline-block rounded-full bg-brand/10 px-2 py-0.5 text-xs text-brand">{{ r }}</span>
+                                <span v-if="!u.roles.length" class="text-slate-400">—</span>
+                            </td>
+                            <td v-if="vis('blocked')" class="px-4 py-3">
+                                <span class="rounded-full px-2 py-0.5 text-xs" :class="u.blocked ? 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300' : 'bg-teal-100 text-teal-700 dark:bg-teal-900/40 dark:text-teal-300'">
+                                    {{ u.blocked ? 'Bloqueado' : 'Activo' }}
+                                </span>
+                            </td>
+                            <td class="px-4 py-3">
+                                <div class="flex items-center justify-end gap-1">
+                                    <button class="rounded p-1.5 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700" title="Editar" @click="openEdit(u)"><Pencil class="h-4 w-4" /></button>
+                                    <button class="rounded p-1.5 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30" title="Eliminar" @click="confirmDelete(u)"><Trash2 class="h-4 w-4" /></button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr v-if="!filtered.length"><td colspan="6" class="px-4 py-8 text-center text-slate-400">No hay usuarios registrados.</td></tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
 
         <!-- Modal crear/editar -->
