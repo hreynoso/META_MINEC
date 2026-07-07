@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { Link, usePage } from '@inertiajs/vue3';
 import {
     LayoutDashboard, Crown, FolderKanban, Gauge, FileBarChart,
@@ -8,6 +8,9 @@ import {
 
 const page = usePage();
 const sidebarOpen = ref(true);
+
+// Logo del sidebar administrable desde Configuración (null = usa el ícono).
+const logoSidebar = computed(() => (page.props.branding as any)?.assets?.logo_sidebar as string | undefined);
 
 // route: nombre de ruta Ziggy si ya existe; null = módulo de fase posterior.
 const nav = [
@@ -19,7 +22,7 @@ const nav = [
     { label: 'IA Predictiva', icon: Sparkles, route: null },
     { label: 'Memorias', icon: BookText, route: null },
     { label: 'Red de Gestores', icon: MessagesSquare, route: null },
-    { label: 'Configuración', icon: Settings, route: null },
+    { label: 'Configuración', icon: Settings, route: 'configuracion.edit' },
 ];
 
 function isActive(name: string | null): boolean {
@@ -37,13 +40,21 @@ function isActive(name: string | null): boolean {
                 class="flex w-64 shrink-0 flex-col bg-shell text-slate-300"
             >
                 <div class="flex items-center gap-3 px-5 py-4">
-                    <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-brand/20 text-brand">
-                        <LayoutDashboard class="h-5 w-5" />
-                    </div>
-                    <div class="leading-tight">
-                        <p class="text-sm font-semibold text-white">Sistema META</p>
-                        <p class="text-[11px] text-slate-400">MINEC · El Salvador</p>
-                    </div>
+                    <img
+                        v-if="logoSidebar"
+                        :src="logoSidebar"
+                        alt="Logo institucional"
+                        class="h-10 w-auto max-w-[10rem] object-contain"
+                    />
+                    <template v-else>
+                        <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-brand/20 text-brand">
+                            <LayoutDashboard class="h-5 w-5" />
+                        </div>
+                        <div class="leading-tight">
+                            <p class="text-sm font-semibold text-white">Sistema META</p>
+                            <p class="text-[11px] text-slate-400">MINEC · El Salvador</p>
+                        </div>
+                    </template>
                 </div>
 
                 <nav class="mt-2 flex-1 space-y-1 px-3">

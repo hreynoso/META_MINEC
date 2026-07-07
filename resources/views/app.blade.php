@@ -6,6 +6,10 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title inertia>{{ config('branding.app_name', 'META MINEC') }}</title>
 
+    {{-- Favicon administrable desde Configuración --}}
+    <link rel="icon" href="{{ \App\Support\Branding::url('favicon') ?? '/favicon.ico' }}">
+
+
     @routes
     @vite(['resources/css/app.css', 'resources/js/app.ts'])
     @inertiaHead

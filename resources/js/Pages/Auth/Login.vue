@@ -7,6 +7,14 @@ defineProps<{ institution: string; demoEnabled: boolean }>();
 const page = usePage();
 const flashError = computed(() => (page.props.flash as any)?.error as string | undefined);
 
+// Assets de marca administrables desde Configuración.
+const assets = computed(() => (page.props.branding as any)?.assets ?? {});
+const logoLogin = computed(() => assets.value.logo_login as string | undefined);
+const loginBackground = computed(() => assets.value.login_background as string | undefined);
+const bgStyle = computed(() => loginBackground.value
+    ? { backgroundImage: `url(${loginBackground.value})`, backgroundSize: 'cover', backgroundPosition: 'center' }
+    : undefined);
+
 const form = useForm({ email: '', password: '' });
 
 function submitDemo() {
@@ -15,9 +23,15 @@ function submitDemo() {
 </script>
 
 <template>
-    <div class="flex min-h-screen items-center justify-center bg-slate-900 text-slate-100">
-        <div class="w-full max-w-sm rounded-2xl border border-slate-700 bg-slate-800 p-8 text-center shadow-xl">
-            <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-brand/20 text-brand">
+    <div class="flex min-h-screen items-center justify-center bg-slate-900 bg-cover bg-center text-slate-100" :style="bgStyle">
+        <div class="w-full max-w-sm rounded-2xl border border-slate-700 bg-slate-800/95 p-8 text-center shadow-xl backdrop-blur">
+            <img
+                v-if="logoLogin"
+                :src="logoLogin"
+                alt="Logo institucional"
+                class="mx-auto h-16 w-auto max-w-[12rem] object-contain"
+            />
+            <div v-else class="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-brand/20 text-brand">
                 <span class="text-lg font-bold">M</span>
             </div>
             <h1 class="mt-4 text-2xl font-bold">Sistema META</h1>

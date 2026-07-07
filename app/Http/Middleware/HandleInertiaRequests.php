@@ -30,6 +30,7 @@ class HandleInertiaRequests extends Middleware
                 'app_name' => config('branding.app_name'),
                 'institution' => config('branding.institution'),
                 'institution_short' => config('branding.institution_short'),
+                'assets' => \App\Support\Branding::urls(),
             ],
             'flash' => [
                 'success' => fn () => $request->session()->get('success'),
