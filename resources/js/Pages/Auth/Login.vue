@@ -29,7 +29,7 @@ function submitDemo() {
                 v-if="logoLogin"
                 :src="logoLogin"
                 alt="Logo institucional"
-                class="mx-auto h-[84px] w-auto max-w-[14rem] object-contain"
+                class="mx-auto h-auto max-h-48 w-auto max-w-full object-contain"
             />
             <div v-else class="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-brand/10 text-brand">
                 <span class="text-lg font-bold">M</span>
