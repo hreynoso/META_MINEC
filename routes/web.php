@@ -6,6 +6,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\KpiController;
 use App\Http\Controllers\MemoirController;
 use App\Http\Controllers\MinisterController;
+use App\Http\Controllers\NetworkController;
 use App\Http\Controllers\PredictiveController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\ReportController;
@@ -31,6 +32,12 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/kpis', [KpiController::class, 'store'])->name('kpis.store');
     Route::put('/kpis/{kpi}', [KpiController::class, 'update'])->name('kpis.update');
     Route::delete('/kpis/{kpi}', [KpiController::class, 'destroy'])->name('kpis.destroy');
+
+    // Red de Gestores (chat institucional por canales)
+    Route::get('/red-de-gestores', [NetworkController::class, 'index'])->name('red-gestores.index');
+    Route::get('/red-de-gestores/mensajes', [NetworkController::class, 'messages'])->name('red-gestores.messages');
+    Route::post('/red-de-gestores/mensajes', [NetworkController::class, 'store'])->name('red-gestores.store');
+    Route::post('/red-de-gestores/notificar-riesgos', [NetworkController::class, 'notifyRisks'])->name('red-gestores.notify');
 
     // Memorias institucionales (borrador generado con el API de IA configurado)
     Route::get('/memorias', [MemoirController::class, 'index'])->name('memorias.index');

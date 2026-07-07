@@ -15,6 +15,7 @@ class DatabaseSeeder extends Seeder
             KpiSeeder::class,
             ProjectSeeder::class,
             DemoUserSeeder::class,
+            GestorSeeder::class,
         ]);
     }
 }

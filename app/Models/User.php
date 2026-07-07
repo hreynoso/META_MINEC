@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Activitylog\LogOptions;
@@ -19,6 +20,8 @@ class User extends Authenticatable
         'password',
         'azure_id',
         'blocked_at',
+        'institution_id',
+        'last_seen_at',
     ];
 
     protected $hidden = [
@@ -31,8 +34,14 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'blocked_at' => 'datetime',
+            'last_seen_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function institution(): BelongsTo
+    {
+        return $this->belongsTo(Institution::class);
     }
 
     public function getActivitylogOptions(): LogOptions
