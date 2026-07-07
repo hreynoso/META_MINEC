@@ -37,7 +37,7 @@ const nav = [
     { label: 'KPIs', icon: Gauge, route: 'kpis.index' },
     { label: 'Reportes', icon: FileBarChart, route: 'reportes.index' },
     { label: 'IA Predictiva', icon: Sparkles, route: 'ia-predictiva.index' },
-    { label: 'Memorias', icon: BookText, route: null },
+    { label: 'Memorias', icon: BookText, route: 'memorias.index' },
     { label: 'Red de Gestores', icon: MessagesSquare, route: null },
     { label: 'Configuración', icon: Settings, route: 'configuracion.edit' },
 ];

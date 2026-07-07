@@ -18,6 +18,16 @@ class AiReportService
         return (string) Setting::value('ai.provider', 'anthropic');
     }
 
+    /** Nombre legible del proveedor configurado. */
+    public function providerLabel(): string
+    {
+        return [
+            'anthropic' => 'Anthropic (Claude)',
+            'gemini' => 'Google Gemini',
+            'openai' => 'OpenAI',
+        ][$this->provider()] ?? 'IA';
+    }
+
     public function model(): string
     {
         $model = Setting::value('ai.model');

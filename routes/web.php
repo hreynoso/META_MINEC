@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\AiSettingsController;
 use App\Http\Controllers\Admin\BrandingController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\KpiController;
+use App\Http\Controllers\MemoirController;
 use App\Http\Controllers\MinisterController;
 use App\Http\Controllers\PredictiveController;
 use App\Http\Controllers\ProjectController;
@@ -30,6 +31,10 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/kpis', [KpiController::class, 'store'])->name('kpis.store');
     Route::put('/kpis/{kpi}', [KpiController::class, 'update'])->name('kpis.update');
     Route::delete('/kpis/{kpi}', [KpiController::class, 'destroy'])->name('kpis.destroy');
+
+    // Memorias institucionales (borrador generado con el API de IA configurado)
+    Route::get('/memorias', [MemoirController::class, 'index'])->name('memorias.index');
+    Route::post('/memorias/generar', [MemoirController::class, 'generate'])->name('memorias.generate');
 
     // IA Predictiva (modelo META-PREDICT + recomendación vía API de IA configurado)
     Route::get('/ia-predictiva', [PredictiveController::class, 'index'])->name('ia-predictiva.index');
