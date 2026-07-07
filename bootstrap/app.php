@@ -4,6 +4,7 @@ use App\Http\Middleware\EnforceSystemLock;
 use App\Http\Middleware\EnsureUserIsNotBlocked;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\SecurityHeaders;
+use App\Http\Middleware\TrackActivity;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -32,6 +33,7 @@ return Application::configure(basePath: dirname(__DIR__))
             HandleInertiaRequests::class,
             EnsureUserIsNotBlocked::class,
             EnforceSystemLock::class,      // "modo mantenimiento" controlado por Setting
+            TrackActivity::class,          // marca de última actividad (usuarios conectados)
             SecurityHeaders::class,
             AddLinkHeadersForPreloadedAssets::class,
         ]);

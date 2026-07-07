@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useForm, router } from '@inertiajs/vue3';
-import AppLayout from '@/Layouts/AppLayout.vue';
-import ConfigTabs from '@/Components/ConfigTabs.vue';
+import ConfigLayout from '@/Components/ConfigLayout.vue';
 import { useConfirm } from '@/Composables/useConfirm';
 import { Plus, Pencil, Trash2, X, Save } from 'lucide-vue-next';
 
@@ -58,18 +57,16 @@ function confirmDelete(r: Role) {
 </script>
 
 <template>
-    <AppLayout>
-        <header class="mb-6 flex items-start justify-between">
+    <ConfigLayout section="roles">
+        <div class="mb-5 flex items-start justify-between">
             <div>
-                <h1 class="text-2xl font-semibold">Configuración · Roles y permisos</h1>
+                <h2 class="text-lg font-semibold">Roles y permisos</h2>
                 <p class="text-sm text-slate-500">Define roles y los permisos de acceso que se asignan a los usuarios.</p>
             </div>
             <button class="inline-flex items-center gap-1.5 rounded-lg bg-brand px-3 py-2 text-sm font-medium text-white hover:opacity-90" @click="openCreate">
                 <Plus class="h-4 w-4" /> Nuevo rol
             </button>
-        </header>
-
-        <ConfigTabs />
+        </div>
 
         <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
             <div v-for="r in roles" :key="r.id" class="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-800">
@@ -126,5 +123,5 @@ function confirmDelete(r: Role) {
                 </form>
             </div>
         </div>
-    </AppLayout>
+    </ConfigLayout>
 </template>

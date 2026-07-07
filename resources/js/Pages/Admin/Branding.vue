@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { reactive, computed } from 'vue';
 import { useForm, usePage } from '@inertiajs/vue3';
-import AppLayout from '@/Layouts/AppLayout.vue';
-import ConfigTabs from '@/Components/ConfigTabs.vue';
+import ConfigLayout from '@/Components/ConfigLayout.vue';
 import { UploadCloud, ImageIcon, CheckCircle2 } from 'lucide-vue-next';
 
 interface Assets {
@@ -83,13 +82,11 @@ function submit() {
 </script>
 
 <template>
-    <AppLayout>
-        <header class="mb-6">
-            <h1 class="text-2xl font-semibold">Configuración · Branding</h1>
+    <ConfigLayout section="branding">
+        <div class="mb-5">
+            <h2 class="text-lg font-semibold">Branding</h2>
             <p class="text-sm text-slate-500">Logos, imágenes y colores de identidad visual del sistema.</p>
-        </header>
-
-        <ConfigTabs />
+        </div>
 
         <p v-if="flashSuccess" class="mb-4 flex items-center gap-2 rounded-lg border border-teal-200 bg-teal-50 px-4 py-2 text-sm text-teal-800">
             <CheckCircle2 class="h-4 w-4" /> {{ flashSuccess }}
@@ -172,5 +169,5 @@ function submit() {
                 {{ colorForm.processing ? 'Guardando…' : 'Guardar colores' }}
             </button>
         </form>
-    </AppLayout>
+    </ConfigLayout>
 </template>

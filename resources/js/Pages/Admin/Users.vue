@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useForm, router } from '@inertiajs/vue3';
-import AppLayout from '@/Layouts/AppLayout.vue';
-import ConfigTabs from '@/Components/ConfigTabs.vue';
+import ConfigLayout from '@/Components/ConfigLayout.vue';
 import { useConfirm } from '@/Composables/useConfirm';
 import { Plus, Pencil, Trash2, X, Save, ShieldCheck } from 'lucide-vue-next';
 
@@ -70,18 +69,16 @@ function confirmDelete(u: User) {
 </script>
 
 <template>
-    <AppLayout>
-        <header class="mb-6 flex items-start justify-between">
+    <ConfigLayout section="usuarios">
+        <div class="mb-5 flex items-start justify-between">
             <div>
-                <h1 class="text-2xl font-semibold">Configuración · Usuarios</h1>
+                <h2 class="text-lg font-semibold">Usuarios</h2>
                 <p class="text-sm text-slate-500">Gestión de los usuarios del sistema, sus roles e institución.</p>
             </div>
             <button class="inline-flex items-center gap-1.5 rounded-lg bg-brand px-3 py-2 text-sm font-medium text-white hover:opacity-90" @click="openCreate">
                 <Plus class="h-4 w-4" /> Nuevo usuario
             </button>
-        </header>
-
-        <ConfigTabs />
+        </div>
 
         <div class="overflow-x-auto rounded-xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800">
             <table class="w-full text-sm">
@@ -180,5 +177,5 @@ function confirmDelete(u: User) {
                 </form>
             </div>
         </div>
-    </AppLayout>
+    </ConfigLayout>
 </template>

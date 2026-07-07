@@ -25,6 +25,8 @@ class HandleInertiaRequests extends Middleware
                     : null,
                 'roles' => $request->user()?->getRoleNames() ?? [],
                 'permissions' => $request->user()?->getAllPermissions()->pluck('name') ?? [],
+                // Usuarios activos en los últimos 5 minutos (tolerante si falta la columna).
+                'online' => fn () => rescue(fn () => \App\Models\User::where('last_seen_at', '>=', now()->subMinutes(5))->count(), 1, false),
             ],
             'branding' => [
                 'app_name' => config('branding.app_name'),

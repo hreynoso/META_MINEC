@@ -58,12 +58,12 @@ function isActive(name: string | null): boolean {
 </script>
 
 <template>
-    <div class="min-h-screen bg-slate-50 text-slate-800 dark:bg-slate-900 dark:text-slate-100" :style="themeVars">
-        <div class="flex min-h-screen">
-            <!-- Sidebar -->
+    <div class="h-screen bg-slate-50 text-slate-800 dark:bg-slate-900 dark:text-slate-100" :style="themeVars">
+        <div class="flex h-screen overflow-hidden">
+            <!-- Sidebar fijo: no se desplaza con el scroll del contenido -->
             <aside
                 v-if="sidebarOpen"
-                class="flex w-64 shrink-0 flex-col bg-shell text-slate-300"
+                class="flex h-screen w-64 shrink-0 flex-col overflow-y-auto bg-shell text-slate-300"
             >
                 <!-- Logo institucional a todo el ancho del sidebar -->
                 <div v-if="logoSidebar" class="px-3 py-4">
@@ -120,8 +120,8 @@ function isActive(name: string | null): boolean {
             </aside>
 
             <!-- Main -->
-            <div class="flex flex-1 flex-col">
-                <header class="flex h-16 items-center justify-between border-b border-slate-200 bg-white px-6 dark:border-slate-700 dark:bg-slate-800">
+            <div class="flex flex-1 flex-col overflow-hidden">
+                <header class="flex h-16 shrink-0 items-center justify-between border-b border-slate-200 bg-white px-6 dark:border-slate-700 dark:bg-slate-800">
                     <button class="rounded p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700" @click="sidebarOpen = !sidebarOpen">
                         <Menu class="h-5 w-5" />
                     </button>
@@ -136,11 +136,11 @@ function isActive(name: string | null): boolean {
                     </div>
                 </header>
 
-                <main class="flex-1 p-6">
+                <main class="flex-1 overflow-y-auto p-6">
                     <slot />
                 </main>
 
-                <footer class="border-t border-slate-200 px-6 py-4 text-center text-xs text-slate-400 dark:border-slate-700">
+                <footer class="shrink-0 border-t border-slate-200 px-6 py-4 text-center text-xs text-slate-400 dark:border-slate-700">
                     Desarrollado por José David Montilla. Todos los derechos reservados 2026.
                 </footer>
             </div>

@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { useForm } from '@inertiajs/vue3';
-import AppLayout from '@/Layouts/AppLayout.vue';
-import ConfigTabs from '@/Components/ConfigTabs.vue';
+import ConfigLayout from '@/Components/ConfigLayout.vue';
 import { Bell } from 'lucide-vue-next';
 
 interface Settings {
@@ -34,13 +33,11 @@ function submit() {
 </script>
 
 <template>
-    <AppLayout>
-        <header class="mb-6">
-            <h1 class="text-2xl font-semibold">Configuración · Notificaciones</h1>
+    <ConfigLayout section="notificaciones">
+        <div class="mb-5">
+            <h2 class="text-lg font-semibold">Notificaciones</h2>
             <p class="text-sm text-slate-500">Preferencias de notificación del sistema y destinatarios.</p>
-        </header>
-
-        <ConfigTabs />
+        </div>
 
         <form class="max-w-2xl space-y-6" @submit.prevent="submit">
             <div class="divide-y divide-slate-100 rounded-xl border border-slate-200 bg-white dark:divide-slate-700/60 dark:border-slate-700 dark:bg-slate-800">
@@ -68,5 +65,5 @@ function submit() {
                 {{ form.processing ? 'Guardando…' : 'Guardar preferencias' }}
             </button>
         </form>
-    </AppLayout>
+    </ConfigLayout>
 </template>

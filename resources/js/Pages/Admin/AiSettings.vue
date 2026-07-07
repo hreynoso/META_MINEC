@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useForm } from '@inertiajs/vue3';
-import AppLayout from '@/Layouts/AppLayout.vue';
-import ConfigTabs from '@/Components/ConfigTabs.vue';
+import ConfigLayout from '@/Components/ConfigLayout.vue';
 import { Sparkles, KeyRound, CheckCircle2 } from 'lucide-vue-next';
 
 interface Settings {
@@ -42,13 +41,11 @@ function submit() {
 </script>
 
 <template>
-    <AppLayout>
-        <header class="mb-6">
-            <h1 class="text-2xl font-semibold">Configuración · Inteligencia Artificial</h1>
+    <ConfigLayout section="ia">
+        <div class="mb-5">
+            <h2 class="text-lg font-semibold">Inteligencia Artificial</h2>
             <p class="text-sm text-slate-500">Proveedor y credenciales del API de IA para el informe presidencial y las alertas predictivas.</p>
-        </header>
-
-        <ConfigTabs />
+        </div>
 
         <form class="max-w-2xl" @submit.prevent="submit">
             <div class="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-800">
@@ -106,5 +103,5 @@ function submit() {
                 </button>
             </div>
         </form>
-    </AppLayout>
+    </ConfigLayout>
 </template>
