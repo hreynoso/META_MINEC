@@ -10,6 +10,10 @@
     --color-brand-info: #0284c7;   /* sky-600 */
     --color-brand-warning: #d97706;/* amber-600 */
 
+    /* Navy institucional MINEC (color del logo) — fondo del sidebar */
+    --color-shell: #1b2a63;
+    --color-shell-hover: #29397a;
+
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
 }
 
