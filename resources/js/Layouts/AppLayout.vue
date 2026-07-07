@@ -157,7 +157,7 @@ function isActive(name: string | null): boolean {
                 </main>
 
                 <footer class="shrink-0 border-t border-slate-200 px-6 py-4 text-center text-xs text-slate-400 dark:border-slate-700">
-                    Desarrollado por José David Montilla. Todos los derechos reservados 2026.
+                    Developed by CityWorks, Powered by Google Cloud Platform
                 </footer>
             </div>
         </div>
