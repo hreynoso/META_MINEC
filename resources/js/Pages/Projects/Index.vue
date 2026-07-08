@@ -2,7 +2,7 @@
 import { ref, computed } from 'vue';
 import { router } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
-import { Search, Download, Upload, Plus, X, MapPin, Building2, Pencil, Trash2 } from 'lucide-vue-next';
+import { Search, Download, Upload, Plus, X, MapPin, Building2, Pencil, Trash2, Users } from 'lucide-vue-next';
 import { matchesAllTokens } from '@/Composables/useTokenSearch';
 import { useConfirm } from '@/Composables/useConfirm';
 import ProjectFormModal from '@/Components/ProjectFormModal.vue';
@@ -26,13 +26,17 @@ const props = defineProps<{
     goals: { id: number; name: string }[];
 }>();
 
-// El estado inicial del filtro puede venir de la URL (?status=en_riesgo),
-// p. ej. al llegar desde la tarjeta "Proyectos en alerta" del dashboard.
-const initialStatus = new URLSearchParams(window.location.search).get('status') ?? '';
+// El estado inicial de los filtros puede venir de la URL, p. ej. al llegar
+// desde las tarjetas del dashboard:
+//   ?status=en_riesgo|en_ejecucion  -> preselecciona el estado
+//   ?beneficiarios=1                -> solo proyectos que aportan beneficiarios
+const urlParams = new URLSearchParams(window.location.search);
+const initialStatus = urlParams.get('status') ?? '';
 
 const q = ref('');
 const institution = ref('');
 const status = ref(STATUS_OPTIONS.some((s) => s.value === initialStatus) ? initialStatus : '');
+const onlyBeneficiaries = ref(urlParams.get('beneficiarios') === '1');
 const selected = ref<Project | null>(null);
 
 // Modal de crear/editar: null = cerrado; se distingue crear (editing === null) de editar.
@@ -71,16 +75,29 @@ function confirmDelete(p: Project) {
     });
 }
 
-const filtered = computed(() =>
-    props.projects.filter((p) => {
+const filtered = computed(() => {
+    const list = props.projects.filter((p) => {
         if (institution.value && p.institution !== institution.value) return false;
         if (status.value && p.status !== status.value) return false;
+        if (onlyBeneficiaries.value && !(p.beneficiaries > 0)) return false;
         if (q.value.trim()) {
             const hay = `${p.code} ${p.name} ${p.responsible ?? ''}`;
             if (!matchesAllTokens(hay, q.value)) return false;
         }
         return true;
-    }),
+    });
+
+    // Al llegar desde la tarjeta "Beneficiarios" ordenamos de mayor a menor
+    // para que se vea qué proyectos aportan más al total.
+    return onlyBeneficiaries.value
+        ? [...list].sort((a, b) => b.beneficiaries - a.beneficiaries)
+        : list;
+});
+
+// Suma de beneficiarios de los proyectos visibles (coincide con el contador
+// del dashboard cuando el filtro está activo).
+const beneficiariesTotal = computed(() =>
+    filtered.value.reduce((sum, p) => sum + (p.beneficiaries || 0), 0),
 );
 </script>
 
@@ -107,6 +124,15 @@ const filtered = computed(() =>
         <!-- Toolbar de filtros -->
         <div class="mb-4 flex flex-wrap items-center gap-3">
             <p class="text-sm text-slate-500">{{ filtered.length }} proyecto(s)</p>
+            <button
+                v-if="onlyBeneficiaries"
+                type="button"
+                class="inline-flex items-center gap-1.5 rounded-full bg-teal-100 px-3 py-1 text-xs font-medium text-teal-800 hover:bg-teal-200 dark:bg-teal-900/40 dark:text-teal-300 dark:hover:bg-teal-900/60"
+                @click="onlyBeneficiaries = false"
+            >
+                <Users class="h-3 w-3" /> {{ number(beneficiariesTotal) }} beneficiarios
+                <X class="h-3 w-3" />
+            </button>
             <div class="ml-auto flex flex-wrap items-center gap-2">
                 <div class="flex items-center gap-2 rounded-lg border border-slate-300 px-2 dark:border-slate-600">
                     <Search class="h-4 w-4 opacity-50" />
@@ -147,6 +173,9 @@ const filtered = computed(() =>
                     <span>{{ currency(p.executed) }} / {{ currency(p.budget) }}</span>
                 </div>
                 <p v-if="p.goal" class="mt-2 text-xs text-slate-400">◎ {{ p.goal }}</p>
+                <p v-if="onlyBeneficiaries" class="mt-2 inline-flex items-center gap-1 text-xs font-medium text-teal-700 dark:text-teal-300">
+                    <Users class="h-3 w-3" /> {{ number(p.beneficiaries) }} beneficiarios
+                </p>
             </button>
         </div>
 

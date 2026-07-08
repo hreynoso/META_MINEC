@@ -33,22 +33,28 @@ const trendIcon = (t: string) => (t === 'up' ? TrendingUp : t === 'down' ? Trend
                 <p class="mt-2 text-2xl font-bold">{{ currency(summary.budget) }}</p>
                 <p class="mt-1 text-xs text-slate-500">{{ currency(summary.executed) }} ejecutado</p>
             </div>
-            <div class="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-800">
+            <a
+                :href="route('proyectos.index', { status: 'en_ejecucion' })"
+                class="block rounded-xl border border-slate-200 bg-white p-5 transition hover:border-teal-300 hover:shadow-md dark:border-slate-700 dark:bg-slate-800 dark:hover:border-teal-700"
+            >
                 <div class="flex items-center justify-between text-slate-400">
                     <span class="text-xs font-medium uppercase tracking-wide">Proyectos activos</span>
                     <Clock class="h-4 w-4" />
                 </div>
                 <p class="mt-2 text-2xl font-bold">{{ summary.active }} / {{ summary.total }}</p>
-                <p class="mt-1 text-xs text-slate-500">{{ summary.completed }} completados</p>
-            </div>
-            <div class="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-800">
+                <p class="mt-1 text-xs text-slate-500">{{ summary.completed }} completados · ver activos →</p>
+            </a>
+            <a
+                :href="route('proyectos.index', { beneficiarios: 1 })"
+                class="block rounded-xl border border-slate-200 bg-white p-5 transition hover:border-teal-300 hover:shadow-md dark:border-slate-700 dark:bg-slate-800 dark:hover:border-teal-700"
+            >
                 <div class="flex items-center justify-between text-slate-400">
                     <span class="text-xs font-medium uppercase tracking-wide">Beneficiarios</span>
                     <Users class="h-4 w-4" />
                 </div>
                 <p class="mt-2 text-2xl font-bold">{{ number(summary.beneficiaries) }}</p>
-                <p class="mt-1 text-xs text-slate-500">Impacto directo</p>
-            </div>
+                <p class="mt-1 text-xs text-slate-500">Impacto directo · ver proyectos →</p>
+            </a>
             <a
                 :href="route('proyectos.index', { status: 'en_riesgo' })"
                 class="block rounded-xl border border-amber-200 bg-amber-50/60 p-5 transition hover:border-amber-300 hover:shadow-md dark:border-amber-900/40 dark:bg-amber-900/10 dark:hover:border-amber-700"
