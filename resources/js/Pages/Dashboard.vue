@@ -49,14 +49,17 @@ const trendIcon = (t: string) => (t === 'up' ? TrendingUp : t === 'down' ? Trend
                 <p class="mt-2 text-2xl font-bold">{{ number(summary.beneficiaries) }}</p>
                 <p class="mt-1 text-xs text-slate-500">Impacto directo</p>
             </div>
-            <div class="rounded-xl border border-amber-200 bg-amber-50/60 p-5 dark:border-amber-900/40 dark:bg-amber-900/10">
+            <a
+                :href="route('proyectos.index', { status: 'en_riesgo' })"
+                class="block rounded-xl border border-amber-200 bg-amber-50/60 p-5 transition hover:border-amber-300 hover:shadow-md dark:border-amber-900/40 dark:bg-amber-900/10 dark:hover:border-amber-700"
+            >
                 <div class="flex items-center justify-between text-amber-500">
                     <span class="text-xs font-medium uppercase tracking-wide">Proyectos en alerta</span>
                     <TriangleAlert class="h-4 w-4" />
                 </div>
                 <p class="mt-2 text-2xl font-bold text-amber-600">{{ summary.alert }}</p>
-                <p class="mt-1 text-xs text-slate-500">Riesgo alto / retrasados</p>
-            </div>
+                <p class="mt-1 text-xs text-slate-500">En riesgo · ver listado →</p>
+            </a>
         </div>
 
         <!-- Indicadores estratégicos -->

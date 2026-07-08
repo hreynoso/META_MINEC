@@ -26,9 +26,13 @@ const props = defineProps<{
     goals: { id: number; name: string }[];
 }>();
 
+// El estado inicial del filtro puede venir de la URL (?status=en_riesgo),
+// p. ej. al llegar desde la tarjeta "Proyectos en alerta" del dashboard.
+const initialStatus = new URLSearchParams(window.location.search).get('status') ?? '';
+
 const q = ref('');
 const institution = ref('');
-const status = ref('');
+const status = ref(STATUS_OPTIONS.some((s) => s.value === initialStatus) ? initialStatus : '');
 const selected = ref<Project | null>(null);
 
 // Modal de crear/editar: null = cerrado; se distingue crear (editing === null) de editar.
