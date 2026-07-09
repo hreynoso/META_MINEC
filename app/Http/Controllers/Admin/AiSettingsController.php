@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Setting;
+use App\Services\Ai\AiReportService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -62,5 +64,19 @@ class AiSettingsController extends Controller
         }
 
         return back()->with('success', 'Configuración de IA actualizada.');
+    }
+
+    /** Prueba la conexión con el proveedor (usa la clave escrita o la guardada). */
+    public function test(Request $request, AiReportService $ai): JsonResponse
+    {
+        $data = $request->validate([
+            'provider' => ['required', 'in:anthropic,gemini,openai'],
+            'model' => ['nullable', 'string', 'max:100'],
+            'api_key' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        return response()->json(
+            $ai->testConnection($data['provider'], $data['model'] ?? null, $data['api_key'] ?? null)
+        );
     }
 }

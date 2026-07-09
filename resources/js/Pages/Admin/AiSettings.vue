@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { computed, watch, onMounted } from 'vue';
+import { ref, computed, watch, onMounted } from 'vue';
 import { useForm } from '@inertiajs/vue3';
 import ConfigLayout from '@/Components/ConfigLayout.vue';
-import { Sparkles, KeyRound, CheckCircle2 } from 'lucide-vue-next';
+import { Sparkles, KeyRound, CheckCircle2, AlertTriangle, Loader2, Plug } from 'lucide-vue-next';
 
 interface Settings {
     provider: string;
@@ -78,6 +78,35 @@ function submit() {
         onSuccess: () => form.reset('api_key', 'gemini_password'),
     });
 }
+
+// Prueba de conexión con el proveedor (usa la clave escrita o la guardada).
+const testing = ref(false);
+const testResult = ref<{ ok: boolean; message: string } | null>(null);
+
+async function testConnection() {
+    testing.value = true;
+    testResult.value = null;
+    const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? '';
+
+    try {
+        const res = await fetch(route('configuracion.ia.test'), {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                Accept: 'application/json',
+                'X-CSRF-TOKEN': token,
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+            body: JSON.stringify({ provider: form.provider, model: form.model, api_key: form.api_key }),
+        });
+        const data = await res.json();
+        testResult.value = { ok: !!data.ok, message: data.message ?? '' };
+    } catch {
+        testResult.value = { ok: false, message: 'No se pudo realizar la prueba de conexión.' };
+    } finally {
+        testing.value = false;
+    }
+}
 </script>
 
 <template>
@@ -152,13 +181,36 @@ function submit() {
                 </label>
             </div>
 
-            <div class="mt-6">
+            <!-- Resultado de la prueba de conexión -->
+            <div
+                v-if="testResult"
+                class="mt-4 flex items-start gap-2 rounded-lg border px-4 py-3 text-sm"
+                :class="testResult.ok
+                    ? 'border-teal-200 bg-teal-50 text-teal-700 dark:border-teal-900/50 dark:bg-teal-900/20 dark:text-teal-300'
+                    : 'border-red-200 bg-red-50 text-red-700 dark:border-red-900/50 dark:bg-red-900/20 dark:text-red-300'"
+            >
+                <CheckCircle2 v-if="testResult.ok" class="mt-0.5 h-4 w-4 shrink-0" />
+                <AlertTriangle v-else class="mt-0.5 h-4 w-4 shrink-0" />
+                <span>{{ testResult.message }}</span>
+            </div>
+
+            <div class="mt-6 flex flex-wrap gap-2">
                 <button
                     type="submit"
                     :disabled="form.processing"
                     class="rounded-lg bg-brand px-5 py-2.5 text-sm font-medium text-white transition hover:opacity-90 disabled:opacity-50"
                 >
                     {{ form.processing ? 'Guardando…' : 'Guardar configuración' }}
+                </button>
+                <button
+                    type="button"
+                    :disabled="testing"
+                    class="inline-flex items-center gap-1.5 rounded-lg border border-brand px-5 py-2.5 text-sm font-medium text-brand transition hover:bg-brand hover:text-white disabled:opacity-50"
+                    @click="testConnection"
+                >
+                    <Loader2 v-if="testing" class="h-4 w-4 animate-spin" />
+                    <Plug v-else class="h-4 w-4" />
+                    {{ testing ? 'Probando…' : 'Probar conexión' }}
                 </button>
             </div>
         </form>

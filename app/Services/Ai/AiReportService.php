@@ -36,10 +36,16 @@ class AiReportService
             return (string) $model;
         }
 
-        return match ($this->provider()) {
+        return $this->defaultModel($this->provider());
+    }
+
+    /** Modelo por defecto de un proveedor. */
+    private function defaultModel(string $provider): string
+    {
+        return match ($provider) {
             'gemini' => 'gemini-1.5-pro',
             'openai' => 'gpt-4o',
-            default => (string) config('anthropic.model', 'claude-sonnet-4-6'),
+            default => (string) config('anthropic.model', 'claude-sonnet-5'),
         };
     }
 
@@ -67,23 +73,53 @@ class AiReportService
             throw new RuntimeException('El API de IA no está configurado. Ve a Configuración → Inteligencia Artificial.');
         }
 
-        return match ($this->provider()) {
-            'gemini' => $this->gemini($prompt),
-            'openai' => $this->openai($prompt),
-            default => $this->anthropic($prompt),
+        return $this->dispatch($this->provider(), $prompt, (string) $this->apiKey(), $this->model());
+    }
+
+    /**
+     * Prueba la conexión con un proveedor usando credenciales explícitas (o las
+     * guardadas si no se pasan). Nunca lanza: devuelve el resultado.
+     *
+     * @return array{ok: bool, message: string}
+     */
+    public function testConnection(string $provider, ?string $model, ?string $apiKey): array
+    {
+        $apiKey = filled($apiKey) ? (string) $apiKey : (string) $this->apiKey();
+
+        if (blank($apiKey)) {
+            return ['ok' => false, 'message' => 'No hay clave del API configurada para probar. Guarda una clave o escríbela.'];
+        }
+
+        $model = filled($model) ? (string) $model : $this->defaultModel($provider);
+
+        try {
+            $this->dispatch($provider, 'Responde únicamente con la palabra: OK', $apiKey, $model);
+
+            return ['ok' => true, 'message' => 'Conexión exitosa: el proveedor respondió correctamente.'];
+        } catch (\Throwable $e) {
+            return ['ok' => false, 'message' => 'Error de conexión: '.$e->getMessage()];
+        }
+    }
+
+    private function dispatch(string $provider, string $prompt, string $apiKey, string $model): string
+    {
+        return match ($provider) {
+            'gemini' => $this->gemini($prompt, $apiKey, $model),
+            'openai' => $this->openai($prompt, $apiKey, $model),
+            default => $this->anthropic($prompt, $apiKey, $model),
         };
     }
 
-    private function anthropic(string $prompt): string
+    private function anthropic(string $prompt, string $apiKey, string $model): string
     {
         $base = rtrim((string) config('anthropic.base_url', 'https://api.anthropic.com/v1'), '/');
 
         $res = Http::withHeaders([
-            'x-api-key' => $this->apiKey(),
+            'x-api-key' => $apiKey,
             'anthropic-version' => '2023-06-01',
             'content-type' => 'application/json',
         ])->timeout(120)->post("{$base}/messages", [
-            'model' => $this->model(),
+            'model' => $model,
             'max_tokens' => 2000,
             'messages' => [['role' => 'user', 'content' => $prompt]],
         ])->throw();
@@ -91,22 +127,21 @@ class AiReportService
         return (string) $res->json('content.0.text', '');
     }
 
-    private function gemini(string $prompt): string
+    private function gemini(string $prompt, string $apiKey, string $model): string
     {
-        $model = $this->model();
         $url = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent";
 
-        $res = Http::timeout(120)->post($url.'?key='.$this->apiKey(), [
+        $res = Http::timeout(120)->post($url.'?key='.$apiKey, [
             'contents' => [['parts' => [['text' => $prompt]]]],
         ])->throw();
 
         return (string) $res->json('candidates.0.content.parts.0.text', '');
     }
 
-    private function openai(string $prompt): string
+    private function openai(string $prompt, string $apiKey, string $model): string
     {
-        $res = Http::withToken($this->apiKey())->timeout(120)->post('https://api.openai.com/v1/chat/completions', [
-            'model' => $this->model(),
+        $res = Http::withToken($apiKey)->timeout(120)->post('https://api.openai.com/v1/chat/completions', [
+            'model' => $model,
             'messages' => [['role' => 'user', 'content' => $prompt]],
         ])->throw();
 
