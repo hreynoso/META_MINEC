@@ -70,9 +70,10 @@ function isActive(name: string | null): boolean {
             <!-- Sidebar fijo: no se desplaza con el scroll del contenido -->
             <aside
                 v-if="sidebarOpen"
-                class="relative flex h-screen w-64 shrink-0 flex-col overflow-y-auto overflow-x-hidden bg-shell text-slate-300"
+                class="relative h-screen w-64 shrink-0 bg-shell text-slate-300"
             >
-                <!-- Botón circular de colapso (estilo SED), sobre el borde derecho -->
+                <!-- Botón circular de colapso (estilo SED), sobre el borde derecho.
+                     Va fuera del contenedor con scroll para que no lo recorte. -->
                 <button
                     class="absolute -right-3 top-5 z-10 flex h-6 w-6 items-center justify-center rounded-full border border-white/20 bg-shell text-slate-200 shadow transition hover:text-white"
                     title="Ocultar menú"
@@ -80,6 +81,9 @@ function isActive(name: string | null): boolean {
                 >
                     <ChevronLeft class="h-4 w-4" />
                 </button>
+
+                <!-- Contenido desplazable (sin scroll horizontal) -->
+                <div class="flex h-full flex-col overflow-y-auto overflow-x-hidden">
                 <!-- Logo institucional (enlaza al Dashboard) -->
                 <Link v-if="logoSidebar" :href="route('dashboard')" class="block px-3 py-4" title="Ir al Dashboard">
                     <img
@@ -131,6 +135,7 @@ function isActive(name: string | null): boolean {
                     >
                         <LogOut class="h-4 w-4" /> Salir
                     </Link>
+                </div>
                 </div>
             </aside>
 
