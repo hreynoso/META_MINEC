@@ -2,7 +2,7 @@
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { Link, usePage } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
-import { Palette, Mail, Users, ShieldCheck, Bell, Sparkles, ChevronRight } from 'lucide-vue-next';
+import { Palette, Mail, Users, ShieldCheck, Bell, Sparkles, ChevronRight, KeyRound } from 'lucide-vue-next';
 
 const props = defineProps<{ section: string }>();
 
@@ -18,6 +18,7 @@ const sections = [
     { key: 'correo', label: 'Correo', sub: 'SMTP / Mailgun + prueba', icon: Mail, route: 'configuracion.correo.edit' },
     { key: 'usuarios', label: 'Usuarios', sub: 'Usuarios del sistema', icon: Users, route: 'configuracion.usuarios.index', superOnly: true },
     { key: 'roles', label: 'Roles y permisos', sub: 'Atributos de acceso', icon: ShieldCheck, route: 'configuracion.roles.index', superOnly: true },
+    { key: 'sso', label: 'SSO Google', sub: 'Credenciales de acceso con Google', icon: KeyRound, route: 'configuracion.sso.edit', superOnly: true },
     { key: 'notificaciones', label: 'Notificaciones', sub: 'Correos automáticos del sistema', icon: Bell, route: 'configuracion.notificaciones.edit' },
     { key: 'ia', label: 'Inteligencia Artificial', sub: 'Proveedor y credenciales del API', icon: Sparkles, route: 'configuracion.ia.edit', superOnly: true },
 ];

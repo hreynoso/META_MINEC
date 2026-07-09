@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Support\GoogleSso;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
@@ -13,6 +14,8 @@ class GoogleController extends Controller
 {
     public function redirect(): RedirectResponse
     {
+        GoogleSso::apply();
+
         $driver = Socialite::driver('google');
 
         // Restringe el selector de cuentas al dominio de Google Workspace.
@@ -25,6 +28,8 @@ class GoogleController extends Controller
 
     public function callback(): RedirectResponse
     {
+        GoogleSso::apply();
+
         try {
             $googleUser = Socialite::driver('google')->user();
         } catch (\Throwable $e) {

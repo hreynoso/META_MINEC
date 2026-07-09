@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\AiSettingsController;
 use App\Http\Controllers\Admin\BrandingController;
+use App\Http\Controllers\Admin\GoogleSsoSettingsController;
 use App\Http\Controllers\Admin\NotificationSettingsController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\UserController;
@@ -101,6 +102,10 @@ Route::middleware(['auth'])->group(function () {
         // Configuración → Inteligencia Artificial (proveedor, clave del API, modelo)
         Route::get('/configuracion/ia', [AiSettingsController::class, 'edit'])->name('configuracion.ia.edit');
         Route::post('/configuracion/ia', [AiSettingsController::class, 'update'])->name('configuracion.ia.update');
+
+        // Configuración → SSO Google Workspace (credenciales OAuth)
+        Route::get('/configuracion/sso', [GoogleSsoSettingsController::class, 'edit'])->name('configuracion.sso.edit');
+        Route::post('/configuracion/sso', [GoogleSsoSettingsController::class, 'update'])->name('configuracion.sso.update');
     });
 
     // Perfil del usuario (cambio de foto de perfil)
