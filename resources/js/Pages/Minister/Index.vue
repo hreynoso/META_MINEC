@@ -294,7 +294,7 @@ async function downloadPdf(text = '') {
                     class="inline-flex items-center gap-1.5 rounded-lg bg-brand px-4 py-2.5 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50"
                     @click="generate"
                 >
-                    <Sparkles class="h-4 w-4" /> {{ form.processing ? 'Generando…' : 'Generar informe presidencial' }}
+                    <Sparkles class="h-4 w-4" /> {{ form.processing ? 'Generando…' : 'Generar Informe con IA' }}
                 </button>
             </div>
 
@@ -326,7 +326,7 @@ async function downloadPdf(text = '') {
                             :href="route('ministra.report.stored', h.id)"
                             class="inline-flex shrink-0 items-center gap-1 rounded-lg border border-brand px-2.5 py-1 text-xs font-medium text-brand transition hover:bg-brand hover:text-white"
                         >
-                            <FileDown class="h-3.5 w-3.5" /> PDF
+                            <FileDown class="h-3.5 w-3.5" /> Descargar Informe
                         </a>
                     </div>
                 </div>

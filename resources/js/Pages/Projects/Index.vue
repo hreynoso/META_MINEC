@@ -34,13 +34,15 @@ const props = defineProps<{
 const urlParams = new URLSearchParams(window.location.search);
 const initialStatus = urlParams.get('status') ?? '';
 const initialMeta = Number(urlParams.get('meta')) || null;
+const initialProject = Number(urlParams.get('proyecto')) || null;
 
 const q = ref('');
 const institution = ref('');
 const status = ref(STATUS_OPTIONS.some((s) => s.value === initialStatus) ? initialStatus : '');
 const onlyBeneficiaries = ref(urlParams.get('beneficiarios') === '1');
 const goalFilter = ref<number | null>(props.goals.some((g) => g.id === initialMeta) ? initialMeta : null);
-const selected = ref<Project | null>(null);
+// Al llegar desde el dashboard (?proyecto=<id>) se abre el detalle del proyecto.
+const selected = ref<Project | null>(initialProject ? (props.projects.find((p) => p.id === initialProject) ?? null) : null);
 
 // Modal de crear/editar: null = cerrado; se distingue crear (editing === null) de editar.
 const formOpen = ref(false);
@@ -150,7 +152,7 @@ const goalName = computed(() => props.goals.find((g) => g.id === goalFilter.valu
                 <X class="h-3 w-3" />
             </button>
             <div class="ml-auto flex flex-wrap items-center gap-2">
-                <div class="flex items-center gap-2 rounded-lg border border-slate-300 px-2 dark:border-slate-600">
+                <div class="flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-2 dark:border-slate-600 dark:bg-slate-900">
                     <Search class="h-4 w-4 opacity-50" />
                     <input v-model="q" type="text" placeholder="Buscar por nombre, código o responsable..." class="w-64 bg-transparent py-2 text-sm outline-none" />
                 </div>

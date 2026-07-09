@@ -49,6 +49,7 @@ class DashboardController extends Controller
             ->sortByDesc('budget')
             ->take(10)
             ->map(fn (Project $p) => [
+                'id' => $p->id,
                 'code' => $p->code,
                 'name' => $p->name,
                 'institution' => $p->institution?->short_name ?? $p->institution?->code ?? '—',

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { router } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { DollarSign, Clock, Users, TriangleAlert, TrendingUp, TrendingDown, Minus } from 'lucide-vue-next';
 import { currency, number, STATUS_LABEL, statusClass, progressBarClass } from '@/Composables/useProjectFormat';
@@ -10,10 +11,15 @@ defineProps<{
     };
     strategicKpis: { label: string; value: number; unit: string; target: number; achievement: number; trend: string }[];
     goals: { id: number; name: string; count: number }[];
-    portfolio: { code: string; name: string; institution: string; status: string; progress: number }[];
+    portfolio: { id: number; code: string; name: string; institution: string; status: string; progress: number }[];
 }>();
 
 const trendIcon = (t: string) => (t === 'up' ? TrendingUp : t === 'down' ? TrendingDown : Minus);
+
+// Abre el proyecto seleccionado en la sección Proyectos (vista de detalle).
+function openProject(id: number) {
+    router.visit(route('proyectos.index', { proyecto: id }));
+}
 </script>
 
 <template>
@@ -122,7 +128,12 @@ const trendIcon = (t: string) => (t === 'up' ? TrendingUp : t === 'down' ? Trend
                         </tr>
                     </thead>
                     <tbody>
-                        <tr v-for="p in portfolio" :key="p.code" class="border-b border-slate-100 dark:border-slate-700/50">
+                        <tr
+                            v-for="p in portfolio" :key="p.id"
+                            class="cursor-pointer border-b border-slate-100 transition hover:bg-slate-50 dark:border-slate-700/50 dark:hover:bg-slate-700/40"
+                            :title="`Ver proyecto ${p.code}`"
+                            @click="openProject(p.id)"
+                        >
                             <td class="py-2 font-mono text-xs text-slate-500">{{ p.code }}</td>
                             <td class="py-2 pr-2">{{ p.name }} <span class="block text-xs text-slate-400">{{ p.institution }}</span></td>
                             <td class="py-2"><span class="rounded-full px-2 py-0.5 text-xs" :class="statusClass(p.status)">{{ STATUS_LABEL[p.status] }}</span></td>
