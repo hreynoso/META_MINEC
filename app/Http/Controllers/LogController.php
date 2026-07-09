@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Support\ExportName;
 use App\Support\SheetExport;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -57,7 +58,7 @@ class LogController extends Controller
                 $this->detail($a),
             ])->all();
 
-        return SheetExport::stream('logs-sistema', ['Fecha y hora', 'Usuario', 'Acción', 'Sección', 'Detalle'], $rows);
+        return SheetExport::stream(ExportName::make('Logs del Sistema', 'xlsx'), ['Fecha y hora', 'Usuario', 'Acción', 'Sección', 'Detalle'], $rows);
     }
 
     /** Cache de correo → nombre para no repetir consultas en listados largos. */

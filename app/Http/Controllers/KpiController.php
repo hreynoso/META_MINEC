@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\KpiRequest;
 use App\Models\Kpi;
+use App\Support\ExportName;
 use App\Support\SheetExport;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
@@ -54,7 +55,7 @@ class KpiController extends Controller
             ];
         })->all();
 
-        return SheetExport::stream('kpis', ['Indicador', 'Clave', 'Valor', 'Unidad', 'Meta', 'Logro', 'Tendencia', 'Estratégico'], $rows);
+        return SheetExport::stream(ExportName::make('Indicadores KPIs', 'xlsx'), ['Indicador', 'Clave', 'Valor', 'Unidad', 'Meta', 'Logro', 'Tendencia', 'Estratégico'], $rows);
     }
 
     public function store(KpiRequest $request): RedirectResponse

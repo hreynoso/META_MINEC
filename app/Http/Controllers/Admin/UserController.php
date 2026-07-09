@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Institution;
 use App\Models\User;
+use App\Support\ExportName;
 use App\Support\SheetExport;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -50,7 +51,7 @@ class UserController extends Controller
                 $u->blocked_at !== null ? 'Bloqueado' : 'Activo',
             ])->all();
 
-        return SheetExport::stream('usuarios', ['Nombres y Apellidos', 'Correo', 'Institución', 'Roles', 'Estado'], $rows);
+        return SheetExport::stream(ExportName::make('Usuarios', 'xlsx'), ['Nombres y Apellidos', 'Correo', 'Institución', 'Roles', 'Estado'], $rows);
     }
 
     public function store(Request $request): RedirectResponse

@@ -8,6 +8,7 @@ use App\Models\Project;
 use App\Services\Ai\AiReportService;
 use App\Services\PredictionService;
 use App\Support\Branding;
+use App\Support\ExportName;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -136,7 +137,7 @@ class MinisterController extends Controller
             'narrative' => $narrative,
         ])->setPaper('a4');
 
-        return $pdf->download('informe-presidencial-'.now()->format('Ymd-His').'.pdf');
+        return $pdf->download(ExportName::make('Informe Presidencial', 'pdf'));
     }
 
     /** Clasifica cada institución en un semáforo según la salud de sus proyectos. */

@@ -6,6 +6,7 @@ use App\Models\Institution;
 use App\Models\Kpi;
 use App\Models\Project;
 use App\Support\Branding;
+use App\Support\ExportName;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Response as HttpResponse;
 use Illuminate\Support\Facades\Storage;
@@ -69,7 +70,7 @@ class ReportController extends Controller
         $data = $this->build($report);
 
         if ($def['format'] === 'pdf') {
-            return Pdf::loadView('reports.table', $data)->setPaper('a4', 'landscape')->stream($report.'.pdf');
+            return Pdf::loadView('reports.table', $data)->setPaper('a4', 'landscape')->stream(ExportName::make($data['title'], 'pdf'));
         }
 
         // XLSX: la vista previa se muestra como página HTML.
@@ -82,7 +83,7 @@ class ReportController extends Controller
         $data = $this->build($report);
 
         if ($def['format'] === 'pdf') {
-            return Pdf::loadView('reports.table', $data)->setPaper('a4', 'landscape')->download($report.'.pdf');
+            return Pdf::loadView('reports.table', $data)->setPaper('a4', 'landscape')->download(ExportName::make($data['title'], 'pdf'));
         }
 
         return $this->xlsx($report, $data);
@@ -100,7 +101,7 @@ class ReportController extends Controller
         ])->all();
 
         return \App\Support\SheetExport::stream(
-            'ejecucion-por-institucion',
+            ExportName::make('Ejecución por Institución', 'xlsx'),
             ['Institución', 'Proyectos', 'Presupuesto', 'Ejecutado', '%'],
             $rows,
         );
@@ -309,7 +310,7 @@ class ReportController extends Controller
             }
 
             $writer->close();
-        }, $report.'.xlsx', [
+        }, ExportName::make($data['title'], 'xlsx'), [
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         ]);
     }

@@ -7,6 +7,7 @@ use App\Models\Project;
 use App\Services\Ai\AiReportService;
 use App\Services\PredictionService;
 use App\Support\Branding;
+use App\Support\ExportName;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -106,7 +107,7 @@ class PredictiveController extends Controller
             'history' => $history,
         ])->setPaper('a4');
 
-        return $pdf->download('riesgo-'.$project->code.'.pdf');
+        return $pdf->download(ExportName::make('Informe de Riesgo '.$project->code, 'pdf'));
     }
 
     /** Historial de generaciones con IA de un proyecto, de la más reciente a la más antigua. */
