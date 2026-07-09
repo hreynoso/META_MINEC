@@ -5,12 +5,14 @@ namespace App\Http\Controllers;
 use App\Models\AiRecommendation;
 use App\Models\Institution;
 use App\Models\Kpi;
+use App\Models\MinisterReport;
 use App\Models\Project;
 use App\Services\Ai\AiReportService;
 use App\Services\PredictionService;
 use App\Support\Branding;
 use App\Support\ExportName;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response as HttpResponse;
@@ -107,7 +109,56 @@ class MinisterController extends Controller
             return back()->with('error', 'No se pudo generar el informe: '.$e->getMessage());
         }
 
+        // Trazabilidad: se guarda el informe con autor, período e instituciones.
+        MinisterReport::create([
+            'user_id' => $request->user()->id,
+            'from' => $data['from'],
+            'to' => $data['to'],
+            'institutions' => Institution::whereIn('id', $data['institutions'])->orderBy('name')->pluck('short_name')->all(),
+            'content' => $report,
+        ]);
+
         return back()->with('report', $report)->with('success', 'Informe presidencial generado.');
+    }
+
+    /** Historial de informes presidenciales generados, del más reciente al más antiguo. */
+    public function history(): JsonResponse
+    {
+        $items = MinisterReport::with('user')
+            ->latest()
+            ->limit(50)
+            ->get()
+            ->map(fn (MinisterReport $r) => [
+                'id' => $r->id,
+                'user' => $r->user?->name ?? 'Sistema',
+                'datetime' => $r->created_at?->format('d/m/Y h:i A'),
+                'period' => optional($r->from)->format('d/m/Y').' – '.optional($r->to)->format('d/m/Y'),
+                'institutions' => $r->institutions ?? [],
+            ])
+            ->all();
+
+        return response()->json(['history' => $items]);
+    }
+
+    /** Reexporta un informe presidencial guardado a PDF. */
+    public function reportStored(MinisterReport $report): HttpResponse
+    {
+        $pdf = Pdf::loadView('reports.minister', [
+            'logo' => Branding::dataUri('logo_login'),
+            'institution' => config('branding.institution'),
+            'generated_at' => $report->created_at?->format('d/m/Y h:i A'),
+            'from' => optional($report->from)->toDateString(),
+            'to' => optional($report->to)->toDateString(),
+            'selected' => $report->institutions ?? [],
+            'summary' => $this->summaryData(),
+            'kpis' => $this->kpisData(),
+            'byInstitution' => $this->semaforo(),
+            'alerts' => $this->alerts(),
+            'recommendations' => $this->recommendations(),
+            'narrative' => $report->content,
+        ])->setPaper('a4');
+
+        return $pdf->download(ExportName::make('Informe Presidencial', 'pdf'));
     }
 
     /**

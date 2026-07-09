@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { ref, computed, watch, nextTick } from 'vue';
+import { ref, computed, watch, nextTick, onMounted } from 'vue';
 import { useForm, usePage } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
-import { Crown, TriangleAlert, Sparkles, FileText, FileDown, Check, X, Loader2 } from 'lucide-vue-next';
+import { Crown, TriangleAlert, Sparkles, FileText, FileDown, Check, X, Loader2, ChevronDown, ChevronUp, History } from 'lucide-vue-next';
 import { currency, number } from '@/Composables/useProjectFormat';
 
 interface Kpi { label: string; value: number; unit: string | null; target: number; achievement: number }
@@ -61,18 +61,48 @@ const canGenerate = computed(() => form.institutions.length > 0 && !form.process
 // true desde que se solicita el informe hasta que se dispara la descarga.
 const generating = ref(false);
 
+// Trazabilidad de informes presidenciales generados.
+interface ReportHistoryItem { id: number; user: string; datetime: string | null; period: string; institutions: string[] }
+const history = ref<ReportHistoryItem[]>([]);
+const showHistory = ref(false);
+const historyLoading = ref(false);
+
+async function loadHistory() {
+    historyLoading.value = true;
+    try {
+        const res = await fetch(route('ministra.history'), {
+            headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+        });
+        const data = await res.json();
+        history.value = data.history ?? [];
+    } catch {
+        // silencioso: la trazabilidad es complementaria
+    } finally {
+        historyLoading.value = false;
+    }
+}
+
+onMounted(loadHistory);
+
 function generate() {
     generating.value = true;
     form.post(route('ministra.report'), {
         preserveScroll: true,
-        onSuccess: () => {
+        onSuccess: async () => {
             // Al completar la IA, descarga el PDF con el texto generado.
             const r = (page.props.flash as any)?.report as string | undefined;
             if (r) downloadPdf(r);
+            await loadHistory();
+            showHistory.value = true;
         },
         onError: () => { generating.value = false; },
         onFinish: () => { generating.value = false; },
     });
+}
+
+function toggleHistory() {
+    showHistory.value = !showHistory.value;
+    if (showHistory.value && !history.value.length) loadHistory();
 }
 
 // Descarga del informe en PDF vía formulario nativo (respuesta binaria).
@@ -266,6 +296,40 @@ async function downloadPdf(text = '') {
                 >
                     <Sparkles class="h-4 w-4" /> {{ form.processing ? 'Generando…' : 'Generar informe presidencial' }}
                 </button>
+            </div>
+
+            <!-- Trazabilidad de informes generados -->
+            <div class="mt-4 border-t border-slate-200 pt-4 dark:border-slate-700">
+                <button
+                    type="button"
+                    class="inline-flex items-center gap-1.5 text-sm font-medium text-brand hover:underline"
+                    @click="toggleHistory"
+                >
+                    <component :is="showHistory ? ChevronUp : ChevronDown" class="h-4 w-4" />
+                    <History class="h-4 w-4" /> Generaciones previas
+                </button>
+
+                <div v-if="showHistory" class="mt-3 space-y-2">
+                    <p v-if="historyLoading" class="text-xs text-slate-400">Cargando…</p>
+                    <p v-else-if="!history.length" class="text-xs text-slate-400">Aún no hay informes generados.</p>
+                    <div
+                        v-for="h in history" :key="h.id"
+                        class="flex items-center justify-between gap-3 rounded-lg border border-slate-200 p-3 dark:border-slate-700"
+                    >
+                        <div class="min-w-0">
+                            <p class="truncate text-sm font-medium">{{ h.user }} · {{ h.datetime }}</p>
+                            <p class="truncate text-xs text-slate-400">
+                                Período {{ h.period }}<span v-if="h.institutions.length"> · {{ h.institutions.join(', ') }}</span>
+                            </p>
+                        </div>
+                        <a
+                            :href="route('ministra.report.stored', h.id)"
+                            class="inline-flex shrink-0 items-center gap-1 rounded-lg border border-brand px-2.5 py-1 text-xs font-medium text-brand transition hover:bg-brand hover:text-white"
+                        >
+                            <FileDown class="h-3.5 w-3.5" /> PDF
+                        </a>
+                    </div>
+                </div>
             </div>
         </section>
 

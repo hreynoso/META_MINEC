@@ -29,6 +29,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/ministra', [MinisterController::class, 'index'])->name('ministra.index');
     Route::post('/ministra/informe', [MinisterController::class, 'generateReport'])->name('ministra.report');
     Route::post('/ministra/informe/pdf', [MinisterController::class, 'reportPdf'])->name('ministra.report.pdf');
+    Route::get('/ministra/historial', [MinisterController::class, 'history'])->name('ministra.history');
+    Route::get('/ministra/informe/{report}/pdf', [MinisterController::class, 'reportStored'])->name('ministra.report.stored');
 
     // Portafolio de proyectos de inversión pública
     Route::get('/proyectos', [ProjectController::class, 'index'])->name('proyectos.index');
