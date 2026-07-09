@@ -21,10 +21,11 @@ const sections = [
 
 const activeLabel = computed(() => sections.find((s) => s.key === props.section)?.label ?? 'Configuración');
 
-// Reloj en vivo para la tarjeta de fecha y hora.
+// Reloj en vivo para la tarjeta de fecha y hora. La fecha muestra el día y el
+// nombre del mes (p. ej. "9 de julio de 2026").
 function formatNow(): string {
     return new Date().toLocaleString('es-DO', {
-        day: '2-digit', month: '2-digit', year: 'numeric',
+        day: 'numeric', month: 'long', year: 'numeric',
         hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false,
     });
 }
