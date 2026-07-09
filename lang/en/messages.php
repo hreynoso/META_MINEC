@@ -55,6 +55,7 @@ return [
         'updated' => 'User updated successfully.',
         'cannot_delete_self' => 'You cannot delete your own account.',
         'deleted' => 'User deleted successfully.',
+        'never_logged_in' => 'Never',
     ],
 
     'minister' => [

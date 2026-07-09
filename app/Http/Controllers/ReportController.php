@@ -157,7 +157,7 @@ class ReportController extends Controller
         return [
             'title' => $def['title'],
             'subtitle' => $def['description'],
-            'generated_at' => now()->format('d/m/Y H:i'),
+            'generated_at' => \App\Support\LocalTime::format(now(), 'd/m/Y H:i'),
             'logo' => $this->logoDataUri(),
             'institution' => config('branding.institution'),
             'columns' => $body['columns'],

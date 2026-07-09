@@ -137,7 +137,7 @@ class NetworkController extends Controller
             'body' => $m->body,
             'project' => $m->project?->code,
             'system' => $m->system,
-            'time' => $m->created_at?->format('h:i A'),
+            'time' => \App\Support\LocalTime::format($m->created_at, 'h:i A'),
         ];
     }
 

@@ -31,6 +31,10 @@ return Application::configure(basePath: dirname(__DIR__))
         // Traefik va delante del contenedor
         $middleware->trustProxies(at: '*');
 
+        // La cookie `tz` (zona horaria del navegador) la escribe el frontend en
+        // texto plano; se excluye del cifrado para poder leerla server-side.
+        $middleware->encryptCookies(except: ['tz']);
+
         $middleware->web(append: [
             SetLocale::class,              // idioma del sistema (Configuración → Idioma)
             HandleInertiaRequests::class,

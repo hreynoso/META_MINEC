@@ -107,7 +107,7 @@ class MemoirController extends Controller
         $pdf = Pdf::loadView('reports.memoir', [
             'logo' => Branding::dataUri('logo_login'),
             'institution' => config('branding.institution'),
-            'generated_at' => now()->format('d/m/Y h:i A'),
+            'generated_at' => \App\Support\LocalTime::format(now()),
             'entity' => $memoir->institution?->name ?? '',
             'entity_short' => $memoir->institution?->short_name ?? '',
             'periodo' => $memoir->periodo,
@@ -146,7 +146,7 @@ class MemoirController extends Controller
             'institution' => $m->institution?->short_name ?? '—',
             'periodo' => $m->periodo,
             'user' => $m->user?->name ?? 'Sistema',
-            'datetime' => $m->created_at?->format('d/m/Y h:i A'),
+            'datetime' => \App\Support\LocalTime::format($m->created_at),
         ];
     }
 

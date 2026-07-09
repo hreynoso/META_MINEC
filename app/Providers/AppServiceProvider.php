@@ -10,17 +10,14 @@ use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
-    /** Zona horaria institucional (El Salvador, UTC−6, sin horario de verano). */
-    private const TIMEZONE = 'America/El_Salvador';
-
     public function register(): void
     {
-        // Laravel 11/12 no publica config/app.php, por lo que APP_TIMEZONE no se
-        // aplicaba y las fechas se guardaban/mostraban en UTC (hora adelantada).
-        // Se fija de forma explícita la zona de El Salvador para que created_at,
-        // now() y todos los ->format(...) reflejen la hora local correcta.
-        date_default_timezone_set(self::TIMEZONE);
-        config(['app.timezone' => self::TIMEZONE]);
+        // Todos los registros se ALMACENAN en UTC (zona canónica). La conversión
+        // a la zona horaria del equipo de cada usuario se hace al mostrar, con la
+        // zona que envía el navegador (cookie `tz`) — ver App\Support\LocalTime.
+        // Se fija explícito porque Laravel 11/12 no publica config/app.php.
+        date_default_timezone_set('UTC');
+        config(['app.timezone' => 'UTC']);
     }
 
     public function boot(): void

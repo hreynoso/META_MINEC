@@ -12,6 +12,13 @@ import { i18n, setLocale } from './i18n';
 
 const appName = import.meta.env.VITE_APP_NAME || 'META MINEC';
 
+// Zona horaria del equipo del usuario: se guarda en una cookie que el backend
+// lee para mostrar todas las fechas/horas en la hora local de cada dispositivo.
+try {
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    if (tz) document.cookie = `tz=${tz}; path=/; max-age=31536000; SameSite=Lax`;
+} catch { /* sin soporte de Intl: el backend usa la zona por defecto */ }
+
 createInertiaApp({
     title: (title) => (title ? `${title} — ${appName}` : appName),
     resolve: (name) =>

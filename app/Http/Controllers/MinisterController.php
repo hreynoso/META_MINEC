@@ -60,7 +60,7 @@ class MinisterController extends Controller
         return [
             'project' => $r->project?->name ?? '—',
             'user' => $r->user?->name ?? 'Sistema',
-            'datetime' => $r->created_at?->format('d/m/Y h:i A'),
+            'datetime' => \App\Support\LocalTime::format($r->created_at),
             'recommendation' => $r->recommendation,
         ];
     }
@@ -132,7 +132,7 @@ class MinisterController extends Controller
             ->map(fn (MinisterReport $r) => [
                 'id' => $r->id,
                 'user' => $r->user?->name ?? 'Sistema',
-                'datetime' => $r->created_at?->format('d/m/Y h:i A'),
+                'datetime' => \App\Support\LocalTime::format($r->created_at),
                 'period' => optional($r->from)->format('d/m/Y').' – '.optional($r->to)->format('d/m/Y'),
                 'institutions' => $r->institutions ?? [],
             ])
@@ -147,7 +147,7 @@ class MinisterController extends Controller
         $pdf = Pdf::loadView('reports.minister', [
             'logo' => Branding::dataUri('logo_login'),
             'institution' => config('branding.institution'),
-            'generated_at' => $report->created_at?->format('d/m/Y h:i A'),
+            'generated_at' => \App\Support\LocalTime::format($report->created_at),
             'from' => optional($report->from)->toDateString(),
             'to' => optional($report->to)->toDateString(),
             'selected' => $report->institutions ?? [],
@@ -196,7 +196,7 @@ class MinisterController extends Controller
         $pdf = Pdf::loadView('reports.minister', [
             'logo' => Branding::dataUri('logo_login'),
             'institution' => config('branding.institution'),
-            'generated_at' => now()->format('d/m/Y h:i A'),
+            'generated_at' => \App\Support\LocalTime::format(now()),
             'from' => $data['from'],
             'to' => $data['to'],
             'selected' => $selected,

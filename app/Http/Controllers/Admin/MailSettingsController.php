@@ -38,7 +38,7 @@ class MailSettingsController extends Controller
                     'severity' => $e->severity,
                     'recipient' => $e->recipient,
                     'reason' => $e->reason,
-                    'date' => $e->occurred_at?->format('d/m/Y h:i a'),
+                    'date' => \App\Support\LocalTime::format($e->occurred_at, 'd/m/Y h:i a'),
                 ]),
         ]);
     }

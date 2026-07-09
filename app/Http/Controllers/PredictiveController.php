@@ -102,7 +102,7 @@ class PredictiveController extends Controller
         $pdf = Pdf::loadView('reports.prediction', [
             'logo' => Branding::dataUri('logo_login'),
             'institution' => config('branding.institution'),
-            'generated_at' => now()->format('d/m/Y h:i A'),
+            'generated_at' => \App\Support\LocalTime::format(now()),
             'p' => $pred->predict($project),
             'history' => $history,
         ])->setPaper('a4');
@@ -132,7 +132,7 @@ class PredictiveController extends Controller
         return [
             'recommendation' => $r->recommendation,
             'user' => $r->user?->name ?? 'Sistema',
-            'datetime' => $r->created_at?->format('d/m/Y h:i A'),
+            'datetime' => \App\Support\LocalTime::format($r->created_at),
         ];
     }
 

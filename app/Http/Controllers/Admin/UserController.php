@@ -31,7 +31,7 @@ class UserController extends Controller
                 'institution' => $u->institution?->short_name,
                 'roles' => $u->roles->pluck('name'),
                 'blocked' => $u->blocked_at !== null,
-                'last_login_at' => $u->last_login_at?->format('d/m/Y h:i A'),
+                'last_login_at' => \App\Support\LocalTime::format($u->last_login_at),
             ]);
 
         return Inertia::render('Admin/Users', [
@@ -50,7 +50,7 @@ class UserController extends Controller
                 $u->institution?->short_name ?? '',
                 $u->roles->pluck('name')->implode(', '),
                 $u->blocked_at !== null ? 'Bloqueado' : 'Activo',
-                $u->last_login_at?->format('d/m/Y h:i A') ?? 'Nunca',
+                \App\Support\LocalTime::format($u->last_login_at) ?? __('messages.user.never_logged_in'),
             ])->all();
 
         return SheetExport::stream(ExportName::make('Usuarios', 'xlsx'), ['Nombres y Apellidos', 'Correo', 'Institución', 'Roles', 'Estado', 'Último acceso'], $rows);

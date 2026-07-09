@@ -37,7 +37,7 @@ class LogController extends Controller
             ->get()
             ->map(fn (Activity $a) => [
                 'id' => $a->id,
-                'datetime' => $a->created_at?->format('d/m/Y h:i A'),
+                'datetime' => \App\Support\LocalTime::format($a->created_at),
                 'user' => $this->causerName($a),
                 'action' => self::EVENT[$a->event] ?? ($a->description ?: '—'),
                 'section' => $this->section($a),
@@ -51,7 +51,7 @@ class LogController extends Controller
     {
         $rows = Activity::with('causer')->latest()->limit(2000)->get()
             ->map(fn (Activity $a) => [
-                $a->created_at?->format('d/m/Y h:i A'),
+                \App\Support\LocalTime::format($a->created_at),
                 $this->causerName($a),
                 self::EVENT[$a->event] ?? ($a->description ?: '—'),
                 $this->section($a),
