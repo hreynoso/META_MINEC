@@ -2,7 +2,7 @@
 import { ref, computed, watch, nextTick } from 'vue';
 import { useForm, usePage } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
-import { Crown, TriangleAlert, Sparkles, FileText, FileDown, Check, X } from 'lucide-vue-next';
+import { Crown, TriangleAlert, Sparkles, FileText, FileDown, Check, X, Loader2 } from 'lucide-vue-next';
 import { currency, number } from '@/Composables/useProjectFormat';
 
 interface Kpi { label: string; value: number; unit: string | null; target: number; achievement: number }
@@ -58,8 +58,21 @@ function toggle(id: number) {
 
 const canGenerate = computed(() => form.institutions.length > 0 && !form.processing);
 
+// true desde que se solicita el informe hasta que se dispara la descarga.
+const generating = ref(false);
+
 function generate() {
-    form.post(route('ministra.report'), { preserveScroll: true });
+    generating.value = true;
+    form.post(route('ministra.report'), {
+        preserveScroll: true,
+        onSuccess: () => {
+            // Al completar la IA, descarga el PDF con el texto generado.
+            const r = (page.props.flash as any)?.report as string | undefined;
+            if (r) downloadPdf(r);
+        },
+        onError: () => { generating.value = false; },
+        onFinish: () => { generating.value = false; },
+    });
 }
 
 // Descarga del informe en PDF vía formulario nativo (respuesta binaria).
@@ -264,6 +277,15 @@ async function downloadPdf(text = '') {
             <input type="hidden" name="to" :value="form.to" />
             <input type="hidden" name="report" :value="pdfReportText" />
         </form>
+
+        <!-- Overlay de carga mientras la IA genera el informe -->
+        <div v-if="generating || form.processing" class="fixed inset-0 z-[60] flex items-center justify-center bg-black/40">
+            <div class="mx-6 w-full max-w-sm rounded-2xl bg-white px-8 py-7 text-center shadow-xl dark:bg-slate-800">
+                <Loader2 class="mx-auto h-9 w-9 animate-spin text-brand" />
+                <p class="mt-4 text-sm font-semibold">Generando informe con IA…</p>
+                <p class="mt-1 text-xs text-slate-400">Esto puede tardar unos segundos. El informe se descargará automáticamente al finalizar.</p>
+            </div>
+        </div>
 
         <!-- Modal del informe generado (cierra solo con botón) -->
         <div v-if="report" class="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/40 p-6">
