@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch, nextTick } from 'vue';
 import { useForm, usePage } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
-import { Crown, TriangleAlert, Sparkles, FileText, Check, X } from 'lucide-vue-next';
+import { Crown, TriangleAlert, Sparkles, FileText, FileDown, Check, X } from 'lucide-vue-next';
 import { currency, number } from '@/Composables/useProjectFormat';
 
 interface Kpi { label: string; value: number; unit: string | null; target: number; achievement: number }
@@ -57,6 +57,17 @@ const canGenerate = computed(() => form.institutions.length > 0 && !form.process
 
 function generate() {
     form.post(route('ministra.report'), { preserveScroll: true });
+}
+
+// Descarga del informe en PDF vía formulario nativo (respuesta binaria).
+const csrf = computed(() => (page.props as any).csrf as string);
+const pdfForm = ref<HTMLFormElement | null>(null);
+const pdfReportText = ref('');
+
+async function downloadPdf(text = '') {
+    pdfReportText.value = text;
+    await nextTick();
+    pdfForm.value?.submit();
 }
 </script>
 
@@ -218,7 +229,7 @@ function generate() {
                 </div>
             </div>
 
-            <div class="mt-5">
+            <div class="mt-5 flex flex-wrap gap-2">
                 <button
                     type="button"
                     :disabled="!canGenerate"
@@ -227,8 +238,26 @@ function generate() {
                 >
                     <Sparkles class="h-4 w-4" /> {{ form.processing ? 'Generando…' : 'Generar informe presidencial' }}
                 </button>
+                <button
+                    type="button"
+                    :disabled="form.institutions.length === 0"
+                    class="inline-flex items-center gap-1.5 rounded-lg border border-brand px-4 py-2.5 text-sm font-medium text-brand transition hover:bg-brand hover:text-white disabled:opacity-50"
+                    title="Genera y descarga el informe completo en PDF"
+                    @click="downloadPdf()"
+                >
+                    <FileDown class="h-4 w-4" /> Descargar informe PDF
+                </button>
             </div>
         </section>
+
+        <!-- Formulario nativo para la descarga binaria del PDF -->
+        <form ref="pdfForm" :action="route('ministra.report.pdf')" method="post" class="hidden">
+            <input type="hidden" name="_token" :value="csrf" />
+            <input v-for="id in form.institutions" :key="id" type="hidden" name="institutions[]" :value="id" />
+            <input type="hidden" name="from" :value="form.from" />
+            <input type="hidden" name="to" :value="form.to" />
+            <input type="hidden" name="report" :value="pdfReportText" />
+        </form>
 
         <!-- Modal del informe generado (cierra solo con botón) -->
         <div v-if="report" class="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/40 p-6">
@@ -240,7 +269,13 @@ function generate() {
                     </button>
                 </div>
                 <div class="mt-4 max-h-[60vh] overflow-y-auto whitespace-pre-wrap rounded-lg bg-slate-50 p-4 text-sm leading-relaxed dark:bg-slate-900">{{ report }}</div>
-                <div class="mt-5 flex justify-end">
+                <div class="mt-5 flex justify-end gap-2">
+                    <button
+                        class="inline-flex items-center gap-1.5 rounded-lg border border-brand px-4 py-2 text-sm font-medium text-brand transition hover:bg-brand hover:text-white"
+                        @click="downloadPdf(report ?? '')"
+                    >
+                        <FileDown class="h-4 w-4" /> Descargar PDF
+                    </button>
                     <button class="rounded-lg bg-brand px-4 py-2 text-sm font-medium text-white hover:opacity-90" @click="report = null">Cerrar</button>
                 </div>
             </div>

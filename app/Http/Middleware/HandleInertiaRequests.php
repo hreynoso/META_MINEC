@@ -19,6 +19,8 @@ class HandleInertiaRequests extends Middleware
     {
         return [
             ...parent::share($request),
+            // Token CSRF para envíos de formularios nativos (descargas por POST).
+            'csrf' => csrf_token(),
             'auth' => [
                 'user' => $request->user()
                     ? [

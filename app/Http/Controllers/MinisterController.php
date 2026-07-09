@@ -7,8 +7,11 @@ use App\Models\Kpi;
 use App\Models\Project;
 use App\Services\Ai\AiReportService;
 use App\Services\PredictionService;
+use App\Support\Branding;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response as HttpResponse;
 use Inertia\Inertia;
 use Inertia\Response;
 use Throwable;
@@ -29,37 +32,44 @@ class MinisterController extends Controller
 
     public function index(): Response
     {
-        $projects = Project::with('institution')->get();
-        $budget = (float) $projects->sum('budget');
-        $executed = (float) $projects->sum('executed');
-        $critical = $projects->whereIn('status', ['en_riesgo', 'retrasado'])->count();
-
-        $summary = [
-            'budget' => $budget,
-            'executed' => $executed,
-            'executed_pct' => $budget > 0 ? round($executed / $budget * 100, 1) : 0,
-            'beneficiaries' => (int) $projects->sum('beneficiaries'),
-            'critical' => $critical,
-            'projects_count' => $projects->count(),
-            'institutions_count' => Institution::has('projects')->count(),
-        ];
-
-        $kpis = Kpi::orderBy('sort')->take(6)->get()->map(fn (Kpi $k) => [
-            'label' => $k->label,
-            'value' => $k->value,
-            'unit' => $k->unit,
-            'target' => $k->target,
-            'achievement' => $k->target > 0 ? (int) round($k->value / $k->target * 100) : 0,
-        ]);
-
         return Inertia::render('Minister/Index', [
-            'summary' => $summary,
-            'kpis' => $kpis,
+            'summary' => $this->summaryData(),
+            'kpis' => $this->kpisData(),
             'byInstitution' => $this->semaforo(),
             'alerts' => $this->alerts(),
             'recommendations' => $this->recommendations(),
             'institutions' => Institution::has('projects')->orderBy('name')->get(['id', 'short_name']),
         ]);
+    }
+
+    /** Cifras agregadas de la cartera para el tablero ejecutivo. */
+    private function summaryData(): array
+    {
+        $projects = Project::with('institution')->get();
+        $budget = (float) $projects->sum('budget');
+        $executed = (float) $projects->sum('executed');
+
+        return [
+            'budget' => $budget,
+            'executed' => $executed,
+            'executed_pct' => $budget > 0 ? round($executed / $budget * 100, 1) : 0,
+            'beneficiaries' => (int) $projects->sum('beneficiaries'),
+            'critical' => $projects->whereIn('status', ['en_riesgo', 'retrasado'])->count(),
+            'projects_count' => $projects->count(),
+            'institutions_count' => Institution::has('projects')->count(),
+        ];
+    }
+
+    /** @return array<int, array<string, mixed>> */
+    private function kpisData(): array
+    {
+        return Kpi::orderBy('sort')->take(6)->get()->map(fn (Kpi $k) => [
+            'label' => $k->label,
+            'value' => $k->value,
+            'unit' => $k->unit,
+            'target' => $k->target,
+            'achievement' => $k->target > 0 ? (int) round($k->value / $k->target * 100) : 0,
+        ])->all();
     }
 
     public function generateReport(Request $request, AiReportService $ai): RedirectResponse
@@ -78,6 +88,55 @@ class MinisterController extends Controller
         }
 
         return back()->with('report', $report)->with('success', 'Informe presidencial generado.');
+    }
+
+    /**
+     * Informe presidencial en PDF con IA: incluye toda la información del tablero
+     * (resumen, KPIs, semáforo, alertas, recomendaciones) más la narrativa de IA.
+     * Reutiliza el texto ya generado si se envía; si no, lo genera.
+     */
+    public function reportPdf(Request $request, AiReportService $ai): HttpResponse|RedirectResponse
+    {
+        $data = $request->validate([
+            'institutions' => ['required', 'array', 'min:1'],
+            'institutions.*' => ['integer', 'exists:institutions,id'],
+            'from' => ['required', 'date'],
+            'to' => ['required', 'date', 'after_or_equal:from'],
+            'report' => ['nullable', 'string'],
+        ], [], ['institutions' => 'instituciones']);
+
+        $narrative = trim((string) ($data['report'] ?? ''));
+
+        if ($narrative === '') {
+            if (! $ai->isConfigured()) {
+                return back()->with('error', 'El API de IA no está configurado. Ve a Configuración → Inteligencia Artificial.');
+            }
+
+            try {
+                $narrative = trim($ai->generate($this->buildPrompt($data['institutions'], $data['from'], $data['to'])));
+            } catch (Throwable $e) {
+                return back()->with('error', 'No se pudo generar el informe: '.$e->getMessage());
+            }
+        }
+
+        $selected = Institution::whereIn('id', $data['institutions'])->orderBy('name')->pluck('short_name')->all();
+
+        $pdf = Pdf::loadView('reports.minister', [
+            'logo' => Branding::dataUri('logo_login'),
+            'institution' => config('branding.institution'),
+            'generated_at' => now()->format('d/m/Y h:i A'),
+            'from' => $data['from'],
+            'to' => $data['to'],
+            'selected' => $selected,
+            'summary' => $this->summaryData(),
+            'kpis' => $this->kpisData(),
+            'byInstitution' => $this->semaforo(),
+            'alerts' => $this->alerts(),
+            'recommendations' => $this->recommendations(),
+            'narrative' => $narrative,
+        ])->setPaper('a4');
+
+        return $pdf->download('informe-presidencial-'.now()->format('Ymd-His').'.pdf');
     }
 
     /** Clasifica cada institución en un semáforo según la salud de sus proyectos. */
