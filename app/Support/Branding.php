@@ -49,6 +49,20 @@ class Branding
         return $path ? Storage::disk('public')->url($path) : null;
     }
 
+    /** Asset como data URI base64 (para incrustarlo en PDFs). Null si no existe. */
+    public static function dataUri(string $key): ?string
+    {
+        $path = static::path($key);
+
+        if (! $path || ! Storage::disk('public')->exists($path)) {
+            return null;
+        }
+
+        $mime = Storage::disk('public')->mimeType($path) ?: 'image/png';
+
+        return 'data:'.$mime.';base64,'.base64_encode(Storage::disk('public')->get($path));
+    }
+
     /** Todas las URLs para compartir con el frontend. */
     public static function urls(): array
     {

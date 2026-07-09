@@ -56,6 +56,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/ia-predictiva', [PredictiveController::class, 'index'])->name('ia-predictiva.index');
     Route::get('/ia-predictiva/{project}/recomendacion', [PredictiveController::class, 'recommendation'])->name('ia-predictiva.recommendation');
     Route::get('/ia-predictiva/{project}/historial', [PredictiveController::class, 'history'])->name('ia-predictiva.history');
+    Route::get('/ia-predictiva/{project}/informe', [PredictiveController::class, 'report'])->name('ia-predictiva.report');
 
     // Reportes institucionales (PDF vía DomPDF, XLSX vía OpenSpout)
     Route::get('/reportes', [ReportController::class, 'index'])->name('reportes.index');

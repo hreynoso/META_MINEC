@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
-import { Sparkles, TriangleAlert, Bot, ChevronDown, ChevronUp } from 'lucide-vue-next';
+import { Sparkles, TriangleAlert, Bot, ChevronDown, ChevronUp, FileDown } from 'lucide-vue-next';
 
 interface Generation { recommendation: string; user: string; datetime: string | null }
 interface HistoryItem extends Generation { id: number }
@@ -146,9 +146,18 @@ async function loadHistory() {
                         <h2 class="mt-1 text-xl font-semibold">{{ selected.name }}</h2>
                         <p class="mt-0.5 text-sm text-slate-500">{{ selected.institution }}<span v-if="selected.responsible"> · {{ selected.responsible }}</span></p>
                     </div>
-                    <span v-if="selected.failing" class="inline-flex items-center gap-1 rounded-full border border-red-300 px-2 py-0.5 text-xs text-red-700 dark:border-red-800 dark:text-red-400">
-                        <TriangleAlert class="h-3.5 w-3.5" /> Riesgo de fracaso
-                    </span>
+                    <div class="flex shrink-0 flex-col items-end gap-2">
+                        <span v-if="selected.failing" class="inline-flex items-center gap-1 rounded-full border border-red-300 px-2 py-0.5 text-xs text-red-700 dark:border-red-800 dark:text-red-400">
+                            <TriangleAlert class="h-3.5 w-3.5" /> Riesgo de fracaso
+                        </span>
+                        <a
+                            :href="route('ia-predictiva.report', selected.id)"
+                            class="inline-flex items-center gap-1.5 rounded-lg border border-brand px-2.5 py-1 text-xs font-medium text-brand transition hover:bg-brand hover:text-white"
+                            title="Descargar informe de riesgo en PDF"
+                        >
+                            <FileDown class="h-3.5 w-3.5" /> Descargar PDF
+                        </a>
+                    </div>
                 </div>
 
                 <!-- Probabilidad de éxito -->

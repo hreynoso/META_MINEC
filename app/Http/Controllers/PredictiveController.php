@@ -6,8 +6,11 @@ use App\Models\AiRecommendation;
 use App\Models\Project;
 use App\Services\Ai\AiReportService;
 use App\Services\PredictionService;
+use App\Support\Branding;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response as HttpResponse;
 use Inertia\Inertia;
 use Inertia\Response;
 use Throwable;
@@ -81,6 +84,29 @@ class PredictiveController extends Controller
                 'message' => 'No se pudo consultar la IA: '.$e->getMessage(),
             ]);
         }
+    }
+
+    /** Informe PDF del riesgo del proyecto con toda su trazabilidad de IA. */
+    public function report(Project $project, PredictionService $pred): HttpResponse
+    {
+        $project->loadMissing('institution');
+
+        $history = AiRecommendation::with('user')
+            ->where('project_id', $project->id)
+            ->latest()
+            ->get()
+            ->map(fn (AiRecommendation $r) => $this->formatGeneration($r))
+            ->all();
+
+        $pdf = Pdf::loadView('reports.prediction', [
+            'logo' => Branding::dataUri('logo_login'),
+            'institution' => config('branding.institution'),
+            'generated_at' => now()->format('d/m/Y h:i A'),
+            'p' => $pred->predict($project),
+            'history' => $history,
+        ])->setPaper('a4');
+
+        return $pdf->download('riesgo-'.$project->code.'.pdf');
     }
 
     /** Historial de generaciones con IA de un proyecto, de la más reciente a la más antigua. */
