@@ -14,37 +14,40 @@ use Spatie\Permission\Models\Role;
  */
 class SyncSuperAdminCommand extends Command
 {
-    protected $signature = 'superadmin:sync';
+    protected $signature = 'superadmin:sync {--email=} {--password=} {--name=}';
 
-    protected $description = 'Sincroniza la cuenta local Super Admin desde variables de entorno.';
+    protected $description = 'Crea o actualiza la cuenta local Super Admin (por opciones o variables de entorno).';
 
     public function handle(): int
     {
-        $email = env('SUPERADMIN_EMAIL');
-        $password = env('SUPERADMIN_PASSWORD');
+        // Las opciones tienen prioridad sobre las variables de entorno; así se
+        // puede provisionar a mano en la terminal aunque la config esté cacheada.
+        $email = $this->option('email') ?: env('SUPERADMIN_EMAIL');
+        $password = $this->option('password') ?: env('SUPERADMIN_PASSWORD');
+        $name = $this->option('name') ?: env('SUPERADMIN_NAME', 'Super Administrador');
 
         if (blank($email) || blank($password)) {
-            $this->warn('SUPERADMIN_EMAIL / SUPERADMIN_PASSWORD no definidos; se omite la sincronización.');
+            $this->warn('Falta el correo o la contraseña (opciones --email/--password o SUPERADMIN_EMAIL/SUPERADMIN_PASSWORD); se omite.');
 
             return self::SUCCESS;
         }
+
+        $email = strtolower(trim((string) $email));
 
         Role::findOrCreate('Super Admin', 'web');
 
         $user = User::updateOrCreate(
             ['email' => $email],
             [
-                'name' => env('SUPERADMIN_NAME', 'Super Administrador'),
+                'name' => $name,
                 'password' => Hash::make($password),
                 'blocked_at' => null,
             ],
         );
 
-        if (! $user->hasRole('Super Admin')) {
-            $user->assignRole('Super Admin');
-        }
+        $user->syncRoles(['Super Admin']);
 
-        $this->info("Super Admin sincronizado: {$email}");
+        $this->info("Super Admin sincronizado: {$email} (rol Super Admin: ".($user->fresh()->hasRole('Super Admin') ? 'sí' : 'NO').')');
 
         return self::SUCCESS;
     }
