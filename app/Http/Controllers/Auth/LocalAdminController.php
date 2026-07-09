@@ -40,16 +40,20 @@ class LocalAdminController extends Controller
 
         $user = User::where('email', $credentials['email'])->first();
 
-        // Solo la cuenta con rol "Super Admin" puede usar el acceso local.
+        // Pueden usar el acceso local: la cuenta con rol "Super Admin" y los
+        // correos incluidos en la lista de autorizados (cuentas de demostración).
+        $allowlist = (array) config('security.local_login_emails', []);
+        $emailAllowed = in_array(Str::lower((string) $credentials['email']), $allowlist, true);
+
         if (! $user
             || ! $user->password
             || ! Hash::check($credentials['password'], $user->password)
-            || ! $user->hasRole('Super Admin')) {
+            || (! $user->hasRole('Super Admin') && ! $emailAllowed)) {
             event(new Failed('web', $user, $credentials));
             RateLimiter::hit($this->throttleKey($request), self::DECAY_SECONDS);
 
             throw ValidationException::withMessages([
-                'email' => 'Credenciales no válidas para el acceso administrativo local.',
+                'email' => 'Credenciales no válidas para el acceso local.',
             ]);
         }
 

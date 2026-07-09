@@ -15,6 +15,14 @@ return [
     // usuarios entra exclusivamente por Google.
     'local_admin_login' => (bool) env('SECURITY_LOCAL_ADMIN_LOGIN', true),
 
+    // Correos adicionales autorizados para el acceso local (correo+contraseña),
+    // además del Super Admin. Útil para cuentas de demostración puntuales.
+    // Separados por coma. Vacío = solo Super Admin. Quitar tras la demo.
+    'local_login_emails' => array_values(array_filter(array_map(
+        fn ($e) => strtolower(trim((string) $e)),
+        explode(',', (string) env('SECURITY_LOCAL_LOGIN_EMAILS', '')),
+    ))),
+
     // Historial de contrasenas (PasswordHistory)
     'password_history' => [
         'enabled' => true,

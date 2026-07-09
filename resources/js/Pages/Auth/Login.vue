@@ -128,9 +128,9 @@ function submitLocal() {
                 </button>
             </div>
 
-            <!-- Acceso administrativo local (solo cuenta Super Admin) -->
+            <!-- Acceso local (Super Admin y cuentas autorizadas) -->
             <div v-if="localAdminEnabled" class="mt-6 border-t border-slate-200 pt-6 text-left">
-                <p class="mb-3 text-center text-xs uppercase tracking-wide text-slate-400">Acceso administrativo local</p>
+                <p class="mb-3 text-center text-xs uppercase tracking-wide text-slate-400">Acceso local (correo y contraseña)</p>
 
                 <p v-if="localForm.errors.email" class="mb-3 rounded-lg bg-red-50 px-3 py-2 text-center text-xs text-red-600">
                     {{ localForm.errors.email }}
@@ -153,7 +153,7 @@ function submitLocal() {
                     class="w-full rounded-lg bg-slate-800 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-900 disabled:opacity-50"
                     @click="submitLocal"
                 >
-                    Acceder como Super Admin
+                    Acceder
                 </button>
             </div>
 
