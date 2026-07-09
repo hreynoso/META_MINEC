@@ -3,10 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\Models\Institution;
+use App\Models\MemoirGeneration;
 use App\Models\PresidentialGoal;
 use App\Services\Ai\AiReportService;
+use App\Support\Branding;
+use App\Support\ExportName;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response as HttpResponse;
 use Inertia\Inertia;
 use Inertia\Response;
 use Throwable;
@@ -58,7 +63,19 @@ class MemoirController extends Controller
         try {
             $draft = trim($ai->generate($this->prompt($institution, $data['periodo'])));
 
-            return response()->json(['ai' => true, 'draft' => $draft]);
+            // Trazabilidad: se guarda la memoria generada con autor y fecha.
+            $record = MemoirGeneration::create([
+                'institution_id' => $institution->id,
+                'user_id' => $request->user()->id,
+                'periodo' => $data['periodo'],
+                'content' => $draft,
+            ]);
+
+            return response()->json([
+                'ai' => true,
+                'draft' => $draft,
+                'generation' => $this->format($record->load(['user', 'institution'])),
+            ]);
         } catch (Throwable $e) {
             return response()->json([
                 'ai' => false,
@@ -66,6 +83,51 @@ class MemoirController extends Controller
                 'message' => 'No se pudo generar la memoria: '.$e->getMessage(),
             ]);
         }
+    }
+
+    /** Historial de memorias generadas, de la más reciente a la más antigua. */
+    public function history(): JsonResponse
+    {
+        $items = MemoirGeneration::with(['user', 'institution'])
+            ->latest()
+            ->limit(50)
+            ->get()
+            ->map(fn (MemoirGeneration $m) => $this->format($m))
+            ->all();
+
+        return response()->json(['history' => $items]);
+    }
+
+    /** Exporta una memoria generada a PDF (logo del login + título). */
+    public function report(MemoirGeneration $memoir): HttpResponse
+    {
+        $memoir->loadMissing('institution');
+
+        $pdf = Pdf::loadView('reports.memoir', [
+            'logo' => Branding::dataUri('logo_login'),
+            'institution' => config('branding.institution'),
+            'generated_at' => now()->format('d/m/Y h:i A'),
+            'entity' => $memoir->institution?->name ?? '',
+            'entity_short' => $memoir->institution?->short_name ?? '',
+            'periodo' => $memoir->periodo,
+            'content' => $memoir->content,
+        ])->setPaper('a4');
+
+        return $pdf->download(ExportName::make('Memoria '.($memoir->institution?->short_name ?? '').' '.$memoir->periodo, 'pdf'));
+    }
+
+    /**
+     * @return array{id:int, institution:string, periodo:string, user:string, datetime:string|null}
+     */
+    private function format(MemoirGeneration $m): array
+    {
+        return [
+            'id' => $m->id,
+            'institution' => $m->institution?->short_name ?? '—',
+            'periodo' => $m->periodo,
+            'user' => $m->user?->name ?? 'Sistema',
+            'datetime' => $m->created_at?->format('d/m/Y h:i A'),
+        ];
     }
 
     private function prompt(Institution $inst, string $periodo): string

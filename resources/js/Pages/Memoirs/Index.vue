@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
-import { Sparkles, BookText, Loader2 } from 'lucide-vue-next';
+import { Sparkles, BookText, Loader2, FileDown, History } from 'lucide-vue-next';
 
 interface Institution { id: number; code: string; short_name: string; name: string; projects_count: number }
+interface MemoirItem { id: number; institution: string; periodo: string; user: string; datetime: string | null }
 
 const props = defineProps<{ institutions: Institution[]; provider: string }>();
 
@@ -12,14 +13,37 @@ const periodo = ref('Enero – Diciembre 2025');
 const draft = ref('');
 const loading = ref(false);
 const message = ref<string | null>(null);
+const currentGenerationId = ref<number | null>(null);
+
+// Trazabilidad de memorias generadas.
+const history = ref<MemoirItem[]>([]);
+const historyLoading = ref(false);
 
 const selected = computed(() => props.institutions.find((i) => i.id === institutionId.value) ?? null);
+
+async function loadHistory() {
+    historyLoading.value = true;
+    try {
+        const res = await fetch(route('memorias.history'), {
+            headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+        });
+        const data = await res.json();
+        history.value = data.history ?? [];
+    } catch {
+        // silencioso: la trazabilidad es complementaria
+    } finally {
+        historyLoading.value = false;
+    }
+}
+
+onMounted(loadHistory);
 
 async function generate() {
     if (!institutionId.value || !periodo.value.trim()) return;
     loading.value = true;
     message.value = null;
     draft.value = '';
+    currentGenerationId.value = null;
 
     const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? '';
 
@@ -37,6 +61,8 @@ async function generate() {
         const data = await res.json();
         draft.value = data.draft ?? '';
         message.value = data.message ?? null;
+        currentGenerationId.value = data.generation?.id ?? null;
+        if (data.generation) await loadHistory();
     } catch {
         message.value = 'No se pudo generar la memoria. Intenta de nuevo.';
     } finally {
@@ -108,7 +134,16 @@ const label = 'mb-1 block text-xs font-medium uppercase tracking-wide text-slate
 
             <!-- Borrador de memoria -->
             <section class="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-800">
-                <h2 class="mb-4 flex items-center gap-2 text-sm font-semibold"><BookText class="h-4 w-4" /> Borrador de memoria</h2>
+                <div class="mb-4 flex items-center justify-between gap-2">
+                    <h2 class="flex items-center gap-2 text-sm font-semibold"><BookText class="h-4 w-4" /> Borrador de memoria</h2>
+                    <a
+                        v-if="draft && currentGenerationId"
+                        :href="route('memorias.report', currentGenerationId)"
+                        class="inline-flex items-center gap-1.5 rounded-lg border border-brand px-2.5 py-1 text-xs font-medium text-brand transition hover:bg-brand hover:text-white"
+                    >
+                        <FileDown class="h-3.5 w-3.5" /> Descargar PDF
+                    </a>
+                </div>
 
                 <div class="min-h-[60vh] rounded-lg border border-slate-200 p-4 dark:border-slate-700">
                     <div v-if="loading" class="flex h-full min-h-[50vh] flex-col items-center justify-center text-slate-400">
@@ -126,6 +161,32 @@ const label = 'mb-1 block text-xs font-medium uppercase tracking-wide text-slate
                 </div>
 
                 <p v-if="message && draft" class="mt-2 text-xs text-amber-600">{{ message }}</p>
+
+                <!-- Trazabilidad de memorias generadas -->
+                <div class="mt-5 border-t border-slate-200 pt-4 dark:border-slate-700">
+                    <h3 class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                        <History class="h-4 w-4" /> Memorias generadas
+                    </h3>
+                    <p v-if="historyLoading" class="mt-2 text-xs text-slate-400">Cargando…</p>
+                    <p v-else-if="!history.length" class="mt-2 text-xs text-slate-400">Aún no hay memorias generadas.</p>
+                    <div v-else class="mt-2 space-y-2">
+                        <div
+                            v-for="h in history" :key="h.id"
+                            class="flex items-center justify-between gap-3 rounded-lg border border-slate-200 p-3 dark:border-slate-700"
+                        >
+                            <div class="min-w-0">
+                                <p class="truncate text-sm font-medium">{{ h.institution }} · {{ h.periodo }}</p>
+                                <p class="truncate text-xs text-slate-400">{{ h.user }} · {{ h.datetime }}</p>
+                            </div>
+                            <a
+                                :href="route('memorias.report', h.id)"
+                                class="inline-flex shrink-0 items-center gap-1 rounded-lg border border-brand px-2.5 py-1 text-xs font-medium text-brand transition hover:bg-brand hover:text-white"
+                            >
+                                <FileDown class="h-3.5 w-3.5" /> PDF
+                            </a>
+                        </div>
+                    </div>
+                </div>
             </section>
         </div>
     </AppLayout>

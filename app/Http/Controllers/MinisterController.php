@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AiRecommendation;
 use App\Models\Institution;
 use App\Models\Kpi;
 use App\Models\Project;
@@ -39,8 +40,26 @@ class MinisterController extends Controller
             'byInstitution' => $this->semaforo(),
             'alerts' => $this->alerts(),
             'recommendations' => $this->recommendations(),
+            'lastAiRecommendation' => $this->lastAiRecommendation(),
             'institutions' => Institution::has('projects')->orderBy('name')->get(['id', 'short_name']),
         ]);
+    }
+
+    /** Última recomendación generada con IA (IA Predictiva), o null si no hay. */
+    private function lastAiRecommendation(): ?array
+    {
+        $r = AiRecommendation::with(['user', 'project'])->latest()->first();
+
+        if (! $r) {
+            return null;
+        }
+
+        return [
+            'project' => $r->project?->name ?? '—',
+            'user' => $r->user?->name ?? 'Sistema',
+            'datetime' => $r->created_at?->format('d/m/Y h:i A'),
+            'recommendation' => $r->recommendation,
+        ];
     }
 
     /** Cifras agregadas de la cartera para el tablero ejecutivo. */

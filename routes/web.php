@@ -52,6 +52,8 @@ Route::middleware(['auth'])->group(function () {
     // Memorias institucionales (borrador generado con el API de IA configurado)
     Route::get('/memorias', [MemoirController::class, 'index'])->name('memorias.index');
     Route::post('/memorias/generar', [MemoirController::class, 'generate'])->name('memorias.generate');
+    Route::get('/memorias/historial', [MemoirController::class, 'history'])->name('memorias.history');
+    Route::get('/memorias/{memoir}/informe', [MemoirController::class, 'report'])->name('memorias.report');
 
     // IA Predictiva (modelo META-PREDICT + recomendación vía API de IA configurado)
     Route::get('/ia-predictiva', [PredictiveController::class, 'index'])->name('ia-predictiva.index');

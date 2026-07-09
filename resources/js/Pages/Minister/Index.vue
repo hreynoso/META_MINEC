@@ -10,12 +10,15 @@ interface Semaforo { code: string; name: string; short_name: string; green: numb
 interface Alert { name: string; institution: string; physical_progress: number; risk: string; success: number }
 interface Recommendation { title: string; detail: string; priority: string }
 
+interface AiRecommendation { project: string; user: string; datetime: string | null; recommendation: string }
+
 const props = defineProps<{
     summary: { budget: number; executed: number; executed_pct: number; beneficiaries: number; critical: number; projects_count: number; institutions_count: number };
     kpis: Kpi[];
     byInstitution: Semaforo[];
     alerts: Alert[];
     recommendations: Recommendation[];
+    lastAiRecommendation: AiRecommendation | null;
     institutions: { id: number; short_name: string }[];
 }>();
 
@@ -176,6 +179,18 @@ async function downloadPdf(text = '') {
                 <h2 class="mb-4 flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-200">
                     <Sparkles class="h-4 w-4 text-brand" /> Recomendaciones de acción
                 </h2>
+
+                <!-- Última recomendación generada con IA (IA Predictiva) -->
+                <div v-if="lastAiRecommendation" class="mb-4 rounded-lg border border-sky-200 bg-sky-50/70 p-3 dark:border-sky-900/40 dark:bg-sky-900/10">
+                    <p class="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-brand">
+                        <Sparkles class="h-3.5 w-3.5" /> Última recomendación de IA
+                    </p>
+                    <p class="mt-1 text-sm text-slate-700 dark:text-slate-200">{{ lastAiRecommendation.recommendation }}</p>
+                    <p class="mt-1 text-xs text-slate-400">
+                        {{ lastAiRecommendation.project }} · {{ lastAiRecommendation.user }} · {{ lastAiRecommendation.datetime }}
+                    </p>
+                </div>
+
                 <div class="space-y-3">
                     <div v-for="(r, idx) in recommendations" :key="idx" class="rounded-lg border border-slate-200 p-3 dark:border-slate-700">
                         <div class="flex items-start justify-between gap-2">
@@ -229,7 +244,7 @@ async function downloadPdf(text = '') {
                 </div>
             </div>
 
-            <div class="mt-5 flex flex-wrap gap-2">
+            <div class="mt-5">
                 <button
                     type="button"
                     :disabled="!canGenerate"
@@ -237,15 +252,6 @@ async function downloadPdf(text = '') {
                     @click="generate"
                 >
                     <Sparkles class="h-4 w-4" /> {{ form.processing ? 'Generando…' : 'Generar informe presidencial' }}
-                </button>
-                <button
-                    type="button"
-                    :disabled="form.institutions.length === 0"
-                    class="inline-flex items-center gap-1.5 rounded-lg border border-brand px-4 py-2.5 text-sm font-medium text-brand transition hover:bg-brand hover:text-white disabled:opacity-50"
-                    title="Genera y descarga el informe completo en PDF"
-                    @click="downloadPdf()"
-                >
-                    <FileDown class="h-4 w-4" /> Descargar informe PDF
                 </button>
             </div>
         </section>
