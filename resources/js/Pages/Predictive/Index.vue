@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
-import { Sparkles, TriangleAlert, Bot } from 'lucide-vue-next';
+import { Sparkles, TriangleAlert, Bot, ChevronDown, ChevronUp } from 'lucide-vue-next';
+
+interface Generation { recommendation: string; user: string; datetime: string | null }
+interface HistoryItem extends Generation { id: number }
 
 interface Prediction {
     id: number; code: string; name: string; institution: string; responsible: string | null;
@@ -19,11 +22,22 @@ const aiUsed = ref(false);
 const aiLoading = ref(false);
 const aiMessage = ref<string | null>(null);
 
+// Metadatos de la última generación con IA e historial por proyecto.
+const lastGeneration = ref<Generation | null>(null);
+const history = ref<HistoryItem[]>([]);
+const showHistory = ref(false);
+const historyLoading = ref(false);
+const historyLoaded = ref(false);
+
 function select(p: Prediction) {
     selected.value = p;
     recommendation.value = p.recommendation;
     aiUsed.value = false;
     aiMessage.value = null;
+    lastGeneration.value = null;
+    history.value = [];
+    showHistory.value = false;
+    historyLoaded.value = false;
 }
 
 function scoreClass(s: number): string {
@@ -44,10 +58,39 @@ async function generateAi() {
         recommendation.value = data.recommendation ?? recommendation.value;
         aiUsed.value = Boolean(data.ai);
         aiMessage.value = data.message ?? null;
+        lastGeneration.value = data.generation ?? null;
+
+        // Refresca el historial si hay una nueva generación registrada.
+        if (data.generation) {
+            historyLoaded.value = false;
+            if (showHistory.value) await loadHistory();
+        }
     } catch {
         aiMessage.value = 'No se pudo consultar la IA. Intenta de nuevo.';
     } finally {
         aiLoading.value = false;
+    }
+}
+
+async function toggleHistory() {
+    showHistory.value = !showHistory.value;
+    if (showHistory.value && !historyLoaded.value) await loadHistory();
+}
+
+async function loadHistory() {
+    if (!selected.value) return;
+    historyLoading.value = true;
+    try {
+        const res = await fetch(route('ia-predictiva.history', selected.value.id), {
+            headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+        });
+        const data = await res.json();
+        history.value = data.history ?? [];
+        historyLoaded.value = true;
+    } catch {
+        aiMessage.value = 'No se pudo cargar el historial de generaciones.';
+    } finally {
+        historyLoading.value = false;
     }
 }
 </script>
@@ -163,7 +206,34 @@ async function generateAi() {
                         </button>
                     </div>
                     <p class="mt-2 text-sm text-slate-700 dark:text-slate-200">{{ recommendation }}</p>
+                    <p v-if="lastGeneration" class="mt-2 text-xs text-slate-400">
+                        Generado por <span class="font-medium text-slate-500 dark:text-slate-300">{{ lastGeneration.user }}</span> · {{ lastGeneration.datetime }}
+                    </p>
                     <p v-if="aiMessage" class="mt-2 text-xs text-amber-600">{{ aiMessage }}</p>
+
+                    <!-- Historial de generaciones anteriores (ordenadas por fecha) -->
+                    <button
+                        type="button"
+                        class="mt-3 inline-flex items-center gap-1 text-xs font-medium text-brand hover:underline"
+                        @click="toggleHistory"
+                    >
+                        <component :is="showHistory ? ChevronUp : ChevronDown" class="h-3.5 w-3.5" />
+                        {{ showHistory ? 'Ocultar generaciones anteriores' : 'Ver generaciones anteriores' }}
+                    </button>
+
+                    <div v-if="showHistory" class="mt-2 space-y-2">
+                        <p v-if="historyLoading" class="text-xs text-slate-400">Cargando…</p>
+                        <p v-else-if="!history.length" class="text-xs text-slate-400">Aún no hay generaciones registradas para este proyecto.</p>
+                        <div
+                            v-for="h in history" :key="h.id"
+                            class="rounded-lg border border-slate-200 bg-white p-3 dark:border-slate-700 dark:bg-slate-800"
+                        >
+                            <p class="text-xs text-slate-400">
+                                <span class="font-medium text-slate-500 dark:text-slate-300">{{ h.user }}</span> · {{ h.datetime }}
+                            </p>
+                            <p class="mt-1 text-sm text-slate-700 dark:text-slate-200">{{ h.recommendation }}</p>
+                        </div>
+                    </div>
                 </div>
             </section>
         </div>

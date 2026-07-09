@@ -55,6 +55,7 @@ Route::middleware(['auth'])->group(function () {
     // IA Predictiva (modelo META-PREDICT + recomendación vía API de IA configurado)
     Route::get('/ia-predictiva', [PredictiveController::class, 'index'])->name('ia-predictiva.index');
     Route::get('/ia-predictiva/{project}/recomendacion', [PredictiveController::class, 'recommendation'])->name('ia-predictiva.recommendation');
+    Route::get('/ia-predictiva/{project}/historial', [PredictiveController::class, 'history'])->name('ia-predictiva.history');
 
     // Reportes institucionales (PDF vía DomPDF, XLSX vía OpenSpout)
     Route::get('/reportes', [ReportController::class, 'index'])->name('reportes.index');
