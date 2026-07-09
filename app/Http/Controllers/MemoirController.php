@@ -8,6 +8,7 @@ use App\Models\PresidentialGoal;
 use App\Services\Ai\AiReportService;
 use App\Support\Branding;
 use App\Support\ExportName;
+use App\Support\WordExport;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -114,6 +115,25 @@ class MemoirController extends Controller
         ])->setPaper('a4');
 
         return $pdf->download(ExportName::make('Memoria '.($memoir->institution?->short_name ?? '').' '.$memoir->periodo, 'pdf'));
+    }
+
+    /** Exporta una memoria generada a Word (.docx). */
+    public function reportDocx(MemoirGeneration $memoir): HttpResponse
+    {
+        $memoir->loadMissing('institution');
+
+        $subtitle = array_values(array_filter([
+            trim(($memoir->institution?->name ?? '').($memoir->institution?->short_name ? ' ('.$memoir->institution->short_name.')' : '')),
+            'Período '.$memoir->periodo,
+            (string) config('branding.institution').' · Sistema META',
+        ]));
+
+        return WordExport::download(
+            ExportName::make('Memoria '.($memoir->institution?->short_name ?? '').' '.$memoir->periodo, 'docx'),
+            'Memoria Institucional',
+            $subtitle,
+            $memoir->content,
+        );
     }
 
     /**

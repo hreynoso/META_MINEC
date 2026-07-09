@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
-import { Sparkles, BookText, Loader2, FileDown, History } from 'lucide-vue-next';
+import { Sparkles, BookText, Loader2, FileDown, FileText, History } from 'lucide-vue-next';
 
 interface Institution { id: number; code: string; short_name: string; name: string; projects_count: number }
 interface MemoirItem { id: number; institution: string; periodo: string; user: string; datetime: string | null }
@@ -149,13 +149,20 @@ const label = 'mb-1 block text-xs font-medium uppercase tracking-wide text-slate
             <section class="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-800">
                 <div class="mb-4 flex items-center justify-between gap-2">
                     <h2 class="flex items-center gap-2 text-sm font-semibold"><BookText class="h-4 w-4" /> Borrador de memoria</h2>
-                    <a
-                        v-if="draft && currentGenerationId"
-                        :href="route('memorias.report', currentGenerationId)"
-                        class="inline-flex items-center gap-1.5 rounded-lg border border-brand px-2.5 py-1 text-xs font-medium text-brand transition hover:bg-brand hover:text-white"
-                    >
-                        <FileDown class="h-3.5 w-3.5" /> Descargar PDF
-                    </a>
+                    <div v-if="draft && currentGenerationId" class="flex gap-2">
+                        <a
+                            :href="route('memorias.report', currentGenerationId)"
+                            class="inline-flex items-center gap-1.5 rounded-lg border border-brand px-2.5 py-1 text-xs font-medium text-brand transition hover:bg-brand hover:text-white"
+                        >
+                            <FileDown class="h-3.5 w-3.5" /> Descargar PDF
+                        </a>
+                        <a
+                            :href="route('memorias.report.docx', currentGenerationId)"
+                            class="inline-flex items-center gap-1.5 rounded-lg border border-sky-500 px-2.5 py-1 text-xs font-medium text-sky-600 transition hover:bg-sky-500 hover:text-white dark:text-sky-400"
+                        >
+                            <FileText class="h-3.5 w-3.5" /> Descargar DOCX
+                        </a>
+                    </div>
                 </div>
 
                 <div class="min-h-[60vh] rounded-lg border border-slate-200 p-4 dark:border-slate-700">
@@ -191,12 +198,20 @@ const label = 'mb-1 block text-xs font-medium uppercase tracking-wide text-slate
                                 <p class="truncate text-sm font-medium">{{ h.institution }} · {{ h.periodo }}</p>
                                 <p class="truncate text-xs text-slate-400">{{ h.user }} · {{ h.datetime }}</p>
                             </div>
-                            <a
-                                :href="route('memorias.report', h.id)"
-                                class="inline-flex shrink-0 items-center gap-1 rounded-lg border border-brand px-2.5 py-1 text-xs font-medium text-brand transition hover:bg-brand hover:text-white"
-                            >
-                                <FileDown class="h-3.5 w-3.5" /> PDF
-                            </a>
+                            <div class="flex shrink-0 gap-1">
+                                <a
+                                    :href="route('memorias.report', h.id)"
+                                    class="inline-flex items-center gap-1 rounded-lg border border-brand px-2.5 py-1 text-xs font-medium text-brand transition hover:bg-brand hover:text-white"
+                                >
+                                    <FileDown class="h-3.5 w-3.5" /> PDF
+                                </a>
+                                <a
+                                    :href="route('memorias.report.docx', h.id)"
+                                    class="inline-flex items-center gap-1 rounded-lg border border-sky-500 px-2.5 py-1 text-xs font-medium text-sky-600 transition hover:bg-sky-500 hover:text-white dark:text-sky-400"
+                                >
+                                    <FileText class="h-3.5 w-3.5" /> DOCX
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>

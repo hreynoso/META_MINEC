@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, watch, onMounted } from 'vue';
 import { useForm } from '@inertiajs/vue3';
 import ConfigLayout from '@/Components/ConfigLayout.vue';
 import { Sparkles, KeyRound, CheckCircle2 } from 'lucide-vue-next';
@@ -9,14 +9,40 @@ interface Settings {
     model: string;
     enabled: boolean;
     has_key: boolean;
+    gemini_email: string;
+    has_gemini_password: boolean;
 }
+
+interface AiModel { value: string; label: string }
+interface Provider { value: string; label: string; recommended: string; models: AiModel[] }
 
 const props = defineProps<{ settings: Settings }>();
 
-const PROVIDERS = [
-    { value: 'anthropic', label: 'Anthropic (Claude)', hint: 'Ej. claude-sonnet-4-6' },
-    { value: 'gemini', label: 'Google Gemini', hint: 'Ej. gemini-1.5-pro' },
-    { value: 'openai', label: 'OpenAI', hint: 'Ej. gpt-4o' },
+const PROVIDERS: Provider[] = [
+    {
+        value: 'anthropic', label: 'Anthropic (Claude)', recommended: 'claude-sonnet-5',
+        models: [
+            { value: 'claude-sonnet-5', label: 'Claude Sonnet 5 (recomendado)' },
+            { value: 'claude-opus-4-8', label: 'Claude Opus 4.8' },
+            { value: 'claude-haiku-4-5-20251001', label: 'Claude Haiku 4.5' },
+        ],
+    },
+    {
+        value: 'gemini', label: 'Google Gemini', recommended: 'gemini-1.5-pro',
+        models: [
+            { value: 'gemini-1.5-pro', label: 'Gemini 1.5 Pro (recomendado)' },
+            { value: 'gemini-1.5-flash', label: 'Gemini 1.5 Flash' },
+            { value: 'gemini-2.0-flash', label: 'Gemini 2.0 Flash' },
+        ],
+    },
+    {
+        value: 'openai', label: 'OpenAI', recommended: 'gpt-4o',
+        models: [
+            { value: 'gpt-4o', label: 'GPT-4o (recomendado)' },
+            { value: 'gpt-4o-mini', label: 'GPT-4o mini' },
+            { value: 'gpt-4-turbo', label: 'GPT-4 Turbo' },
+        ],
+    },
 ];
 
 const form = useForm({
@@ -24,9 +50,23 @@ const form = useForm({
     model: props.settings.model || '',
     enabled: props.settings.enabled,
     api_key: '',
+    gemini_email: props.settings.gemini_email || '',
+    gemini_password: '',
 });
 
-const modelHint = computed(() => PROVIDERS.find((p) => p.value === form.provider)?.hint ?? '');
+const currentModels = computed(() => PROVIDERS.find((p) => p.value === form.provider)?.models ?? []);
+
+// Al cambiar de proveedor, se autoselecciona el modelo recomendado.
+watch(() => form.provider, (prov) => {
+    const p = PROVIDERS.find((x) => x.value === prov);
+    if (p) form.model = p.recommended;
+});
+
+// Si el modelo guardado no pertenece al proveedor actual, cae al recomendado.
+onMounted(() => {
+    const p = PROVIDERS.find((x) => x.value === form.provider);
+    if (p && !p.models.some((m) => m.value === form.model)) form.model = p.recommended;
+});
 
 const input =
     'w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-brand focus:bg-white dark:border-slate-600 dark:bg-slate-900';
@@ -35,7 +75,7 @@ const label = 'mb-1 block text-xs font-medium uppercase tracking-wide text-slate
 function submit() {
     form.post(route('configuracion.ia.update'), {
         preserveScroll: true,
-        onSuccess: () => form.reset('api_key'),
+        onSuccess: () => form.reset('api_key', 'gemini_password'),
     });
 }
 </script>
@@ -64,9 +104,28 @@ function submit() {
                     </div>
                     <div>
                         <label :class="label">Modelo</label>
-                        <input v-model="form.model" :class="input" :placeholder="modelHint" />
-                        <p class="mt-1 text-xs text-slate-400">Déjalo vacío para usar el modelo por defecto del proveedor.</p>
+                        <select v-model="form.model" :class="input">
+                            <option v-for="m in currentModels" :key="m.value" :value="m.value">{{ m.label }}</option>
+                        </select>
+                        <p class="mt-1 text-xs text-slate-400">Modelos disponibles del proveedor seleccionado.</p>
                         <p v-if="form.errors.model" class="mt-1 text-xs text-red-600">{{ form.errors.model }}</p>
+                    </div>
+                </div>
+
+                <!-- Credenciales de Google Gemini (correo y contraseña) -->
+                <div v-if="form.provider === 'gemini'" class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <div>
+                        <label :class="label">Correo</label>
+                        <input v-model="form.gemini_email" type="email" autocomplete="off" :class="input" placeholder="correo@dominio" />
+                        <p v-if="form.errors.gemini_email" class="mt-1 text-xs text-red-600">{{ form.errors.gemini_email }}</p>
+                    </div>
+                    <div>
+                        <label :class="label">Contraseña</label>
+                        <input
+                            v-model="form.gemini_password" type="password" autocomplete="off" :class="input"
+                            :placeholder="settings.has_gemini_password ? '•••••••• (guardada — escribe para reemplazar)' : ''"
+                        />
+                        <p v-if="form.errors.gemini_password" class="mt-1 text-xs text-red-600">{{ form.errors.gemini_password }}</p>
                     </div>
                 </div>
 
