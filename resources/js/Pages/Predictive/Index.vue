@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { Sparkles, TriangleAlert, Bot, ChevronDown, ChevronUp, FileDown } from 'lucide-vue-next';
+
+const { t } = useI18n({ useScope: 'global' });
 
 interface Generation { recommendation: string; user: string; datetime: string | null }
 interface HistoryItem extends Generation { id: number }
@@ -68,7 +71,7 @@ async function generateAi() {
             if (showHistory.value) await loadHistory();
         }
     } catch {
-        aiMessage.value = 'No se pudo consultar la IA. Intenta de nuevo.';
+        aiMessage.value = t('predictive.ai_error');
     } finally {
         aiLoading.value = false;
     }
@@ -90,7 +93,7 @@ async function loadHistory() {
         history.value = data.history ?? [];
         historyLoaded.value = true;
     } catch {
-        aiMessage.value = 'No se pudo cargar el historial de generaciones.';
+        aiMessage.value = t('predictive.history_error');
     } finally {
         historyLoading.value = false;
     }
@@ -100,17 +103,17 @@ async function loadHistory() {
 <template>
     <AppLayout>
         <header class="mb-6">
-            <h1 class="text-2xl font-semibold">IA Predictiva</h1>
-            <p class="text-sm text-slate-500">Modelo de predicción de éxito o fracaso basado en avance físico, financiero, riesgo y estado</p>
+            <h1 class="text-2xl font-semibold">{{ t('predictive.page_title') }}</h1>
+            <p class="text-sm text-slate-500">{{ t('predictive.page_subtitle') }}</p>
         </header>
 
         <!-- Descripción del modelo -->
         <div class="mb-6 rounded-2xl border border-sky-100 bg-sky-50/60 p-5 dark:border-sky-900/40 dark:bg-sky-900/10">
             <p class="flex items-center gap-2 text-sm font-semibold text-brand">
-                <Sparkles class="h-4 w-4" /> MODELO META-PREDICT V1.0
+                <Sparkles class="h-4 w-4" /> {{ t('predictive.model_badge') }}
             </p>
             <p class="mt-2 text-sm text-slate-600 dark:text-slate-300">
-                El modelo evalúa la probabilidad de éxito de cada proyecto combinando el avance físico esperado según cronograma, la eficiencia entre avance y ejecución financiera, el nivel de riesgo declarado y el estado operativo. Los resultados se actualizan automáticamente con cada reporte de avance registrado en la plataforma.
+                {{ t('predictive.model_description') }}
             </p>
         </div>
 
@@ -118,8 +121,8 @@ async function loadHistory() {
             <!-- Ranking de riesgo -->
             <section class="rounded-xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800">
                 <div class="border-b border-slate-200 px-4 py-3 dark:border-slate-700">
-                    <h2 class="text-sm font-semibold uppercase tracking-wide text-slate-500">Ranking de riesgo</h2>
-                    <p class="text-xs text-slate-400">Ordenado de menor a mayor probabilidad de éxito</p>
+                    <h2 class="text-sm font-semibold uppercase tracking-wide text-slate-500">{{ t('predictive.risk_ranking_title') }}</h2>
+                    <p class="text-xs text-slate-400">{{ t('predictive.risk_ranking_subtitle') }}</p>
                 </div>
                 <div class="max-h-[70vh] overflow-y-auto">
                     <button
@@ -134,7 +137,7 @@ async function loadHistory() {
                         </div>
                         <span class="shrink-0 rounded px-1.5 py-0.5 text-xs font-semibold" :class="scoreClass(p.score)">{{ p.score }}%</span>
                     </button>
-                    <p v-if="!ranking.length" class="px-4 py-8 text-center text-sm text-slate-400">No hay proyectos para evaluar.</p>
+                    <p v-if="!ranking.length" class="px-4 py-8 text-center text-sm text-slate-400">{{ t('predictive.no_projects') }}</p>
                 </div>
             </section>
 
@@ -148,20 +151,20 @@ async function loadHistory() {
                     </div>
                     <div class="flex shrink-0 flex-col items-end gap-2">
                         <span v-if="selected.failing" class="inline-flex items-center gap-1 rounded-full border border-red-300 px-2 py-0.5 text-xs text-red-700 dark:border-red-800 dark:text-red-400">
-                            <TriangleAlert class="h-3.5 w-3.5" /> Riesgo de fracaso
+                            <TriangleAlert class="h-3.5 w-3.5" /> {{ t('predictive.failure_risk') }}
                         </span>
                         <a
                             :href="route('ia-predictiva.report', selected.id)"
                             class="inline-flex items-center gap-1.5 rounded-lg border border-brand px-2.5 py-1 text-xs font-medium text-brand transition hover:bg-brand hover:text-white"
-                            title="Descargar informe de riesgo en PDF"
+                            :title="t('predictive.download_report_title')"
                         >
-                            <FileDown class="h-3.5 w-3.5" /> Descargar PDF
+                            <FileDown class="h-3.5 w-3.5" /> {{ t('predictive.download_pdf') }}
                         </a>
                     </div>
                 </div>
 
                 <!-- Probabilidad de éxito -->
-                <p class="mt-5 text-xs uppercase tracking-wide text-slate-400">Probabilidad de éxito</p>
+                <p class="mt-5 text-xs uppercase tracking-wide text-slate-400">{{ t('predictive.success_probability') }}</p>
                 <div class="mt-1 flex items-center gap-4">
                     <p class="text-3xl font-bold">{{ selected.score }}<span class="text-lg font-normal text-slate-400">%</span></p>
                     <div class="flex-1">
@@ -177,25 +180,25 @@ async function loadHistory() {
                 <!-- Métricas -->
                 <div class="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
                     <div class="rounded-lg border border-slate-200 p-3 dark:border-slate-700">
-                        <p class="text-xs uppercase tracking-wide text-slate-400">Avance físico</p>
+                        <p class="text-xs uppercase tracking-wide text-slate-400">{{ t('predictive.physical_progress') }}</p>
                         <p class="mt-1 text-lg font-semibold">{{ selected.physical_progress }}%</p>
                     </div>
                     <div class="rounded-lg border border-slate-200 p-3 dark:border-slate-700">
-                        <p class="text-xs uppercase tracking-wide text-slate-400">Ejecución fin.</p>
+                        <p class="text-xs uppercase tracking-wide text-slate-400">{{ t('predictive.financial_execution') }}</p>
                         <p class="mt-1 text-lg font-semibold">{{ selected.financial_progress }}%</p>
                     </div>
                     <div class="rounded-lg border border-slate-200 p-3 dark:border-slate-700">
-                        <p class="text-xs uppercase tracking-wide text-slate-400">Riesgo</p>
+                        <p class="text-xs uppercase tracking-wide text-slate-400">{{ t('predictive.risk') }}</p>
                         <p class="mt-1 text-lg font-semibold">{{ selected.risk_label }}</p>
                     </div>
                     <div class="rounded-lg border border-slate-200 p-3 dark:border-slate-700">
-                        <p class="text-xs uppercase tracking-wide text-slate-400">Estado</p>
+                        <p class="text-xs uppercase tracking-wide text-slate-400">{{ t('predictive.status') }}</p>
                         <p class="mt-1 text-lg font-semibold">{{ selected.status_label }}</p>
                     </div>
                 </div>
 
                 <!-- Factores considerados -->
-                <p class="mt-6 text-xs uppercase tracking-wide text-slate-400">Factores considerados</p>
+                <p class="mt-6 text-xs uppercase tracking-wide text-slate-400">{{ t('predictive.factors_considered') }}</p>
                 <ul class="mt-2 space-y-2">
                     <li v-for="(f, i) in selected.factors" :key="i" class="flex items-center gap-2 rounded-lg bg-slate-50 px-3 py-2 text-sm dark:bg-slate-900/50">
                         <span class="h-1.5 w-1.5 rounded-full bg-brand" /> {{ f }}
@@ -206,19 +209,19 @@ async function loadHistory() {
                 <div class="mt-6 rounded-lg border border-sky-100 bg-sky-50/60 p-4 dark:border-sky-900/40 dark:bg-sky-900/10">
                     <div class="flex items-center justify-between gap-2">
                         <p class="text-xs font-semibold uppercase tracking-wide text-brand">
-                            {{ aiUsed ? 'Recomendación de la IA' : 'Recomendación del modelo' }}
+                            {{ aiUsed ? t('predictive.ai_recommendation') : t('predictive.model_recommendation') }}
                         </p>
                         <button
                             class="inline-flex items-center gap-1.5 rounded-lg border border-brand px-2.5 py-1 text-xs font-medium text-brand transition hover:bg-brand hover:text-white disabled:opacity-50"
                             :disabled="aiLoading"
                             @click="generateAi"
                         >
-                            <Bot class="h-3.5 w-3.5" /> {{ aiLoading ? 'Consultando…' : 'Generar con IA' }}
+                            <Bot class="h-3.5 w-3.5" /> {{ aiLoading ? t('predictive.consulting') : t('predictive.generate_with_ai') }}
                         </button>
                     </div>
                     <p class="mt-2 text-sm text-slate-700 dark:text-slate-200">{{ recommendation }}</p>
                     <p v-if="lastGeneration" class="mt-2 text-xs text-slate-400">
-                        Generado por <span class="font-medium text-slate-500 dark:text-slate-300">{{ lastGeneration.user }}</span> · {{ lastGeneration.datetime }}
+                        {{ t('predictive.generated_by') }} <span class="font-medium text-slate-500 dark:text-slate-300">{{ lastGeneration.user }}</span> · {{ lastGeneration.datetime }}
                     </p>
                     <p v-if="aiMessage" class="mt-2 text-xs text-amber-600">{{ aiMessage }}</p>
 
@@ -229,12 +232,12 @@ async function loadHistory() {
                         @click="toggleHistory"
                     >
                         <component :is="showHistory ? ChevronUp : ChevronDown" class="h-3.5 w-3.5" />
-                        {{ showHistory ? 'Ocultar generaciones anteriores' : 'Ver generaciones anteriores' }}
+                        {{ showHistory ? t('predictive.hide_previous_generations') : t('predictive.show_previous_generations') }}
                     </button>
 
                     <div v-if="showHistory" class="mt-2 space-y-2">
-                        <p v-if="historyLoading" class="text-xs text-slate-400">Cargando…</p>
-                        <p v-else-if="!history.length" class="text-xs text-slate-400">Aún no hay generaciones registradas para este proyecto.</p>
+                        <p v-if="historyLoading" class="text-xs text-slate-400">{{ t('predictive.loading') }}</p>
+                        <p v-else-if="!history.length" class="text-xs text-slate-400">{{ t('predictive.no_generations') }}</p>
                         <div
                             v-for="h in history" :key="h.id"
                             class="rounded-lg border border-slate-200 bg-white p-3 dark:border-slate-700 dark:bg-slate-800"

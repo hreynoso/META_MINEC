@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
 import { Link, usePage } from '@inertiajs/vue3';
+import { useI18n } from 'vue-i18n';
 import Toast from 'primevue/toast';
 import { useToast } from 'primevue/usetoast';
 import ConfirmDialog from '@/Components/ConfirmDialog.vue';
@@ -9,6 +10,8 @@ import {
     LayoutDashboard, Crown, FolderKanban, Gauge, FileBarChart,
     Sparkles, BookText, MessagesSquare, Settings, LogOut, ChevronLeft, ChevronRight, ScrollText,
 } from 'lucide-vue-next';
+
+const { t } = useI18n({ useScope: 'global' });
 
 const page = usePage();
 const sidebarOpen = ref(true);
@@ -47,19 +50,19 @@ const logoSidebar = computed(() => (page.props.branding as any)?.assets?.logo_si
 // Acceso al área de administración (Configuración y Logs).
 const isAdmin = computed(() => authRoles.value.includes('Super Admin') || authRoles.value.includes('Administrador'));
 
-// route: nombre de ruta Ziggy si ya existe; null = módulo de fase posterior.
-// adminOnly: solo visible para Super Admin / Administrador.
+// key: clave de traducción nav.<key>. route: ruta Ziggy si existe; null = fase
+// posterior. adminOnly: solo visible para Super Admin / Administrador.
 const nav = [
-    { label: 'Dashboard', icon: LayoutDashboard, route: 'dashboard' },
-    { label: 'Ministra', icon: Crown, route: 'ministra.index' },
-    { label: 'Proyectos', icon: FolderKanban, route: 'proyectos.index' },
-    { label: 'KPIs', icon: Gauge, route: 'kpis.index' },
-    { label: 'Reportes', icon: FileBarChart, route: 'reportes.index' },
-    { label: 'IA Predictiva', icon: Sparkles, route: 'ia-predictiva.index' },
-    { label: 'Memorias', icon: BookText, route: 'memorias.index' },
-    { label: 'Red de Gestores', icon: MessagesSquare, route: 'red-gestores.index' },
-    { label: 'Logs del Sistema', icon: ScrollText, route: 'logs.index', adminOnly: true },
-    { label: 'Configuración', icon: Settings, route: 'configuracion.edit', adminOnly: true },
+    { key: 'dashboard', icon: LayoutDashboard, route: 'dashboard' },
+    { key: 'minister', icon: Crown, route: 'ministra.index' },
+    { key: 'projects', icon: FolderKanban, route: 'proyectos.index' },
+    { key: 'kpis', icon: Gauge, route: 'kpis.index' },
+    { key: 'reports', icon: FileBarChart, route: 'reportes.index' },
+    { key: 'predictive', icon: Sparkles, route: 'ia-predictiva.index' },
+    { key: 'memoirs', icon: BookText, route: 'memorias.index' },
+    { key: 'network', icon: MessagesSquare, route: 'red-gestores.index' },
+    { key: 'logs', icon: ScrollText, route: 'logs.index', adminOnly: true },
+    { key: 'settings', icon: Settings, route: 'configuracion.edit', adminOnly: true },
 ];
 
 const visibleNav = computed(() => nav.filter((item) => !item.adminOnly || isAdmin.value));
@@ -76,13 +79,13 @@ function isActive(name: string | null): boolean {
             <!-- Sidebar fijo: no se desplaza con el scroll del contenido -->
             <aside
                 v-if="sidebarOpen"
-                class="relative h-screen w-64 shrink-0 bg-shell text-slate-300"
+                class="relative h-screen w-64 shrink-0 caret-transparent bg-shell text-slate-300"
             >
                 <!-- Botón circular de colapso (estilo SED), sobre el borde derecho.
                      Va fuera del contenedor con scroll para que no lo recorte. -->
                 <button
                     class="absolute -right-3 top-5 z-10 flex h-6 w-6 items-center justify-center rounded-full border border-white/20 bg-shell text-slate-200 shadow transition hover:text-white"
-                    title="Ocultar menú"
+                    :title="t('nav.close_menu')"
                     @click="sidebarOpen = false"
                 >
                     <ChevronLeft class="h-4 w-4" />
@@ -91,25 +94,25 @@ function isActive(name: string | null): boolean {
                 <!-- Contenido desplazable (sin scroll horizontal) -->
                 <div class="flex h-full flex-col overflow-y-auto overflow-x-hidden">
                 <!-- Logo institucional (enlaza al Dashboard) -->
-                <Link v-if="logoSidebar" :href="route('dashboard')" class="block px-3 py-4" title="Ir al Dashboard">
+                <Link v-if="logoSidebar" :href="route('dashboard')" class="block px-3 py-4" :title="t('header.app_title')">
                     <img
                         :src="logoSidebar"
                         alt="Logo institucional"
                         class="h-auto w-full object-contain"
                     />
                 </Link>
-                <Link v-else :href="route('dashboard')" class="flex items-center gap-3 px-5 py-4" title="Ir al Dashboard">
+                <Link v-else :href="route('dashboard')" class="flex items-center gap-3 px-5 py-4" :title="t('header.app_title')">
                     <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-brand/20 text-brand">
                         <LayoutDashboard class="h-5 w-5" />
                     </div>
                     <div class="leading-tight">
-                        <p class="text-sm font-semibold text-white">Sistema META</p>
-                        <p class="text-[11px] text-slate-400">MINEC · El Salvador</p>
+                        <p class="text-sm font-semibold text-white">{{ t('app.name') }}</p>
+                        <p class="text-[11px] text-slate-400">{{ t('app.sidebar_subtitle') }}</p>
                     </div>
                 </Link>
 
                 <nav class="mt-2 flex-1 space-y-1 px-3">
-                    <template v-for="item in visibleNav" :key="item.label">
+                    <template v-for="item in visibleNav" :key="item.key">
                         <Link
                             v-if="item.route"
                             :href="route(item.route)"
@@ -119,15 +122,15 @@ function isActive(name: string | null): boolean {
                                 : 'hover:bg-shell-hover hover:text-white'"
                         >
                             <component :is="item.icon" class="h-4 w-4" />
-                            {{ item.label }}
+                            {{ t(`nav.${item.key}`) }}
                         </Link>
                         <span
                             v-else
                             class="flex cursor-default items-center gap-3 rounded-lg px-3 py-2 text-[15px] text-slate-500"
-                            title="Disponible en próxima fase"
+                            :title="t('nav.next_phase')"
                         >
                             <component :is="item.icon" class="h-4 w-4" />
-                            {{ item.label }}
+                            {{ t(`nav.${item.key}`) }}
                         </span>
                     </template>
                 </nav>
@@ -139,7 +142,7 @@ function isActive(name: string | null): boolean {
                         as="button"
                         class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm hover:bg-shell-hover hover:text-white"
                     >
-                        <LogOut class="h-4 w-4" /> Salir
+                        <LogOut class="h-4 w-4" /> {{ t('nav.logout') }}
                     </Link>
                 </div>
                 </div>
@@ -152,21 +155,21 @@ function isActive(name: string | null): boolean {
                         <button
                             v-if="!sidebarOpen"
                             class="flex h-8 w-8 items-center justify-center rounded-full border border-slate-300 bg-white text-slate-600 shadow-sm transition hover:text-brand dark:border-slate-600 dark:bg-slate-800"
-                            title="Mostrar menú"
+                            :title="t('nav.open_menu')"
                             @click="sidebarOpen = true"
                         >
                             <ChevronRight class="h-4 w-4" />
                         </button>
-                        <p class="text-lg font-bold tracking-tight text-slate-800 dark:text-slate-100">Sistema META</p>
+                        <p class="text-lg font-bold tracking-tight text-slate-800 dark:text-slate-100">{{ t('header.app_title') }}</p>
                     </div>
                     <button
                         type="button"
                         class="flex items-center gap-3 rounded-lg px-1.5 py-1 transition hover:bg-slate-100 dark:hover:bg-slate-700"
-                        title="Ver perfil del usuario"
+                        :title="t('header.view_profile')"
                         @click="profileOpen = true"
                     >
                         <div class="text-right leading-tight">
-                            <p class="text-sm font-medium">{{ authUser.name ?? 'Usuario' }}</p>
+                            <p class="text-sm font-medium">{{ authUser.name ?? t('header.user') }}</p>
                             <p class="text-xs text-slate-500">{{ primaryRole }} · MINEC</p>
                         </div>
                         <img
@@ -186,7 +189,7 @@ function isActive(name: string | null): boolean {
                 </main>
 
                 <footer class="shrink-0 border-t border-slate-200 px-6 py-4 text-center text-xs text-slate-400 dark:border-slate-700">
-                    Developed by CityWorks, Powered by Google Cloud Platform
+                    {{ t('footer.credits') }}
                 </footer>
             </div>
         </div>

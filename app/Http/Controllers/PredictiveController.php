@@ -52,7 +52,7 @@ class PredictiveController extends Controller
             return response()->json([
                 'ai' => false,
                 'recommendation' => $pred->recommendation($project),
-                'message' => 'IA no configurada; se muestra la recomendación del modelo. Configúrala en Configuración → Inteligencia Artificial.',
+                'message' => __('messages.predictive.ai_not_configured_fallback'),
             ]);
         }
 
@@ -82,7 +82,7 @@ class PredictiveController extends Controller
             return response()->json([
                 'ai' => false,
                 'recommendation' => $pred->recommendation($project),
-                'message' => 'No se pudo consultar la IA: '.$e->getMessage(),
+                'message' => __('messages.predictive.ai_query_failed', ['error' => $e->getMessage()]),
             ]);
         }
     }

@@ -62,27 +62,6 @@ class ProjectRequest extends FormRequest
         ];
     }
 
-    /**
-     * @return array<string, string>
-     */
-    public function attributes(): array
-    {
-        return [
-            'code' => 'código',
-            'name' => 'nombre del proyecto',
-            'institution_id' => 'institución',
-            'presidential_goal_id' => 'meta presidencial',
-            'status' => 'estado',
-            'risk_level' => 'nivel de riesgo',
-            'budget' => 'presupuesto',
-            'executed' => 'ejecutado',
-            'physical_progress' => 'avance físico',
-            'start_date' => 'fecha de inicio',
-            'end_date' => 'fecha de fin',
-            'source' => 'fuente de financiamiento',
-            'responsible' => 'responsable',
-            'beneficiaries' => 'beneficiarios',
-            'location' => 'ubicación',
-        ];
-    }
+    // Los nombres de campo (attributes) se resuelven por idioma desde
+    // lang/{es,en}/validation.php para respetar el idioma del sistema.
 }

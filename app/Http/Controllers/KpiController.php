@@ -62,20 +62,20 @@ class KpiController extends Controller
     {
         Kpi::create($request->validated());
 
-        return to_route('kpis.index')->with('success', 'Indicador creado correctamente.');
+        return to_route('kpis.index')->with('success', __('messages.kpi.created'));
     }
 
     public function update(KpiRequest $request, Kpi $kpi): RedirectResponse
     {
         $kpi->update($request->validated());
 
-        return to_route('kpis.index')->with('success', 'Indicador actualizado correctamente.');
+        return to_route('kpis.index')->with('success', __('messages.kpi.updated'));
     }
 
     public function destroy(Kpi $kpi): RedirectResponse
     {
         $kpi->delete();
 
-        return to_route('kpis.index')->with('success', 'Indicador eliminado correctamente.');
+        return to_route('kpis.index')->with('success', __('messages.kpi.deleted'));
     }
 }

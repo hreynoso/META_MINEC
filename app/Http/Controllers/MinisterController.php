@@ -11,6 +11,7 @@ use App\Services\Ai\AiReportService;
 use App\Services\PredictionService;
 use App\Support\Branding;
 use App\Support\ExportName;
+use App\Support\WordExport;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -106,7 +107,7 @@ class MinisterController extends Controller
         try {
             $report = $ai->generate($this->buildPrompt($data['institutions'], $data['from'], $data['to']));
         } catch (Throwable $e) {
-            return back()->with('error', 'No se pudo generar el informe: '.$e->getMessage());
+            return back()->with('error', __('messages.minister.report_failed', ['error' => $e->getMessage()]));
         }
 
         // Trazabilidad: se guarda el informe con autor, período e instituciones.
@@ -118,7 +119,7 @@ class MinisterController extends Controller
             'content' => $report,
         ]);
 
-        return back()->with('report', $report)->with('success', 'Informe presidencial generado.');
+        return back()->with('report', $report)->with('success', __('messages.minister.report_generated'));
     }
 
     /** Historial de informes presidenciales generados, del más reciente al más antiguo. */
@@ -180,13 +181,13 @@ class MinisterController extends Controller
 
         if ($narrative === '') {
             if (! $ai->isConfigured()) {
-                return back()->with('error', 'El API de IA no está configurado. Ve a Configuración → Inteligencia Artificial.');
+                return back()->with('error', __('messages.ai.not_configured'));
             }
 
             try {
                 $narrative = trim($ai->generate($this->buildPrompt($data['institutions'], $data['from'], $data['to'])));
             } catch (Throwable $e) {
-                return back()->with('error', 'No se pudo generar el informe: '.$e->getMessage());
+                return back()->with('error', __('messages.minister.report_failed', ['error' => $e->getMessage()]));
             }
         }
 
@@ -208,6 +209,73 @@ class MinisterController extends Controller
         ])->setPaper('a4');
 
         return $pdf->download(ExportName::make('Informe Presidencial', 'pdf'));
+    }
+
+    /**
+     * Informe presidencial en Word (.docx). Reutiliza la narrativa ya generada si
+     * se envía; si no, la genera con la IA. Formato con títulos en negrita y
+     * párrafos justificados (WordExport).
+     */
+    public function reportDocx(Request $request, AiReportService $ai): HttpResponse|RedirectResponse
+    {
+        $data = $request->validate([
+            'institutions' => ['required', 'array', 'min:1'],
+            'institutions.*' => ['integer', 'exists:institutions,id'],
+            'from' => ['required', 'date'],
+            'to' => ['required', 'date', 'after_or_equal:from'],
+            'report' => ['nullable', 'string'],
+        ], [], ['institutions' => 'instituciones']);
+
+        $narrative = trim((string) ($data['report'] ?? ''));
+
+        if ($narrative === '') {
+            if (! $ai->isConfigured()) {
+                return back()->with('error', __('messages.ai.not_configured'));
+            }
+
+            try {
+                $narrative = trim($ai->generate($this->buildPrompt($data['institutions'], $data['from'], $data['to'])));
+            } catch (Throwable $e) {
+                return back()->with('error', __('messages.minister.report_failed', ['error' => $e->getMessage()]));
+            }
+        }
+
+        $selected = Institution::whereIn('id', $data['institutions'])->orderBy('name')->pluck('short_name')->all();
+
+        return $this->docx($narrative, $data['from'], $data['to'], $selected);
+    }
+
+    /** Reexporta un informe presidencial guardado a Word (.docx). */
+    public function reportStoredDocx(MinisterReport $report): HttpResponse
+    {
+        return $this->docx(
+            (string) $report->content,
+            optional($report->from)->toDateString() ?? '',
+            optional($report->to)->toDateString() ?? '',
+            $report->institutions ?? [],
+        );
+    }
+
+    /**
+     * Arma el .docx del informe presidencial con el encabezado institucional.
+     *
+     * @param  string[]  $selected
+     */
+    private function docx(string $narrative, string $from, string $to, array $selected): HttpResponse
+    {
+        $subtitle = array_values(array_filter([
+            'Informe dirigido a la Presidencia de la República',
+            $from && $to ? 'Período '.$from.' al '.$to : null,
+            $selected ? 'Instituciones: '.implode(', ', $selected) : null,
+            (string) config('branding.institution').' · Sistema META',
+        ]));
+
+        return WordExport::download(
+            ExportName::make('Informe Presidencial', 'docx'),
+            'Informe Presidencial',
+            $subtitle,
+            $narrative,
+        );
     }
 
     /** Clasifica cada institución en un semáforo según la salud de sus proyectos. */
@@ -318,15 +386,27 @@ class MinisterController extends Controller
         $data = implode("\n", $lines);
 
         return <<<PROMPT
-        Eres un asesor de la Ministra de Economía de El Salvador. Redacta un informe
-        ejecutivo formal dirigido a la Presidencia de la República, en español, sobre
-        el avance de los proyectos de inversión pública del período del {$from} al {$to}.
+        Eres el asesor estratégico de la Ministra de Economía de El Salvador y redactas
+        para la máxima autoridad del país.
 
-        El informe debe incluir: (1) un resumen ejecutivo, (2) los principales logros y
-        avances, (3) los proyectos en riesgo y las acciones recomendadas, y (4) el
-        cumplimiento de los indicadores estratégicos. Usa un tono institucional y conciso.
+        CONTEXTO OBLIGATORIO — ESTE ES UN INFORME DE ALTO NIVEL:
+        - El destinatario es la Presidencia de la República; el lector es un tomador de
+          decisiones, no un equipo operativo.
+        - Mantén una mirada ejecutiva y estratégica: prioriza conclusiones, implicaciones,
+          riesgos país y decisiones requeridas, NO el detalle operativo ni la jerga técnica.
+        - Agrega y sintetiza: habla de tendencias, magnitudes y su significado; evita listar
+          proyecto por proyecto salvo para ilustrar un punto crítico.
+        - Tono institucional, sobrio y directo. Cifras siempre con su interpretación
+          ("qué significa"), no cifras sueltas. Español formal.
+        - Respeta este marco de alto nivel en TODO el documento, de principio a fin.
 
-        DATOS DE LA PLATAFORMA META (proyectos por institución seleccionada):
+        Redacta el informe ejecutivo del período del {$from} al {$to}, estructurado en
+        secciones con encabezados en formato Markdown ("## "): (1) Resumen ejecutivo,
+        (2) Principales logros y avances, (3) Proyectos en riesgo y acciones recomendadas,
+        y (4) Cumplimiento de los indicadores estratégicos. Usa **negritas** para destacar
+        las ideas y cifras clave.
+
+        DATOS DE LA PLATAFORMA META (insumo de trabajo, NO para transcribir en crudo):
         {$data}
 
         INDICADORES ESTRATÉGICOS:

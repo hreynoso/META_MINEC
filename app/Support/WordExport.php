@@ -59,8 +59,20 @@ class WordExport
 
         $parts[] = static::paragraph('');
 
-        foreach (preg_split('/\r\n|\r|\n/', $body) ?: [] as $line) {
-            $parts[] = static::paragraph($line);
+        foreach (preg_split('/\r\n|\r|\n/', $body) ?: [] as $raw) {
+            $line = trim($raw);
+
+            if ($line === '') {
+                continue;
+            }
+
+            if (ReportFormat::isHeading($line)) {
+                $parts[] = static::sectionHeading(ReportFormat::stripHeading($line));
+            } elseif (ReportFormat::isBullet($line)) {
+                $parts[] = static::bodyParagraph('•  '.ReportFormat::stripBullet($line));
+            } else {
+                $parts[] = static::bodyParagraph($line);
+            }
         }
 
         return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
@@ -87,6 +99,40 @@ class WordExport
         $rPr = $muted ? '<w:rPr><w:color w:val="64748B"/><w:sz w:val="18"/></w:rPr>' : '<w:rPr><w:sz w:val="22"/></w:rPr>';
 
         return '<w:p>'.$pPr.'<w:r>'.$rPr.'<w:t xml:space="preserve">'.static::esc($text).'</w:t></w:r></w:p>';
+    }
+
+    /** Encabezado de sección: negrita, color institucional, con espacio antes. */
+    private static function sectionHeading(string $text): string
+    {
+        return '<w:p><w:pPr><w:spacing w:before="200" w:after="60"/></w:pPr>'
+            .'<w:r><w:rPr><w:b/><w:sz w:val="26"/><w:color w:val="0D9488"/></w:rPr>'
+            .'<w:t xml:space="preserve">'.static::esc($text).'</w:t></w:r></w:p>';
+    }
+
+    /** Párrafo de cuerpo justificado en ambos lados, con soporte de **negrita**. */
+    private static function bodyParagraph(string $text): string
+    {
+        return '<w:p><w:pPr><w:jc w:val="both"/><w:spacing w:after="120" w:line="276" w:lineRule="auto"/></w:pPr>'
+            .static::runs($text).'</w:p>';
+    }
+
+    /** Divide el texto en corridas alternando normal/negrita según los "**". */
+    private static function runs(string $text): string
+    {
+        $segments = preg_split('/\*\*/', $text) ?: [$text];
+        $xml = '';
+
+        foreach ($segments as $i => $segment) {
+            if ($segment === '') {
+                continue;
+            }
+
+            $bold = ($i % 2) === 1; // segmentos impares = entre ** ** = negrita
+            $rPr = '<w:rPr>'.($bold ? '<w:b/>' : '').'<w:sz w:val="22"/></w:rPr>';
+            $xml .= '<w:r>'.$rPr.'<w:t xml:space="preserve">'.static::esc($segment).'</w:t></w:r>';
+        }
+
+        return $xml;
     }
 
     private static function esc(string $text): string

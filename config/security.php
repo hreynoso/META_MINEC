@@ -23,6 +23,19 @@ return [
         explode(',', (string) env('SECURITY_LOCAL_LOGIN_EMAILS', '')),
     ))),
 
+    // Restricción "un solo dispositivo" (EnforceSingleDevice). Solo se permite
+    // una sesión activa por usuario; al iniciar sesión en otro equipo mientras
+    // uno anterior sigue activo, se pide confirmación (Sí/No) antes de tomar el
+    // control. Escape hatch: SECURITY_SINGLE_DEVICE=false lo desactiva sin tocar
+    // código si llegara a causar bloqueos.
+    'single_device' => [
+        'enabled' => (bool) env('SECURITY_SINGLE_DEVICE', true),
+        // Minutos de inactividad tras los cuales la otra sesión deja de
+        // considerarse "activa" (y el control se toma en silencio, sin aviso).
+        // Vacío/0 = usar la vigencia de sesión (config session.lifetime).
+        'window_minutes' => (int) env('SECURITY_SINGLE_DEVICE_WINDOW', 0),
+    ],
+
     // Historial de contrasenas (PasswordHistory)
     'password_history' => [
         'enabled' => true,

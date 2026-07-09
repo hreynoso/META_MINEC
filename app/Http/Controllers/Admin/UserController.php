@@ -31,6 +31,7 @@ class UserController extends Controller
                 'institution' => $u->institution?->short_name,
                 'roles' => $u->roles->pluck('name'),
                 'blocked' => $u->blocked_at !== null,
+                'last_login_at' => $u->last_login_at?->format('d/m/Y h:i A'),
             ]);
 
         return Inertia::render('Admin/Users', [
@@ -49,9 +50,10 @@ class UserController extends Controller
                 $u->institution?->short_name ?? '',
                 $u->roles->pluck('name')->implode(', '),
                 $u->blocked_at !== null ? 'Bloqueado' : 'Activo',
+                $u->last_login_at?->format('d/m/Y h:i A') ?? 'Nunca',
             ])->all();
 
-        return SheetExport::stream(ExportName::make('Usuarios', 'xlsx'), ['Nombres y Apellidos', 'Correo', 'Institución', 'Roles', 'Estado'], $rows);
+        return SheetExport::stream(ExportName::make('Usuarios', 'xlsx'), ['Nombres y Apellidos', 'Correo', 'Institución', 'Roles', 'Estado', 'Último acceso'], $rows);
     }
 
     public function store(Request $request): RedirectResponse
@@ -59,7 +61,7 @@ class UserController extends Controller
         $data = $this->validateUser($request);
 
         if ($this->grantsAdminRole($request, $data, null)) {
-            return back()->with('error', 'Solo un usuario con el rol Administrador puede asignar el rol Administrador.');
+            return back()->with('error', __('messages.user.only_admin_can_grant_admin'));
         }
 
         $user = User::create([
@@ -72,7 +74,7 @@ class UserController extends Controller
 
         $user->syncRoles($data['roles'] ?? []);
 
-        return back()->with('success', 'Usuario creado correctamente.');
+        return back()->with('success', __('messages.user.created'));
     }
 
     public function update(Request $request, User $user): RedirectResponse
@@ -80,7 +82,7 @@ class UserController extends Controller
         $data = $this->validateUser($request, $user);
 
         if ($this->grantsAdminRole($request, $data, $user)) {
-            return back()->with('error', 'Solo un usuario con el rol Administrador puede asignar el rol Administrador.');
+            return back()->with('error', __('messages.user.only_admin_can_grant_admin'));
         }
 
         $user->fill([
@@ -97,18 +99,18 @@ class UserController extends Controller
         $user->save();
         $user->syncRoles($data['roles'] ?? []);
 
-        return back()->with('success', 'Usuario actualizado correctamente.');
+        return back()->with('success', __('messages.user.updated'));
     }
 
     public function destroy(Request $request, User $user): RedirectResponse
     {
         if ($request->user()->id === $user->id) {
-            return back()->with('error', 'No puedes eliminar tu propia cuenta.');
+            return back()->with('error', __('messages.user.cannot_delete_self'));
         }
 
         $user->delete();
 
-        return back()->with('success', 'Usuario eliminado correctamente.');
+        return back()->with('success', __('messages.user.deleted'));
     }
 
     /**

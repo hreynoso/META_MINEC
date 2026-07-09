@@ -19,7 +19,7 @@ class EnsureUserIsNotBlocked
             $request->session()->regenerateToken();
 
             return redirect()->route('login')
-                ->with('error', 'Su cuenta ha sido bloqueada. Contacte al administrador.');
+                ->with('error', __('messages.auth.account_blocked'));
         }
 
         return $next($request);

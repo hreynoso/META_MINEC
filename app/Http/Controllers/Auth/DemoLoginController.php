@@ -45,12 +45,17 @@ class DemoLoginController extends Controller
             RateLimiter::hit($this->throttleKey($request), self::DECAY_SECONDS);
 
             throw ValidationException::withMessages([
-                'email' => 'Las credenciales no son válidas.',
+                'email' => __('messages.auth.invalid_credentials'),
             ]);
         }
 
         RateLimiter::clear($this->throttleKey($request));
         $request->session()->regenerate();
+
+        // Un solo dispositivo: si ya hay otra sesión activa, pide confirmación.
+        if ($redirect = \App\Support\DeviceSession::resolveLogin($request, Auth::user())) {
+            return $redirect;
+        }
 
         return redirect()->intended(route('dashboard'));
     }
@@ -67,7 +72,7 @@ class DemoLoginController extends Controller
         $seconds = RateLimiter::availableIn($this->throttleKey($request));
 
         throw ValidationException::withMessages([
-            'email' => "Demasiados intentos fallidos. Intente de nuevo en {$seconds} segundos.",
+            'email' => __('messages.auth.too_many_attempts', ['seconds' => $seconds]),
         ]);
     }
 

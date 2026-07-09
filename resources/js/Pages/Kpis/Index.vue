@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { router } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { Plus, Pencil, Trash2, Star, TrendingUp, TrendingDown, Minus } from 'lucide-vue-next';
@@ -17,6 +18,8 @@ interface Kpi {
 
 const props = defineProps<{ kpis: Kpi[] }>();
 
+const { t } = useI18n({ useScope: 'global' });
+
 const strategic = computed(() => props.kpis.filter((k) => k.strategic));
 
 // Toolbar uniforme.
@@ -24,11 +27,11 @@ const search = ref('');
 const pageSize = ref(25);
 const fStrategic = ref('');
 const columns = ref<GridColumn[]>([
-    { key: 'label', label: 'Indicador', visible: true },
-    { key: 'value', label: 'Valor', visible: true },
-    { key: 'target', label: 'Meta', visible: true },
-    { key: 'achievement', label: 'Logro', visible: true },
-    { key: 'trend', label: 'Tendencia', visible: true },
+    { key: 'label', label: t('kpis.col_indicator'), visible: true },
+    { key: 'value', label: t('kpis.col_value'), visible: true },
+    { key: 'target', label: t('kpis.col_target'), visible: true },
+    { key: 'achievement', label: t('kpis.col_achievement'), visible: true },
+    { key: 'trend', label: t('kpis.col_trend'), visible: true },
 ]);
 const vis = (k: string) => columns.value.find((c) => c.key === k)?.visible ?? true;
 
@@ -66,9 +69,9 @@ function onSaved() {
 
 function confirmDelete(k: Kpi) {
     ask({
-        header: 'Eliminar indicador',
-        message: `¿Eliminar el indicador "${k.label}"? Esta acción no se puede deshacer.`,
-        acceptLabel: 'Eliminar',
+        header: t('kpis.delete_header'),
+        message: t('kpis.delete_message', { label: k.label }),
+        acceptLabel: t('actions.delete'),
         accept: () => {
             router.delete(route('kpis.destroy', k.id), { preserveScroll: true });
         },
@@ -80,17 +83,17 @@ function confirmDelete(k: Kpi) {
     <AppLayout>
         <header class="mb-6 flex items-start justify-between">
             <div>
-                <h1 class="text-2xl font-semibold">Indicadores de gestión</h1>
-                <p class="text-sm text-slate-500">KPIs institucionales y su avance frente a la meta</p>
+                <h1 class="text-2xl font-semibold">{{ t('kpis.title') }}</h1>
+                <p class="text-sm text-slate-500">{{ t('kpis.subtitle') }}</p>
             </div>
             <button class="inline-flex items-center gap-1.5 rounded-lg bg-brand px-3 py-2 text-sm font-medium text-white hover:opacity-90" @click="openCreate">
-                <Plus class="h-4 w-4" /> Crear KPI
+                <Plus class="h-4 w-4" /> {{ t('kpis.create_kpi') }}
             </button>
         </header>
 
         <!-- Indicadores estratégicos (los que se muestran en el Dashboard) -->
         <section v-if="strategic.length" class="mb-6 rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-800">
-            <h2 class="mb-4 text-sm font-semibold uppercase tracking-wide text-slate-500">Indicadores estratégicos</h2>
+            <h2 class="mb-4 text-sm font-semibold uppercase tracking-wide text-slate-500">{{ t('kpis.strategic_section') }}</h2>
             <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
                 <div v-for="k in strategic" :key="k.id">
                     <div class="flex items-center justify-between text-slate-400">
@@ -103,7 +106,7 @@ function confirmDelete(k: Kpi) {
                     <div class="mt-2 h-1.5 w-full rounded-full bg-slate-100 dark:bg-slate-700">
                         <div class="h-1.5 rounded-full" :class="achievementBarClass(k.achievement)" :style="{ width: Math.min(k.achievement, 100) + '%' }" />
                     </div>
-                    <p class="mt-1 text-xs text-slate-500">{{ k.achievement }}% de la meta ({{ number(k.target) }})</p>
+                    <p class="mt-1 text-xs text-slate-500">{{ t('kpis.achievement_of_target', { achievement: k.achievement, target: number(k.target) }) }}</p>
                 </div>
             </div>
         </section>
@@ -115,16 +118,16 @@ function confirmDelete(k: Kpi) {
                 v-model:page-size="pageSize"
                 v-model:columns="columns"
                 :total="filtered.length"
-                search-placeholder="Buscar por indicador, clave o unidad…"
+                :search-placeholder="t('kpis.search_placeholder')"
                 :export-url="route('kpis.export')"
             >
                 <template #filters>
                     <div>
-                        <label class="mb-1 block text-xs font-medium uppercase tracking-wide text-slate-500">Estratégico</label>
+                        <label class="mb-1 block text-xs font-medium uppercase tracking-wide text-slate-500">{{ t('kpis.strategic_label') }}</label>
                         <select v-model="fStrategic" class="rounded-lg border border-slate-300 px-2 py-1.5 text-sm dark:border-slate-600 dark:bg-slate-900">
-                            <option value="">Todos</option>
-                            <option value="si">Sí</option>
-                            <option value="no">No</option>
+                            <option value="">{{ t('kpis.filter_all') }}</option>
+                            <option value="si">{{ t('kpis.filter_yes') }}</option>
+                            <option value="no">{{ t('kpis.filter_no') }}</option>
                         </select>
                     </div>
                 </template>
@@ -134,12 +137,12 @@ function confirmDelete(k: Kpi) {
                 <table class="w-full text-sm">
                     <thead class="border-b border-slate-200 text-left text-xs uppercase tracking-wide text-slate-400 dark:border-slate-700">
                         <tr>
-                            <th v-if="vis('label')" class="px-4 py-3 font-medium">Indicador</th>
-                            <th v-if="vis('value')" class="px-4 py-3 font-medium">Valor</th>
-                            <th v-if="vis('target')" class="px-4 py-3 font-medium">Meta</th>
-                            <th v-if="vis('achievement')" class="px-4 py-3 font-medium">Logro</th>
-                            <th v-if="vis('trend')" class="px-4 py-3 font-medium">Tendencia</th>
-                            <th class="px-4 py-3 text-right font-medium">Acciones</th>
+                            <th v-if="vis('label')" class="px-4 py-3 font-medium">{{ t('kpis.col_indicator') }}</th>
+                            <th v-if="vis('value')" class="px-4 py-3 font-medium">{{ t('kpis.col_value') }}</th>
+                            <th v-if="vis('target')" class="px-4 py-3 font-medium">{{ t('kpis.col_target') }}</th>
+                            <th v-if="vis('achievement')" class="px-4 py-3 font-medium">{{ t('kpis.col_achievement') }}</th>
+                            <th v-if="vis('trend')" class="px-4 py-3 font-medium">{{ t('kpis.col_trend') }}</th>
+                            <th class="px-4 py-3 text-right font-medium">{{ t('kpis.col_actions') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -170,17 +173,17 @@ function confirmDelete(k: Kpi) {
                             </td>
                             <td class="px-4 py-3">
                                 <div class="flex items-center justify-end gap-1">
-                                    <button class="rounded p-1.5 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700" title="Editar" @click="openEdit(k)">
+                                    <button class="rounded p-1.5 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700" :title="t('kpis.edit')" @click="openEdit(k)">
                                         <Pencil class="h-4 w-4" />
                                     </button>
-                                    <button class="rounded p-1.5 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30" title="Eliminar" @click="confirmDelete(k)">
+                                    <button class="rounded p-1.5 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30" :title="t('actions.delete')" @click="confirmDelete(k)">
                                         <Trash2 class="h-4 w-4" />
                                     </button>
                                 </div>
                             </td>
                         </tr>
                         <tr v-if="!filtered.length">
-                            <td colspan="6" class="px-4 py-8 text-center text-slate-400">No hay indicadores registrados.</td>
+                            <td colspan="6" class="px-4 py-8 text-center text-slate-400">{{ t('kpis.empty') }}</td>
                         </tr>
                     </tbody>
                 </table>

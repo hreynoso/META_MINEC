@@ -17,6 +17,11 @@ class LogAuthenticationEvents
 {
     public function handleLogin(Login $event): void
     {
+        // Marca del último inicio de sesión (columna "Último acceso" en Usuarios).
+        if ($event->user instanceof \Illuminate\Database\Eloquent\Model) {
+            rescue(fn () => $event->user->forceFill(['last_login_at' => now()])->saveQuietly(), null, false);
+        }
+
         $this->record('Inicio de sesión', $event->user, [
             'email' => $event->user?->getAttribute('email'),
         ]);

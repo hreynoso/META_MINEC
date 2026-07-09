@@ -21,6 +21,8 @@ class HandleInertiaRequests extends Middleware
             ...parent::share($request),
             // Token CSRF para envíos de formularios nativos (descargas por POST).
             'csrf' => csrf_token(),
+            // Idioma del sistema (Configuración → Idioma) para sincronizar vue-i18n.
+            'locale' => \App\Support\Locale::current(),
             'auth' => [
                 'user' => $request->user()
                     ? [

@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import { reactive, computed } from 'vue';
 import { useForm, usePage } from '@inertiajs/vue3';
+import { useI18n } from 'vue-i18n';
 import ConfigLayout from '@/Components/ConfigLayout.vue';
 import { UploadCloud, ImageIcon, CheckCircle2 } from 'lucide-vue-next';
+
+const { t } = useI18n({ useScope: 'global' });
 
 interface Assets {
     logo_sidebar: string | null;
@@ -26,9 +29,9 @@ const colorForm = useForm({
 });
 
 const colorFields: { key: keyof Colors; title: string; hint: string }[] = [
-    { key: 'sidebar', title: 'Fondo del sidebar', hint: 'Color de fondo del menú lateral.' },
-    { key: 'sidebar_hover', title: 'Sidebar activo / hover', hint: 'Resaltado del ítem activo y al pasar el cursor.' },
-    { key: 'brand', title: 'Color primario', hint: 'Botones, enlaces y acentos del sistema.' },
+    { key: 'sidebar', title: t('branding.color_sidebar_title'), hint: t('branding.color_sidebar_hint') },
+    { key: 'sidebar_hover', title: t('branding.color_sidebar_hover_title'), hint: t('branding.color_sidebar_hover_hint') },
+    { key: 'brand', title: t('branding.color_brand_title'), hint: t('branding.color_brand_hint') },
 ];
 
 function submitColors() {
@@ -38,10 +41,10 @@ function submitColors() {
 type FieldKey = keyof Assets;
 
 const fields: { key: FieldKey; title: string; hint: string; dark?: boolean }[] = [
-    { key: 'logo_sidebar', title: 'Logo del sidebar', hint: 'PNG o SVG con fondo transparente. Se muestra sobre el fondo azul del menú.', dark: true },
-    { key: 'logo_login', title: 'Logo del login', hint: 'PNG o SVG. Aparece en la tarjeta de inicio de sesión.' },
-    { key: 'login_background', title: 'Imagen de fondo del login', hint: 'JPG o PNG apaisado (ej. 1920×1080).' },
-    { key: 'favicon', title: 'Favicon', hint: 'ICO, PNG o SVG cuadrado (ej. 32×32 o 64×64).' },
+    { key: 'logo_sidebar', title: t('branding.field_logo_sidebar_title'), hint: t('branding.field_logo_sidebar_hint'), dark: true },
+    { key: 'logo_login', title: t('branding.field_logo_login_title'), hint: t('branding.field_logo_login_hint') },
+    { key: 'login_background', title: t('branding.field_login_background_title'), hint: t('branding.field_login_background_hint') },
+    { key: 'favicon', title: t('branding.field_favicon_title'), hint: t('branding.field_favicon_hint') },
 ];
 
 const form = useForm<Record<FieldKey, File | null>>({
@@ -84,8 +87,8 @@ function submit() {
 <template>
     <ConfigLayout section="branding">
         <div class="mb-5">
-            <h2 class="text-lg font-semibold">Branding</h2>
-            <p class="text-sm text-slate-500">Logos, imágenes y colores de identidad visual del sistema.</p>
+            <h2 class="text-lg font-semibold">{{ t('branding.title') }}</h2>
+            <p class="text-sm text-slate-500">{{ t('branding.subtitle') }}</p>
         </div>
 
         <p v-if="flashSuccess" class="mb-4 flex items-center gap-2 rounded-lg border border-teal-200 bg-teal-50 px-4 py-2 text-sm text-teal-800">
@@ -115,7 +118,7 @@ function submit() {
                             :class="f.key === 'login_background' ? 'h-full w-full object-cover' : ''"
                         />
                         <span v-else class="flex flex-col items-center gap-1 text-xs" :class="f.dark ? 'text-slate-400' : 'text-slate-400'">
-                            <ImageIcon class="h-6 w-6" /> Sin cargar
+                            <ImageIcon class="h-6 w-6" /> {{ t('branding.empty_preview') }}
                         </span>
                     </div>
 
@@ -124,7 +127,7 @@ function submit() {
                         class="mt-3 inline-flex cursor-pointer items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 transition hover:bg-slate-50"
                     >
                         <UploadCloud class="h-4 w-4" />
-                        <span>{{ form[f.key] ? (form[f.key] as File).name : 'Seleccionar archivo…' }}</span>
+                        <span>{{ form[f.key] ? (form[f.key] as File).name : t('branding.select_file') }}</span>
                         <input type="file" class="hidden" accept="image/*,.ico,.svg" @change="onFile(f.key, $event)" />
                     </label>
 
@@ -138,16 +141,16 @@ function submit() {
                     :disabled="!hasChanges || form.processing"
                     class="rounded-lg bg-brand px-5 py-2.5 text-sm font-medium text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                    {{ form.processing ? 'Guardando…' : 'Guardar cambios' }}
+                    {{ form.processing ? t('branding.saving') : t('branding.save_changes') }}
                 </button>
-                <span v-if="!hasChanges" class="text-xs text-slate-400">Selecciona al menos un archivo para guardar.</span>
+                <span v-if="!hasChanges" class="text-xs text-slate-400">{{ t('branding.select_at_least_one') }}</span>
             </div>
         </form>
 
         <!-- Colores del sistema -->
         <form class="mt-8" @submit.prevent="submitColors">
-            <h2 class="text-sm font-semibold text-slate-800 dark:text-slate-200">Colores del sistema</h2>
-            <p class="mb-4 text-xs text-slate-500">Personaliza el color del left sidebar y el color primario del sistema.</p>
+            <h2 class="text-sm font-semibold text-slate-800 dark:text-slate-200">{{ t('branding.colors_title') }}</h2>
+            <p class="mb-4 text-xs text-slate-500">{{ t('branding.colors_subtitle') }}</p>
 
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
                 <div v-for="c in colorFields" :key="c.key" class="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-800">
@@ -166,7 +169,7 @@ function submit() {
                 :disabled="colorForm.processing"
                 class="mt-6 rounded-lg bg-brand px-5 py-2.5 text-sm font-medium text-white transition hover:opacity-90 disabled:opacity-50"
             >
-                {{ colorForm.processing ? 'Guardando…' : 'Guardar colores' }}
+                {{ colorForm.processing ? t('branding.saving') : t('branding.save_colors') }}
             </button>
         </form>
     </ConfigLayout>

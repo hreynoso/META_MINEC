@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { useForm } from '@inertiajs/vue3';
 import { X, Save } from 'lucide-vue-next';
+import { useI18n } from 'vue-i18n';
 import { STATUS_OPTIONS, RISK_OPTIONS } from '@/Composables/useProjectFormat';
+
+const { t } = useI18n({ useScope: 'global' });
 
 interface ProjectData {
     id: number;
@@ -82,8 +85,8 @@ function submit() {
         <div class="w-full max-w-3xl rounded-2xl bg-white p-6 shadow-xl dark:bg-slate-800">
             <div class="flex items-start justify-between">
                 <div>
-                    <h2 class="text-xl font-semibold">{{ isEdit ? 'Editar proyecto' : 'Crear nuevo proyecto' }}</h2>
-                    <p class="mt-1 text-sm text-slate-500">Complete la información. Los campos con <span class="text-red-600">*</span> son obligatorios.</p>
+                    <h2 class="text-xl font-semibold">{{ isEdit ? t('project_form.title_edit') : t('project_form.title_create') }}</h2>
+                    <p class="mt-1 text-sm text-slate-500">{{ t('project_form.required_hint_prefix') }} <span class="text-red-600">*</span> {{ t('project_form.required_hint_suffix') }}</p>
                 </div>
                 <button class="rounded p-1 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700" @click="emit('close')">
                     <X class="h-5 w-5" />
@@ -92,112 +95,112 @@ function submit() {
 
             <form class="mt-5 grid grid-cols-1 gap-4 md:grid-cols-2" @submit.prevent="submit">
                 <div>
-                    <label :class="label">Código <span class="text-red-600">*</span></label>
+                    <label :class="label">{{ t('project_form.field_code') }} <span class="text-red-600">*</span></label>
                     <input v-model="form.code" :class="input" placeholder="MINEC-2026-001" />
                     <p v-if="form.errors.code" class="mt-1 text-xs text-red-600">{{ form.errors.code }}</p>
                 </div>
                 <div>
-                    <label :class="label">Institución <span class="text-red-600">*</span></label>
+                    <label :class="label">{{ t('project_form.field_institution') }} <span class="text-red-600">*</span></label>
                     <select v-model="form.institution_id" :class="input">
-                        <option :value="null" disabled>Seleccione…</option>
+                        <option :value="null" disabled>{{ t('project_form.select_placeholder') }}</option>
                         <option v-for="i in institutions" :key="i.id" :value="i.id">{{ i.short_name }}</option>
                     </select>
                     <p v-if="form.errors.institution_id" class="mt-1 text-xs text-red-600">{{ form.errors.institution_id }}</p>
                 </div>
 
                 <div class="md:col-span-2">
-                    <label :class="label">Nombre del proyecto <span class="text-red-600">*</span></label>
-                    <input v-model="form.name" :class="input" placeholder="Ej. Modernización de …" />
+                    <label :class="label">{{ t('project_form.field_name') }} <span class="text-red-600">*</span></label>
+                    <input v-model="form.name" :class="input" :placeholder="t('project_form.placeholder_name')" />
                     <p v-if="form.errors.name" class="mt-1 text-xs text-red-600">{{ form.errors.name }}</p>
                 </div>
 
                 <div>
-                    <label :class="label">Fecha inicio <span class="text-red-600">*</span></label>
+                    <label :class="label">{{ t('project_form.field_start_date') }} <span class="text-red-600">*</span></label>
                     <input v-model="form.start_date" type="date" :class="input" />
                     <p v-if="form.errors.start_date" class="mt-1 text-xs text-red-600">{{ form.errors.start_date }}</p>
                 </div>
                 <div>
-                    <label :class="label">Fecha fin <span class="text-red-600">*</span></label>
+                    <label :class="label">{{ t('project_form.field_end_date') }} <span class="text-red-600">*</span></label>
                     <input v-model="form.end_date" type="date" :class="input" />
                     <p v-if="form.errors.end_date" class="mt-1 text-xs text-red-600">{{ form.errors.end_date }}</p>
                 </div>
 
                 <div>
-                    <label :class="label">Presupuesto (USD) <span class="text-red-600">*</span></label>
+                    <label :class="label">{{ t('project_form.field_budget') }} <span class="text-red-600">*</span></label>
                     <input v-model="form.budget" type="number" min="0" step="0.01" :class="input" placeholder="1000000" />
                     <p v-if="form.errors.budget" class="mt-1 text-xs text-red-600">{{ form.errors.budget }}</p>
                 </div>
                 <div>
-                    <label :class="label">Ejecutado (USD)</label>
+                    <label :class="label">{{ t('project_form.field_executed') }}</label>
                     <input v-model="form.executed" type="number" min="0" step="0.01" :class="input" placeholder="0" />
                     <p v-if="form.errors.executed" class="mt-1 text-xs text-red-600">{{ form.errors.executed }}</p>
                 </div>
 
                 <div>
-                    <label :class="label">Fuente de financiamiento</label>
+                    <label :class="label">{{ t('project_form.field_source') }}</label>
                     <input v-model="form.source" :class="input" placeholder="GOES" />
                     <p v-if="form.errors.source" class="mt-1 text-xs text-red-600">{{ form.errors.source }}</p>
                 </div>
                 <div>
-                    <label :class="label">Responsable <span class="text-red-600">*</span></label>
-                    <input v-model="form.responsible" :class="input" placeholder="Dirección responsable" />
+                    <label :class="label">{{ t('project_form.field_responsible') }} <span class="text-red-600">*</span></label>
+                    <input v-model="form.responsible" :class="input" :placeholder="t('project_form.placeholder_responsible')" />
                     <p v-if="form.errors.responsible" class="mt-1 text-xs text-red-600">{{ form.errors.responsible }}</p>
                 </div>
 
                 <div>
-                    <label :class="label">Meta presidencial</label>
+                    <label :class="label">{{ t('project_form.field_presidential_goal') }}</label>
                     <select v-model="form.presidential_goal_id" :class="input">
-                        <option :value="null">Seleccione…</option>
+                        <option :value="null">{{ t('project_form.select_placeholder') }}</option>
                         <option v-for="g in goals" :key="g.id" :value="g.id">{{ g.name }}</option>
                     </select>
                     <p v-if="form.errors.presidential_goal_id" class="mt-1 text-xs text-red-600">{{ form.errors.presidential_goal_id }}</p>
                 </div>
                 <div>
-                    <label :class="label">Ubicación</label>
-                    <input v-model="form.location" :class="input" placeholder="San Salvador / Nacional" />
+                    <label :class="label">{{ t('project_form.field_location') }}</label>
+                    <input v-model="form.location" :class="input" :placeholder="t('project_form.placeholder_location')" />
                     <p v-if="form.errors.location" class="mt-1 text-xs text-red-600">{{ form.errors.location }}</p>
                 </div>
 
                 <div>
-                    <label :class="label">Estado <span class="text-red-600">*</span></label>
+                    <label :class="label">{{ t('project_form.field_status') }} <span class="text-red-600">*</span></label>
                     <select v-model="form.status" :class="input">
-                        <option value="" disabled>Seleccione…</option>
+                        <option value="" disabled>{{ t('project_form.select_placeholder') }}</option>
                         <option v-for="s in STATUS_OPTIONS" :key="s.value" :value="s.value">{{ s.label }}</option>
                     </select>
                     <p v-if="form.errors.status" class="mt-1 text-xs text-red-600">{{ form.errors.status }}</p>
                 </div>
                 <div>
-                    <label :class="label">Nivel de riesgo <span class="text-red-600">*</span></label>
+                    <label :class="label">{{ t('project_form.field_risk_level') }} <span class="text-red-600">*</span></label>
                     <select v-model="form.risk_level" :class="input">
-                        <option value="" disabled>Seleccione…</option>
+                        <option value="" disabled>{{ t('project_form.select_placeholder') }}</option>
                         <option v-for="r in RISK_OPTIONS" :key="r.value" :value="r.value">{{ r.label }}</option>
                     </select>
                     <p v-if="form.errors.risk_level" class="mt-1 text-xs text-red-600">{{ form.errors.risk_level }}</p>
                 </div>
 
                 <div>
-                    <label :class="label">Avance físico (%)</label>
+                    <label :class="label">{{ t('project_form.field_physical_progress') }}</label>
                     <input v-model="form.physical_progress" type="number" min="0" max="100" :class="input" placeholder="0" />
                     <p v-if="form.errors.physical_progress" class="mt-1 text-xs text-red-600">{{ form.errors.physical_progress }}</p>
                 </div>
                 <div>
-                    <label :class="label">Beneficiarios (personas)</label>
+                    <label :class="label">{{ t('project_form.field_beneficiaries') }}</label>
                     <input v-model="form.beneficiaries" type="number" min="0" :class="input" placeholder="0" />
                     <p v-if="form.errors.beneficiaries" class="mt-1 text-xs text-red-600">{{ form.errors.beneficiaries }}</p>
                 </div>
 
                 <div class="md:col-span-2">
-                    <label :class="label">Entregables (uno por línea)</label>
-                    <textarea v-model="form.deliverables" rows="3" :class="input" placeholder="Plataforma…&#10;Capacitación a…&#10;API de…" />
+                    <label :class="label">{{ t('project_form.field_deliverables') }}</label>
+                    <textarea v-model="form.deliverables" rows="3" :class="input" :placeholder="t('project_form.placeholder_deliverables')" />
                     <p v-if="form.errors.deliverables" class="mt-1 text-xs text-red-600">{{ form.errors.deliverables }}</p>
                 </div>
                 <div class="md:col-span-2">
-                    <label :class="label">Impacto esperado</label>
+                    <label :class="label">{{ t('project_form.field_expected_impact') }}</label>
                     <textarea v-model="form.expected_impact" rows="2" :class="input" />
                     <p v-if="form.errors.expected_impact" class="mt-1 text-xs text-red-600">{{ form.errors.expected_impact }}</p>
                 </div>
                 <div class="md:col-span-2">
-                    <label :class="label">Beneficios</label>
+                    <label :class="label">{{ t('project_form.field_benefits') }}</label>
                     <textarea v-model="form.benefits" rows="2" :class="input" />
                     <p v-if="form.errors.benefits" class="mt-1 text-xs text-red-600">{{ form.errors.benefits }}</p>
                 </div>
@@ -208,14 +211,14 @@ function submit() {
                         class="rounded-lg border border-slate-300 px-4 py-2 text-sm hover:bg-slate-50 dark:border-slate-600 dark:hover:bg-slate-700"
                         @click="emit('close')"
                     >
-                        Cancelar
+                        {{ t('actions.cancel') }}
                     </button>
                     <button
                         type="submit"
                         :disabled="form.processing"
                         class="inline-flex items-center gap-1.5 rounded-lg bg-brand px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50"
                     >
-                        <Save class="h-4 w-4" /> Guardar proyecto
+                        <Save class="h-4 w-4" /> {{ t('project_form.save_button') }}
                     </button>
                 </div>
             </form>

@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { ref, computed, nextTick, onMounted, onBeforeUnmount } from 'vue';
+import { useI18n } from 'vue-i18n';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { Hash, TriangleAlert, Radio, Bell, Send, Users } from 'lucide-vue-next';
+
+const { t } = useI18n({ useScope: 'global' });
 
 interface Message { id: number; author: string; institution: string; initials: string; body: string; project: string | null; system: boolean; time: string }
 interface Channel { key: string; label: string; description: string; count: number }
@@ -119,8 +122,8 @@ onBeforeUnmount(() => { if (timer) window.clearInterval(timer); });
     <AppLayout>
         <header class="mb-6 flex items-start justify-between">
             <div>
-                <h1 class="text-2xl font-semibold">Red de Gestores</h1>
-                <p class="text-sm text-slate-500">Chat institucional para alertas y seguimiento de proyectos</p>
+                <h1 class="text-2xl font-semibold">{{ t('network.title') }}</h1>
+                <p class="text-sm text-slate-500">{{ t('network.subtitle') }}</p>
             </div>
         </header>
 
@@ -128,7 +131,7 @@ onBeforeUnmount(() => { if (timer) window.clearInterval(timer); });
             <!-- Canales -->
             <section class="flex flex-col gap-4">
                 <div class="rounded-xl border border-slate-200 bg-white p-3 dark:border-slate-700 dark:bg-slate-800">
-                    <p class="px-2 pb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">Canales</p>
+                    <p class="px-2 pb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">{{ t('network.channels_label') }}</p>
                     <button
                         v-for="c in channels" :key="c.key"
                         class="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm transition"
@@ -147,9 +150,9 @@ onBeforeUnmount(() => { if (timer) window.clearInterval(timer); });
                         class="inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-amber-500 px-3 py-2 text-sm font-medium text-white hover:bg-amber-600 disabled:opacity-50"
                         @click="notifyRisks"
                     >
-                        <TriangleAlert class="h-4 w-4" /> {{ notifying ? 'Notificando…' : 'Notificar riesgos' }}
+                        <TriangleAlert class="h-4 w-4" /> {{ notifying ? t('network.notifying') : t('network.notify_risks') }}
                     </button>
-                    <p class="mt-2 text-xs text-amber-700 dark:text-amber-300">Publica alertas automáticas al canal de Alertas para todos los proyectos en riesgo o retrasados.</p>
+                    <p class="mt-2 text-xs text-amber-700 dark:text-amber-300">{{ t('network.notify_hint') }}</p>
                 </div>
             </section>
 
@@ -162,7 +165,7 @@ onBeforeUnmount(() => { if (timer) window.clearInterval(timer); });
                         </h2>
                         <p class="text-xs text-slate-500">{{ activeMeta?.description }}</p>
                     </div>
-                    <span class="inline-flex items-center gap-1 text-xs text-slate-400"><Users class="h-3.5 w-3.5" /> {{ gestores.length }} gestores</span>
+                    <span class="inline-flex items-center gap-1 text-xs text-slate-400"><Users class="h-3.5 w-3.5" /> {{ t('network.gestores_count', { count: gestores.length }) }}</span>
                 </div>
 
                 <!-- Mensajes -->
@@ -186,25 +189,25 @@ onBeforeUnmount(() => { if (timer) window.clearInterval(timer); });
                                         : 'bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-100'">
                                 {{ m.body }}
                             </div>
-                            <p v-if="m.project" class="mt-1 text-xs text-slate-400" :class="m.author === currentUser ? 'text-right' : ''">↳ Proyecto {{ m.project }}</p>
+                            <p v-if="m.project" class="mt-1 text-xs text-slate-400" :class="m.author === currentUser ? 'text-right' : ''">{{ t('network.project_prefix', { name: m.project }) }}</p>
                         </div>
                     </div>
-                    <p v-if="!messages.length" class="py-10 text-center text-sm text-slate-400">Aún no hay mensajes en este canal.</p>
+                    <p v-if="!messages.length" class="py-10 text-center text-sm text-slate-400">{{ t('network.no_messages') }}</p>
                 </div>
 
                 <!-- Composer -->
                 <div class="border-t border-slate-200 px-5 py-3 dark:border-slate-700">
                     <div class="mb-2 flex flex-wrap items-center gap-2 text-xs text-slate-500">
                         <select v-model="projectId" class="rounded-lg border border-slate-300 bg-slate-50 px-2 py-1.5 text-xs dark:border-slate-600 dark:bg-slate-900">
-                            <option :value="null">Sin proyecto asociado</option>
+                            <option :value="null">{{ t('network.no_project') }}</option>
                             <option v-for="p in projects" :key="p.id" :value="p.id">{{ p.label }}</option>
                         </select>
-                        <span>Publicando en <strong>#{{ activeMeta?.label }}</strong> como {{ currentUser }}</span>
+                        <span>{{ t('network.posting_in') }} <strong>#{{ activeMeta?.label }}</strong> {{ t('network.posting_as', { user: currentUser }) }}</span>
                     </div>
                     <div class="flex items-end gap-2">
                         <textarea
                             v-model="body" rows="2" maxlength="800"
-                            placeholder="Escribe un mensaje… (Enter para enviar, Shift+Enter salto de línea)"
+                            :placeholder="t('network.message_placeholder')"
                             class="flex-1 resize-none rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-brand focus:bg-white dark:border-slate-600 dark:bg-slate-900"
                             @keydown="onKeydown"
                         />
@@ -213,7 +216,7 @@ onBeforeUnmount(() => { if (timer) window.clearInterval(timer); });
                             class="inline-flex items-center gap-1.5 rounded-lg bg-brand px-4 py-2.5 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50"
                             @click="send"
                         >
-                            <Send class="h-4 w-4" /> Enviar
+                            <Send class="h-4 w-4" /> {{ t('network.send') }}
                         </button>
                     </div>
                     <p class="mt-1 text-right text-xs text-slate-400">{{ body.length }}/800</p>
@@ -223,8 +226,8 @@ onBeforeUnmount(() => { if (timer) window.clearInterval(timer); });
             <!-- Gestores -->
             <section class="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-800">
                 <div class="mb-3 flex items-center justify-between">
-                    <p class="text-xs font-semibold uppercase tracking-wide text-slate-400">Gestores</p>
-                    <span class="text-xs text-teal-600">{{ onlineCount }} en línea</span>
+                    <p class="text-xs font-semibold uppercase tracking-wide text-slate-400">{{ t('network.gestores_label') }}</p>
+                    <span class="text-xs text-teal-600">{{ t('network.online_count', { count: onlineCount }) }}</span>
                 </div>
                 <div class="space-y-3">
                     <div v-for="(g, idx) in gestores" :key="idx" class="flex items-center gap-2">
@@ -239,7 +242,7 @@ onBeforeUnmount(() => { if (timer) window.clearInterval(timer); });
                         </div>
                     </div>
                 </div>
-                <p class="mt-4 border-t border-slate-100 pt-3 text-xs text-slate-400 dark:border-slate-700">Instituciones conectadas: {{ institutionsConnected }}</p>
+                <p class="mt-4 border-t border-slate-100 pt-3 text-xs text-slate-400 dark:border-slate-700">{{ t('network.institutions_connected', { count: institutionsConnected }) }}</p>
             </section>
         </div>
     </AppLayout>

@@ -55,7 +55,7 @@ class MemoirController extends Controller
             return response()->json([
                 'ai' => false,
                 'draft' => '',
-                'message' => 'El API de IA no está configurado. Ve a Configuración → Inteligencia Artificial.',
+                'message' => __('messages.ai.not_configured'),
             ]);
         }
 
@@ -81,7 +81,7 @@ class MemoirController extends Controller
             return response()->json([
                 'ai' => false,
                 'draft' => '',
-                'message' => 'No se pudo generar la memoria: '.$e->getMessage(),
+                'message' => __('messages.memoir.generate_failed', ['error' => $e->getMessage()]),
             ]);
         }
     }
@@ -186,10 +186,12 @@ class MemoirController extends Controller
         borrador de MEMORIA INSTITUCIONAL para {$inst->name} ({$inst->short_name}),
         correspondiente al período {$periodo}, listo para revisión editorial.
 
-        Estructura la memoria en secciones con encabezados: (1) Presentación institucional,
-        (2) Gestión de proyectos, (3) Ejecución presupuestaria, (4) Impacto y beneficiarios,
-        (5) Alineación con las metas presidenciales, y (6) Conclusiones y perspectivas.
-        Usa un tono formal, institucional y en español.
+        Estructura la memoria en secciones con encabezados en formato Markdown ("## "):
+        (1) Presentación institucional, (2) Gestión de proyectos, (3) Ejecución
+        presupuestaria, (4) Impacto y beneficiarios, (5) Alineación con las metas
+        presidenciales, y (6) Conclusiones y perspectivas. Usa **negritas** para resaltar
+        cifras e ideas clave. Redacta párrafos completos y bien hilados (no listas de datos
+        sueltos). Usa un tono formal, institucional y en español.
 
         DATOS DE LA INSTITUCIÓN (plataforma META):
         - Proyectos ({$inst->projects->count()}):

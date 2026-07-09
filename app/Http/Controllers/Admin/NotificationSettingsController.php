@@ -50,6 +50,6 @@ class NotificationSettingsController extends Controller
 
         Setting::put('notify.recipients', $data['recipients'] ?? '');
 
-        return back()->with('success', 'Preferencias de notificación actualizadas.');
+        return back()->with('success', __('messages.notifications.updated'));
     }
 }

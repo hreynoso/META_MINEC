@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { useForm } from '@inertiajs/vue3';
+import { useI18n } from 'vue-i18n';
 import ConfigLayout from '@/Components/ConfigLayout.vue';
 import { KeyRound, CheckCircle2, AlertTriangle, Copy } from 'lucide-vue-next';
+
+const { t } = useI18n({ useScope: 'global' });
 
 interface Settings {
     client_id: string;
@@ -39,8 +42,8 @@ function submit() {
 <template>
     <ConfigLayout section="sso">
         <div class="mb-5">
-            <h2 class="text-lg font-semibold">SSO Google Workspace</h2>
-            <p class="text-sm text-slate-500">Credenciales OAuth para el inicio de sesión con Google. Las provee el administrador de TI desde Google Cloud Console.</p>
+            <h2 class="text-lg font-semibold">{{ t('sso.title') }}</h2>
+            <p class="text-sm text-slate-500">{{ t('sso.description') }}</p>
         </div>
 
         <form class="max-w-2xl" @submit.prevent="submit">
@@ -54,58 +57,58 @@ function submit() {
                 <CheckCircle2 v-if="settings.configured" class="h-4 w-4" />
                 <AlertTriangle v-else class="h-4 w-4" />
                 {{ settings.configured
-                    ? 'El SSO de Google está configurado.'
-                    : 'Falta información: el SSO de Google aún no está completo.' }}
+                    ? t('sso.status_configured')
+                    : t('sso.status_incomplete') }}
             </div>
 
             <!-- URL de retorno para TI -->
             <div class="mb-4 rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm dark:border-slate-700 dark:bg-slate-900/40">
-                <p class="text-xs font-medium uppercase tracking-wide text-slate-500">URL de retorno autorizada (dásela a TI)</p>
+                <p class="text-xs font-medium uppercase tracking-wide text-slate-500">{{ t('sso.authorized_redirect_url_label') }}</p>
                 <div class="mt-1 flex items-center gap-2">
                     <code class="flex-1 break-all rounded bg-white px-2 py-1 text-xs dark:bg-slate-800">{{ callbackUrl }}</code>
-                    <button type="button" class="rounded p-1.5 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700" title="Copiar" @click="copyCallback">
+                    <button type="button" class="rounded p-1.5 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700" :title="t('sso.copy')" @click="copyCallback">
                         <Copy class="h-4 w-4" />
                     </button>
                 </div>
-                <p class="mt-2 text-xs text-slate-400">TI debe registrar exactamente esta URL en «URIs de redireccionamiento autorizados» del cliente OAuth en Google Cloud Console.</p>
+                <p class="mt-2 text-xs text-slate-400">{{ t('sso.it_register_hint') }}</p>
             </div>
 
             <div class="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-800">
                 <div class="flex items-center gap-2 text-brand">
                     <KeyRound class="h-5 w-5" />
-                    <h2 class="text-sm font-semibold">Credenciales OAuth 2.0</h2>
+                    <h2 class="text-sm font-semibold">{{ t('sso.oauth_credentials') }}</h2>
                 </div>
 
                 <div class="mt-4">
-                    <label :class="label">ID de cliente (Client ID)</label>
+                    <label :class="label">{{ t('sso.client_id_label') }}</label>
                     <input v-model="form.client_id" :class="input" placeholder="xxxxxxxx.apps.googleusercontent.com" />
                     <p v-if="form.errors.client_id" class="mt-1 text-xs text-red-600">{{ form.errors.client_id }}</p>
                 </div>
 
                 <div class="mt-4">
-                    <label :class="label">Secreto de cliente (Client Secret)</label>
+                    <label :class="label">{{ t('sso.client_secret_label') }}</label>
                     <input
                         v-model="form.client_secret" type="password" autocomplete="off" :class="input"
-                        :placeholder="settings.has_secret ? '•••••••• (guardado — escribe para reemplazar)' : 'Pega aquí el secreto de cliente'"
+                        :placeholder="settings.has_secret ? t('sso.client_secret_placeholder_saved') : t('sso.client_secret_placeholder_empty')"
                     />
                     <p class="mt-1 flex items-center gap-1 text-xs" :class="settings.has_secret ? 'text-teal-600' : 'text-slate-400'">
                         <CheckCircle2 v-if="settings.has_secret" class="h-3.5 w-3.5" />
-                        {{ settings.has_secret ? 'Hay un secreto configurado. Se conserva si dejas el campo vacío.' : 'Aún no hay secreto configurado.' }}
+                        {{ settings.has_secret ? t('sso.secret_configured') : t('sso.secret_not_configured') }}
                     </p>
                     <p v-if="form.errors.client_secret" class="mt-1 text-xs text-red-600">{{ form.errors.client_secret }}</p>
                 </div>
 
                 <div class="mt-4">
-                    <label :class="label">URL de retorno (Redirect URI)</label>
+                    <label :class="label">{{ t('sso.redirect_uri_label') }}</label>
                     <input v-model="form.redirect" :class="input" :placeholder="callbackUrl" />
-                    <p class="mt-1 text-xs text-slate-400">Debe coincidir con la URL autorizada en Google Cloud Console (normalmente la de arriba).</p>
+                    <p class="mt-1 text-xs text-slate-400">{{ t('sso.redirect_uri_hint') }}</p>
                     <p v-if="form.errors.redirect" class="mt-1 text-xs text-red-600">{{ form.errors.redirect }}</p>
                 </div>
 
                 <div class="mt-4">
-                    <label :class="label">Dominio de Workspace permitido</label>
+                    <label :class="label">{{ t('sso.hosted_domain_label') }}</label>
                     <input v-model="form.hosted_domain" :class="input" placeholder="economia.gob.sv" />
-                    <p class="mt-1 text-xs text-slate-400">Restringe el acceso a cuentas de este dominio. Déjalo vacío para permitir cualquier cuenta de Google.</p>
+                    <p class="mt-1 text-xs text-slate-400">{{ t('sso.hosted_domain_hint') }}</p>
                     <p v-if="form.errors.hosted_domain" class="mt-1 text-xs text-red-600">{{ form.errors.hosted_domain }}</p>
                 </div>
             </div>
@@ -116,7 +119,7 @@ function submit() {
                     :disabled="form.processing"
                     class="rounded-lg bg-brand px-5 py-2.5 text-sm font-medium text-white transition hover:opacity-90 disabled:opacity-50"
                 >
-                    {{ form.processing ? 'Guardando…' : 'Guardar configuración' }}
+                    {{ form.processing ? t('sso.saving') : t('sso.save_settings') }}
                 </button>
             </div>
         </form>

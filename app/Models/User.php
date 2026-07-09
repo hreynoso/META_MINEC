@@ -23,7 +23,12 @@ class User extends Authenticatable
         'blocked_at',
         'institution_id',
         'last_seen_at',
+        'last_login_at',
         'avatar_path',
+        'current_session_id',
+        'current_session_ip',
+        'current_session_agent',
+        'current_session_active_at',
     ];
 
     protected $hidden = [
@@ -37,6 +42,8 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'blocked_at' => 'datetime',
             'last_seen_at' => 'datetime',
+            'last_login_at' => 'datetime',
+            'current_session_active_at' => 'datetime',
             'password' => 'hashed',
         ];
     }

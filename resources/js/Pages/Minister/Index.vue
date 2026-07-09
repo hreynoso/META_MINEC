@@ -1,9 +1,12 @@
 <script setup lang="ts">
 import { ref, computed, watch, nextTick, onMounted } from 'vue';
 import { useForm, usePage } from '@inertiajs/vue3';
+import { useI18n } from 'vue-i18n';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { Crown, TriangleAlert, Sparkles, FileText, FileDown, Check, X, Loader2, ChevronDown, ChevronUp, History } from 'lucide-vue-next';
 import { currency, number } from '@/Composables/useProjectFormat';
+
+const { t } = useI18n({ useScope: 'global' });
 
 interface Kpi { label: string; value: number; unit: string | null; target: number; achievement: number }
 interface Semaforo { code: string; name: string; short_name: string; green: number; amber: number; red: number; status: string }
@@ -34,9 +37,9 @@ watch(
 
 const barClass = (a: number) => (a >= 80 ? 'bg-teal-500' : a >= 50 ? 'bg-amber-500' : 'bg-red-500');
 const statusMeta: Record<string, { label: string; dot: string; badge: string }> = {
-    critico: { label: 'Crítico', dot: 'bg-red-500', badge: 'border-red-300 text-red-700 dark:border-red-800 dark:text-red-400' },
-    observacion: { label: 'En observación', dot: 'bg-amber-500', badge: 'border-amber-300 text-amber-700 dark:border-amber-800 dark:text-amber-400' },
-    optimo: { label: 'Óptimo', dot: 'bg-teal-500', badge: 'border-teal-300 text-teal-700 dark:border-teal-800 dark:text-teal-400' },
+    critico: { label: t('minister.status_critico'), dot: 'bg-red-500', badge: 'border-red-300 text-red-700 dark:border-red-800 dark:text-red-400' },
+    observacion: { label: t('minister.status_observacion'), dot: 'bg-amber-500', badge: 'border-amber-300 text-amber-700 dark:border-amber-800 dark:text-amber-400' },
+    optimo: { label: t('minister.status_optimo'), dot: 'bg-teal-500', badge: 'border-teal-300 text-teal-700 dark:border-teal-800 dark:text-teal-400' },
 };
 const successClass = (s: number) =>
     s >= 40 ? 'bg-teal-100 text-teal-700 dark:bg-teal-900/40 dark:text-teal-300'
@@ -115,14 +118,24 @@ async function downloadPdf(text = '') {
     await nextTick();
     pdfForm.value?.submit();
 }
+
+// Descarga del informe en Word (.docx) vía formulario nativo.
+const docxForm = ref<HTMLFormElement | null>(null);
+const docxReportText = ref('');
+
+async function downloadDocx(text = '') {
+    docxReportText.value = text;
+    await nextTick();
+    docxForm.value?.submit();
+}
 </script>
 
 <template>
     <AppLayout>
         <header class="mb-6 flex items-start justify-between">
             <div>
-                <h1 class="text-2xl font-semibold">Despacho de la Ministra</h1>
-                <p class="text-sm text-slate-500">Tablero ejecutivo · Alertas, semáforo institucional e informe presidencial con IA</p>
+                <h1 class="text-2xl font-semibold">{{ t('minister.office_title') }}</h1>
+                <p class="text-sm text-slate-500">{{ t('minister.office_subtitle') }}</p>
             </div>
         </header>
 
@@ -132,9 +145,9 @@ async function downloadPdf(text = '') {
                 <Crown class="h-6 w-6" />
             </div>
             <div>
-                <p class="font-semibold">Panorama estratégico para la Sra. Ministra</p>
+                <p class="font-semibold">{{ t('minister.strategic_banner_title') }}</p>
                 <p class="text-sm text-white/80">
-                    {{ summary.projects_count }} proyectos monitoreados · {{ summary.institutions_count }} instituciones adscritas · {{ summary.critical }} requieren atención inmediata
+                    {{ t('minister.strategic_banner_summary', { projects: summary.projects_count, institutions: summary.institutions_count, critical: summary.critical }) }}
                 </p>
             </div>
         </div>
@@ -142,20 +155,20 @@ async function downloadPdf(text = '') {
         <!-- Tarjetas resumen -->
         <div class="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
             <div class="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-800">
-                <p class="text-xs uppercase tracking-wide text-slate-400">Presupuesto total</p>
+                <p class="text-xs uppercase tracking-wide text-slate-400">{{ t('minister.total_budget') }}</p>
                 <p class="mt-1 text-2xl font-bold">{{ currency(summary.budget) }}</p>
             </div>
             <div class="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-800">
-                <p class="text-xs uppercase tracking-wide text-slate-400">Ejecución agregada</p>
+                <p class="text-xs uppercase tracking-wide text-slate-400">{{ t('minister.aggregate_execution') }}</p>
                 <p class="mt-1 text-2xl font-bold">{{ summary.executed_pct }}%</p>
                 <p class="mt-1 text-xs text-slate-400">{{ currency(summary.executed) }}</p>
             </div>
             <div class="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-800">
-                <p class="text-xs uppercase tracking-wide text-slate-400">Beneficiarios directos</p>
+                <p class="text-xs uppercase tracking-wide text-slate-400">{{ t('minister.direct_beneficiaries') }}</p>
                 <p class="mt-1 text-2xl font-bold">{{ number(summary.beneficiaries) }}</p>
             </div>
             <div class="rounded-xl border border-red-200 bg-red-50 p-5 dark:border-red-900/50 dark:bg-red-900/20">
-                <p class="text-xs uppercase tracking-wide text-red-500">Proyectos críticos</p>
+                <p class="text-xs uppercase tracking-wide text-red-500">{{ t('minister.critical_projects') }}</p>
                 <p class="mt-1 text-2xl font-bold text-red-600 dark:text-red-400">{{ summary.critical }}</p>
             </div>
         </div>
@@ -163,7 +176,7 @@ async function downloadPdf(text = '') {
         <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
             <!-- KPIs estratégicos -->
             <section class="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-800">
-                <h2 class="mb-4 text-sm font-semibold text-slate-700 dark:text-slate-200">KPIs estratégicos</h2>
+                <h2 class="mb-4 text-sm font-semibold text-slate-700 dark:text-slate-200">{{ t('minister.strategic_kpis') }}</h2>
                 <div class="space-y-4">
                     <div v-for="k in kpis" :key="k.label">
                         <div class="flex items-center justify-between text-sm">
@@ -179,7 +192,7 @@ async function downloadPdf(text = '') {
 
             <!-- Semáforo por institución -->
             <section class="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-800">
-                <h2 class="mb-4 text-sm font-semibold text-slate-700 dark:text-slate-200">Semáforo por institución</h2>
+                <h2 class="mb-4 text-sm font-semibold text-slate-700 dark:text-slate-200">{{ t('minister.traffic_light_by_institution') }}</h2>
                 <div class="space-y-3">
                     <div v-for="i in byInstitution" :key="i.code" class="flex items-center gap-3">
                         <span class="h-2.5 w-2.5 shrink-0 rounded-full" :class="statusMeta[i.status].dot" />
@@ -202,31 +215,31 @@ async function downloadPdf(text = '') {
             <!-- Alertas predictivas -->
             <section class="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-800">
                 <h2 class="mb-4 flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-200">
-                    <TriangleAlert class="h-4 w-4 text-amber-500" /> Alertas predictivas de IA
+                    <TriangleAlert class="h-4 w-4 text-amber-500" /> {{ t('minister.ai_predictive_alerts') }}
                 </h2>
                 <div class="space-y-3">
                     <div v-for="(a, idx) in alerts" :key="idx" class="rounded-lg border border-slate-200 p-3 dark:border-slate-700">
                         <div class="flex items-start justify-between gap-2">
                             <p class="font-medium">{{ a.name }}</p>
-                            <span class="shrink-0 rounded px-1.5 py-0.5 text-xs font-medium" :class="successClass(a.success)">{{ a.success }}% éxito</span>
+                            <span class="shrink-0 rounded px-1.5 py-0.5 text-xs font-medium" :class="successClass(a.success)">{{ t('minister.success_badge', { success: a.success }) }}</span>
                         </div>
-                        <p class="mt-0.5 text-xs text-slate-500">{{ a.institution }} · Avance {{ a.physical_progress }}% · Riesgo {{ a.risk }}</p>
-                        <p class="mt-1 text-xs text-slate-400">Riesgo de fracaso</p>
+                        <p class="mt-0.5 text-xs text-slate-500">{{ t('minister.alert_meta', { institution: a.institution, progress: a.physical_progress, risk: a.risk }) }}</p>
+                        <p class="mt-1 text-xs text-slate-400">{{ t('minister.failure_risk') }}</p>
                     </div>
-                    <p v-if="!alerts.length" class="text-sm text-slate-400">Sin proyectos en riesgo de fracaso.</p>
+                    <p v-if="!alerts.length" class="text-sm text-slate-400">{{ t('minister.no_projects_at_risk') }}</p>
                 </div>
             </section>
 
             <!-- Recomendaciones de acción -->
             <section class="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-800">
                 <h2 class="mb-4 flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-200">
-                    <Sparkles class="h-4 w-4 text-brand" /> Recomendaciones de acción
+                    <Sparkles class="h-4 w-4 text-brand" /> {{ t('minister.action_recommendations') }}
                 </h2>
 
                 <!-- Última recomendación generada con IA (IA Predictiva) -->
                 <div v-if="lastAiRecommendation" class="mb-4 rounded-lg border border-sky-200 bg-sky-50/70 p-3 dark:border-sky-900/40 dark:bg-sky-900/10">
                     <p class="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-brand">
-                        <Sparkles class="h-3.5 w-3.5" /> Última recomendación de IA
+                        <Sparkles class="h-3.5 w-3.5" /> {{ t('minister.last_ai_recommendation') }}
                     </p>
                     <p class="mt-1 text-sm text-slate-700 dark:text-slate-200">{{ lastAiRecommendation.recommendation }}</p>
                     <p class="mt-1 text-xs text-slate-400">
@@ -238,11 +251,11 @@ async function downloadPdf(text = '') {
                     <div v-for="(r, idx) in recommendations" :key="idx" class="rounded-lg border border-slate-200 p-3 dark:border-slate-700">
                         <div class="flex items-start justify-between gap-2">
                             <p class="font-medium">{{ r.title }}</p>
-                            <span class="shrink-0 rounded bg-red-100 px-1.5 py-0.5 text-xs font-medium text-red-700 dark:bg-red-900/40 dark:text-red-300">Prioridad {{ r.priority }}</span>
+                            <span class="shrink-0 rounded bg-red-100 px-1.5 py-0.5 text-xs font-medium text-red-700 dark:bg-red-900/40 dark:text-red-300">{{ t('minister.priority_badge', { priority: r.priority }) }}</span>
                         </div>
                         <p class="mt-1 text-xs text-slate-500">{{ r.detail }}</p>
                     </div>
-                    <p v-if="!recommendations.length" class="text-sm text-slate-400">No hay intervenciones prioritarias por ahora.</p>
+                    <p v-if="!recommendations.length" class="text-sm text-slate-400">{{ t('minister.no_priority_interventions') }}</p>
                 </div>
             </section>
         </div>
@@ -250,15 +263,15 @@ async function downloadPdf(text = '') {
         <!-- Informe presidencial con IA -->
         <section class="mt-6 rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-800">
             <h2 class="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-200">
-                <FileText class="h-4 w-4" /> Informe presidencial con inteligencia artificial
+                <FileText class="h-4 w-4" /> {{ t('minister.presidential_report_ai') }}
             </h2>
             <p class="mt-1 text-sm text-slate-500">
-                Seleccione una o más instituciones y el rango de fechas. El sistema usará el proveedor de IA configurado con la data de la plataforma META para redactar un informe ejecutivo dirigido a la Presidencia de la República.
+                {{ t('minister.report_description') }}
             </p>
 
             <div class="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2">
                 <div>
-                    <p class="mb-2 text-xs font-medium uppercase tracking-wide text-slate-500">Instituciones</p>
+                    <p class="mb-2 text-xs font-medium uppercase tracking-wide text-slate-500">{{ t('minister.institutions') }}</p>
                     <div class="flex flex-wrap gap-2">
                         <button
                             v-for="i in institutions" :key="i.id" type="button"
@@ -275,12 +288,12 @@ async function downloadPdf(text = '') {
                 </div>
                 <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
                     <div>
-                        <label class="mb-1 block text-xs font-medium uppercase tracking-wide text-slate-500">Desde</label>
+                        <label class="mb-1 block text-xs font-medium uppercase tracking-wide text-slate-500">{{ t('minister.from_date') }}</label>
                         <input v-model="form.from" type="date" class="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-brand focus:bg-white dark:border-slate-600 dark:bg-slate-900" />
                         <p v-if="form.errors.from" class="mt-1 text-xs text-red-600">{{ form.errors.from }}</p>
                     </div>
                     <div>
-                        <label class="mb-1 block text-xs font-medium uppercase tracking-wide text-slate-500">Hasta</label>
+                        <label class="mb-1 block text-xs font-medium uppercase tracking-wide text-slate-500">{{ t('minister.to_date') }}</label>
                         <input v-model="form.to" type="date" class="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-brand focus:bg-white dark:border-slate-600 dark:bg-slate-900" />
                         <p v-if="form.errors.to" class="mt-1 text-xs text-red-600">{{ form.errors.to }}</p>
                     </div>
@@ -294,7 +307,7 @@ async function downloadPdf(text = '') {
                     class="inline-flex items-center gap-1.5 rounded-lg bg-brand px-4 py-2.5 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50"
                     @click="generate"
                 >
-                    <Sparkles class="h-4 w-4" /> {{ form.processing ? 'Generando…' : 'Generar Informe con IA' }}
+                    <Sparkles class="h-4 w-4" /> {{ form.processing ? t('minister.generating') : t('minister.generate_report') }}
                 </button>
             </div>
 
@@ -306,12 +319,12 @@ async function downloadPdf(text = '') {
                     @click="toggleHistory"
                 >
                     <component :is="showHistory ? ChevronUp : ChevronDown" class="h-4 w-4" />
-                    <History class="h-4 w-4" /> Generaciones previas
+                    <History class="h-4 w-4" /> {{ t('minister.previous_generations') }}
                 </button>
 
                 <div v-if="showHistory" class="mt-3 space-y-2">
-                    <p v-if="historyLoading" class="text-xs text-slate-400">Cargando…</p>
-                    <p v-else-if="!history.length" class="text-xs text-slate-400">Aún no hay informes generados.</p>
+                    <p v-if="historyLoading" class="text-xs text-slate-400">{{ t('minister.loading') }}</p>
+                    <p v-else-if="!history.length" class="text-xs text-slate-400">{{ t('minister.no_reports_yet') }}</p>
                     <div
                         v-for="h in history" :key="h.id"
                         class="flex items-center justify-between gap-3 rounded-lg border border-slate-200 p-3 dark:border-slate-700"
@@ -319,15 +332,23 @@ async function downloadPdf(text = '') {
                         <div class="min-w-0">
                             <p class="truncate text-sm font-medium">{{ h.user }} · {{ h.datetime }}</p>
                             <p class="truncate text-xs text-slate-400">
-                                Período {{ h.period }}<span v-if="h.institutions.length"> · {{ h.institutions.join(', ') }}</span>
+                                {{ t('minister.period_label', { period: h.period }) }}<span v-if="h.institutions.length"> · {{ h.institutions.join(', ') }}</span>
                             </p>
                         </div>
-                        <a
-                            :href="route('ministra.report.stored', h.id)"
-                            class="inline-flex shrink-0 items-center gap-1 rounded-lg border border-brand px-2.5 py-1 text-xs font-medium text-brand transition hover:bg-brand hover:text-white"
-                        >
-                            <FileDown class="h-3.5 w-3.5" /> Descargar Informe
-                        </a>
+                        <div class="flex shrink-0 items-center gap-1.5">
+                            <a
+                                :href="route('ministra.report.stored', h.id)"
+                                class="inline-flex items-center gap-1 rounded-lg border border-brand px-2.5 py-1 text-xs font-medium text-brand transition hover:bg-brand hover:text-white"
+                            >
+                                <FileDown class="h-3.5 w-3.5" /> PDF
+                            </a>
+                            <a
+                                :href="route('ministra.report.stored.docx', h.id)"
+                                class="inline-flex items-center gap-1 rounded-lg border border-brand px-2.5 py-1 text-xs font-medium text-brand transition hover:bg-brand hover:text-white"
+                            >
+                                <FileDown class="h-3.5 w-3.5" /> DOCX
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -342,12 +363,21 @@ async function downloadPdf(text = '') {
             <input type="hidden" name="report" :value="pdfReportText" />
         </form>
 
+        <!-- Formulario nativo para la descarga binaria del DOCX -->
+        <form ref="docxForm" :action="route('ministra.report.docx')" method="post" class="hidden">
+            <input type="hidden" name="_token" :value="csrf" />
+            <input v-for="id in form.institutions" :key="`docx-${id}`" type="hidden" name="institutions[]" :value="id" />
+            <input type="hidden" name="from" :value="form.from" />
+            <input type="hidden" name="to" :value="form.to" />
+            <input type="hidden" name="report" :value="docxReportText" />
+        </form>
+
         <!-- Overlay de carga mientras la IA genera el informe -->
         <div v-if="generating || form.processing" class="fixed inset-0 z-[60] flex items-center justify-center bg-black/40">
             <div class="mx-6 w-full max-w-sm rounded-2xl bg-white px-8 py-7 text-center shadow-xl dark:bg-slate-800">
                 <Loader2 class="mx-auto h-9 w-9 animate-spin text-brand" />
-                <p class="mt-4 text-sm font-semibold">Generando informe con IA…</p>
-                <p class="mt-1 text-xs text-slate-400">Esto puede tardar unos segundos. El informe se descargará automáticamente al finalizar.</p>
+                <p class="mt-4 text-sm font-semibold">{{ t('minister.generating_report_overlay') }}</p>
+                <p class="mt-1 text-xs text-slate-400">{{ t('minister.generating_report_hint') }}</p>
             </div>
         </div>
 
@@ -355,20 +385,26 @@ async function downloadPdf(text = '') {
         <div v-if="report" class="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/40 p-6">
             <div class="w-full max-w-3xl rounded-2xl bg-white p-6 shadow-xl dark:bg-slate-800">
                 <div class="flex items-start justify-between">
-                    <h2 class="flex items-center gap-2 text-lg font-semibold"><FileText class="h-5 w-5 text-brand" /> Informe presidencial</h2>
+                    <h2 class="flex items-center gap-2 text-lg font-semibold"><FileText class="h-5 w-5 text-brand" /> {{ t('minister.presidential_report') }}</h2>
                     <button class="rounded p-1 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700" @click="report = null">
                         <X class="h-5 w-5" />
                     </button>
                 </div>
                 <div class="mt-4 max-h-[60vh] overflow-y-auto whitespace-pre-wrap rounded-lg bg-slate-50 p-4 text-sm leading-relaxed dark:bg-slate-900">{{ report }}</div>
-                <div class="mt-5 flex justify-end gap-2">
+                <div class="mt-5 flex flex-wrap justify-end gap-2">
                     <button
                         class="inline-flex items-center gap-1.5 rounded-lg border border-brand px-4 py-2 text-sm font-medium text-brand transition hover:bg-brand hover:text-white"
                         @click="downloadPdf(report ?? '')"
                     >
-                        <FileDown class="h-4 w-4" /> Descargar PDF
+                        <FileDown class="h-4 w-4" /> {{ t('minister.download_pdf') }}
                     </button>
-                    <button class="rounded-lg bg-brand px-4 py-2 text-sm font-medium text-white hover:opacity-90" @click="report = null">Cerrar</button>
+                    <button
+                        class="inline-flex items-center gap-1.5 rounded-lg border border-brand px-4 py-2 text-sm font-medium text-brand transition hover:bg-brand hover:text-white"
+                        @click="downloadDocx(report ?? '')"
+                    >
+                        <FileDown class="h-4 w-4" /> {{ t('minister.download_docx') }}
+                    </button>
+                    <button class="rounded-lg bg-brand px-4 py-2 text-sm font-medium text-white hover:opacity-90" @click="report = null">{{ t('actions.close') }}</button>
                 </div>
             </div>
         </div>

@@ -1,9 +1,12 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { ScrollText } from 'lucide-vue-next';
 import { matchesAllTokens } from '@/Composables/useTokenSearch';
 import GridToolbar, { type GridColumn } from '@/Components/GridToolbar.vue';
+
+const { t } = useI18n({ useScope: 'global' });
 
 interface LogEntry { id: number; datetime: string | null; user: string; action: string; section: string; detail: string }
 
@@ -15,11 +18,11 @@ const fSection = ref('');
 const fAction = ref('');
 
 const columns = ref<GridColumn[]>([
-    { key: 'datetime', label: 'Fecha y hora', visible: true },
-    { key: 'user', label: 'Usuario', visible: true },
-    { key: 'action', label: 'Acción', visible: true },
-    { key: 'section', label: 'Sección', visible: true },
-    { key: 'detail', label: 'Detalle', visible: true },
+    { key: 'datetime', label: t('logs.col_datetime'), visible: true },
+    { key: 'user', label: t('logs.col_user'), visible: true },
+    { key: 'action', label: t('logs.col_action'), visible: true },
+    { key: 'section', label: t('logs.col_section'), visible: true },
+    { key: 'detail', label: t('logs.col_detail'), visible: true },
 ]);
 const vis = (k: string) => columns.value.find((c) => c.key === k)?.visible ?? true;
 
@@ -46,8 +49,8 @@ const actionClass = (a: string) => ({
 <template>
     <AppLayout>
         <header class="mb-6">
-            <h1 class="flex items-center gap-2 text-2xl font-semibold"><ScrollText class="h-6 w-6 text-brand" /> Logs del Sistema</h1>
-            <p class="text-sm text-slate-500">Registros y actualizaciones más recientes en el sistema.</p>
+            <h1 class="flex items-center gap-2 text-2xl font-semibold"><ScrollText class="h-6 w-6 text-brand" /> {{ t('logs.title') }}</h1>
+            <p class="text-sm text-slate-500">{{ t('logs.subtitle') }}</p>
         </header>
 
         <div class="rounded-xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800">
@@ -56,21 +59,21 @@ const actionClass = (a: string) => ({
                 v-model:page-size="pageSize"
                 v-model:columns="columns"
                 :total="filtered.length"
-                search-placeholder="Buscar por usuario, acción, sección, detalle…"
+                :search-placeholder="t('logs.search_placeholder')"
                 :export-url="route('logs.export')"
             >
                 <template #filters>
                     <div>
-                        <label class="mb-1 block text-xs font-medium uppercase tracking-wide text-slate-500">Sección</label>
+                        <label class="mb-1 block text-xs font-medium uppercase tracking-wide text-slate-500">{{ t('logs.col_section') }}</label>
                         <select v-model="fSection" class="rounded-lg border border-slate-300 px-2 py-1.5 text-sm dark:border-slate-600 dark:bg-slate-900">
-                            <option value="">Todas</option>
+                            <option value="">{{ t('logs.all') }}</option>
                             <option v-for="s in sections" :key="s" :value="s">{{ s }}</option>
                         </select>
                     </div>
                     <div>
-                        <label class="mb-1 block text-xs font-medium uppercase tracking-wide text-slate-500">Acción</label>
+                        <label class="mb-1 block text-xs font-medium uppercase tracking-wide text-slate-500">{{ t('logs.col_action') }}</label>
                         <select v-model="fAction" class="rounded-lg border border-slate-300 px-2 py-1.5 text-sm dark:border-slate-600 dark:bg-slate-900">
-                            <option value="">Todas</option>
+                            <option value="">{{ t('logs.all') }}</option>
                             <option v-for="a in actions" :key="a" :value="a">{{ a }}</option>
                         </select>
                     </div>
@@ -81,11 +84,11 @@ const actionClass = (a: string) => ({
                 <table class="w-full text-sm">
                     <thead class="border-b border-slate-200 text-left text-xs uppercase tracking-wide text-slate-400 dark:border-slate-700">
                         <tr>
-                            <th v-if="vis('datetime')" class="px-4 py-3 font-medium">Fecha y hora</th>
-                            <th v-if="vis('user')" class="px-4 py-3 font-medium">Usuario</th>
-                            <th v-if="vis('action')" class="px-4 py-3 font-medium">Acción</th>
-                            <th v-if="vis('section')" class="px-4 py-3 font-medium">Sección</th>
-                            <th v-if="vis('detail')" class="px-4 py-3 font-medium">Detalle</th>
+                            <th v-if="vis('datetime')" class="px-4 py-3 font-medium">{{ t('logs.col_datetime') }}</th>
+                            <th v-if="vis('user')" class="px-4 py-3 font-medium">{{ t('logs.col_user') }}</th>
+                            <th v-if="vis('action')" class="px-4 py-3 font-medium">{{ t('logs.col_action') }}</th>
+                            <th v-if="vis('section')" class="px-4 py-3 font-medium">{{ t('logs.col_section') }}</th>
+                            <th v-if="vis('detail')" class="px-4 py-3 font-medium">{{ t('logs.col_detail') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -96,7 +99,7 @@ const actionClass = (a: string) => ({
                             <td v-if="vis('section')" class="px-4 py-3">{{ l.section }}</td>
                             <td v-if="vis('detail')" class="px-4 py-3 text-slate-500">{{ l.detail }}</td>
                         </tr>
-                        <tr v-if="!filtered.length"><td colspan="5" class="px-4 py-10 text-center text-slate-400">No hay registros de actividad.</td></tr>
+                        <tr v-if="!filtered.length"><td colspan="5" class="px-4 py-10 text-center text-slate-400">{{ t('logs.empty') }}</td></tr>
                     </tbody>
                 </table>
             </div>

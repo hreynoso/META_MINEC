@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\AiSettingsController;
 use App\Http\Controllers\Admin\BrandingController;
 use App\Http\Controllers\Admin\GoogleSsoSettingsController;
+use App\Http\Controllers\Admin\LanguageSettingsController;
 use App\Http\Controllers\Admin\NotificationSettingsController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\UserController;
@@ -29,8 +30,10 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/ministra', [MinisterController::class, 'index'])->name('ministra.index');
     Route::post('/ministra/informe', [MinisterController::class, 'generateReport'])->name('ministra.report');
     Route::post('/ministra/informe/pdf', [MinisterController::class, 'reportPdf'])->name('ministra.report.pdf');
+    Route::post('/ministra/informe/docx', [MinisterController::class, 'reportDocx'])->name('ministra.report.docx');
     Route::get('/ministra/historial', [MinisterController::class, 'history'])->name('ministra.history');
     Route::get('/ministra/informe/{report}/pdf', [MinisterController::class, 'reportStored'])->name('ministra.report.stored');
+    Route::get('/ministra/informe/{report}/docx', [MinisterController::class, 'reportStoredDocx'])->name('ministra.report.stored.docx');
 
     // Portafolio de proyectos de inversión pública
     Route::get('/proyectos', [ProjectController::class, 'index'])->name('proyectos.index');
@@ -90,6 +93,10 @@ Route::middleware(['auth'])->group(function () {
         // Configuración → Notificaciones
         Route::get('/configuracion/notificaciones', [NotificationSettingsController::class, 'edit'])->name('configuracion.notificaciones.edit');
         Route::post('/configuracion/notificaciones', [NotificationSettingsController::class, 'update'])->name('configuracion.notificaciones.update');
+
+        // Configuración → Idioma (español / inglés)
+        Route::get('/configuracion/idioma', [LanguageSettingsController::class, 'edit'])->name('configuracion.idioma.edit');
+        Route::post('/configuracion/idioma', [LanguageSettingsController::class, 'update'])->name('configuracion.idioma.update');
     });
 
     // ── Máximo privilegio: solo Super Admin (cuenta local break-glass) ──
@@ -122,6 +129,9 @@ Route::middleware(['auth'])->group(function () {
 
     // Keep-alive de sesion (cada 15 min desde el cliente)
     Route::post('/keep-alive', [SessionController::class, 'keepAlive'])->name('keep-alive');
+
+    // Lista de usuarios conectados (modal del contador en Configuración)
+    Route::get('/usuarios-conectados', [SessionController::class, 'connected'])->name('sesiones.conectadas');
 });
 
 // Webhook público de Mailgun (sin auth ni CSRF; excluido en bootstrap/app.php).

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useForm, router } from '@inertiajs/vue3';
 import ConfigLayout from '@/Components/ConfigLayout.vue';
 import { useConfirm } from '@/Composables/useConfirm';
@@ -10,6 +11,7 @@ import { Plus, Pencil, Trash2, X, Save, ShieldCheck } from 'lucide-vue-next';
 interface User {
     id: number; name: string; email: string; institution_id: number | null;
     institution: string | null; roles: string[]; blocked: boolean;
+    last_login_at: string | null;
 }
 
 const props = defineProps<{
@@ -18,17 +20,20 @@ const props = defineProps<{
     institutions: { id: number; short_name: string; name: string }[];
 }>();
 
+const { t } = useI18n({ useScope: 'global' });
+
 // Toolbar uniforme (búsqueda, paginación, columnas, filtros, export).
 const search = ref('');
 const pageSize = ref(25);
 const fRole = ref('');
 const fStatus = ref('');
 const columns = ref<GridColumn[]>([
-    { key: 'name', label: 'Nombres y Apellidos', visible: true },
-    { key: 'email', label: 'Correo', visible: true },
-    { key: 'institution', label: 'Institución', visible: true },
-    { key: 'roles', label: 'Roles', visible: true },
-    { key: 'blocked', label: 'Estado', visible: true },
+    { key: 'name', label: t('users.col_name'), visible: true },
+    { key: 'email', label: t('users.col_email'), visible: true },
+    { key: 'institution', label: t('users.col_institution'), visible: true },
+    { key: 'roles', label: t('users.col_roles'), visible: true },
+    { key: 'blocked', label: t('users.col_status'), visible: true },
+    { key: 'last_login', label: t('users.col_last_login'), visible: true },
 ]);
 const vis = (k: string) => columns.value.find((c) => c.key === k)?.visible ?? true;
 
@@ -87,9 +92,9 @@ function submit() {
 
 function confirmDelete(u: User) {
     ask({
-        header: 'Eliminar usuario',
-        message: `¿Eliminar a "${u.name}"? Esta acción no se puede deshacer.`,
-        acceptLabel: 'Eliminar',
+        header: t('users.delete_header'),
+        message: t('users.delete_message', { name: u.name }),
+        acceptLabel: t('actions.delete'),
         accept: () => router.delete(route('configuracion.usuarios.destroy', u.id), { preserveScroll: true }),
     });
 }
@@ -99,11 +104,11 @@ function confirmDelete(u: User) {
     <ConfigLayout section="usuarios">
         <div class="mb-5 flex items-start justify-between">
             <div>
-                <h2 class="text-lg font-semibold">Usuarios</h2>
-                <p class="text-sm text-slate-500">Gestión de los usuarios del sistema, sus roles e institución.</p>
+                <h2 class="text-lg font-semibold">{{ t('users.page_title') }}</h2>
+                <p class="text-sm text-slate-500">{{ t('users.page_subtitle') }}</p>
             </div>
             <button class="inline-flex items-center gap-1.5 rounded-lg bg-brand px-3 py-2 text-sm font-medium text-white hover:opacity-90" @click="openCreate">
-                <Plus class="h-4 w-4" /> Nuevo usuario
+                <Plus class="h-4 w-4" /> {{ t('users.new_user') }}
             </button>
         </div>
 
@@ -113,23 +118,23 @@ function confirmDelete(u: User) {
                 v-model:page-size="pageSize"
                 v-model:columns="columns"
                 :total="filtered.length"
-                search-placeholder="Buscar por nombre, correo, institución o rol…"
+                :search-placeholder="t('users.search_placeholder')"
                 :export-url="route('configuracion.usuarios.export')"
             >
                 <template #filters>
                     <div>
-                        <label class="mb-1 block text-xs font-medium uppercase tracking-wide text-slate-500">Rol</label>
+                        <label class="mb-1 block text-xs font-medium uppercase tracking-wide text-slate-500">{{ t('users.filter_role') }}</label>
                         <select v-model="fRole" class="rounded-lg border border-slate-300 px-2 py-1.5 text-sm dark:border-slate-600 dark:bg-slate-900">
-                            <option value="">Todos</option>
+                            <option value="">{{ t('users.all') }}</option>
                             <option v-for="r in roles" :key="r" :value="r">{{ r }}</option>
                         </select>
                     </div>
                     <div>
-                        <label class="mb-1 block text-xs font-medium uppercase tracking-wide text-slate-500">Estado</label>
+                        <label class="mb-1 block text-xs font-medium uppercase tracking-wide text-slate-500">{{ t('users.col_status') }}</label>
                         <select v-model="fStatus" class="rounded-lg border border-slate-300 px-2 py-1.5 text-sm dark:border-slate-600 dark:bg-slate-900">
-                            <option value="">Todos</option>
-                            <option value="activo">Activo</option>
-                            <option value="bloqueado">Bloqueado</option>
+                            <option value="">{{ t('users.all') }}</option>
+                            <option value="activo">{{ t('users.status_active') }}</option>
+                            <option value="bloqueado">{{ t('users.status_blocked') }}</option>
                         </select>
                     </div>
                 </template>
@@ -139,12 +144,13 @@ function confirmDelete(u: User) {
                 <table class="w-full text-sm">
                     <thead class="border-b border-slate-200 text-left text-xs uppercase tracking-wide text-slate-400 dark:border-slate-700">
                         <tr>
-                            <th v-if="vis('name')" class="px-4 py-3 font-medium">Nombres y Apellidos</th>
-                            <th v-if="vis('email')" class="px-4 py-3 font-medium">Correo</th>
-                            <th v-if="vis('institution')" class="px-4 py-3 font-medium">Institución</th>
-                            <th v-if="vis('roles')" class="px-4 py-3 font-medium">Roles</th>
-                            <th v-if="vis('blocked')" class="px-4 py-3 font-medium">Estado</th>
-                            <th class="px-4 py-3 text-right font-medium">Acciones</th>
+                            <th v-if="vis('name')" class="px-4 py-3 font-medium">{{ t('users.col_name') }}</th>
+                            <th v-if="vis('email')" class="px-4 py-3 font-medium">{{ t('users.col_email') }}</th>
+                            <th v-if="vis('institution')" class="px-4 py-3 font-medium">{{ t('users.col_institution') }}</th>
+                            <th v-if="vis('roles')" class="px-4 py-3 font-medium">{{ t('users.col_roles') }}</th>
+                            <th v-if="vis('blocked')" class="px-4 py-3 font-medium">{{ t('users.col_status') }}</th>
+                            <th v-if="vis('last_login')" class="px-4 py-3 font-medium">{{ t('users.col_last_login') }}</th>
+                            <th class="px-4 py-3 text-right font-medium">{{ t('users.col_actions') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -158,17 +164,18 @@ function confirmDelete(u: User) {
                             </td>
                             <td v-if="vis('blocked')" class="px-4 py-3">
                                 <span class="rounded-full px-2 py-0.5 text-xs" :class="u.blocked ? 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300' : 'bg-teal-100 text-teal-700 dark:bg-teal-900/40 dark:text-teal-300'">
-                                    {{ u.blocked ? 'Bloqueado' : 'Activo' }}
+                                    {{ u.blocked ? t('users.status_blocked') : t('users.status_active') }}
                                 </span>
                             </td>
+                            <td v-if="vis('last_login')" class="px-4 py-3 text-slate-500">{{ u.last_login_at ?? t('users.never') }}</td>
                             <td class="px-4 py-3">
                                 <div class="flex items-center justify-end gap-1">
-                                    <button class="rounded p-1.5 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700" title="Editar" @click="openEdit(u)"><Pencil class="h-4 w-4" /></button>
-                                    <button class="rounded p-1.5 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30" title="Eliminar" @click="confirmDelete(u)"><Trash2 class="h-4 w-4" /></button>
+                                    <button class="rounded p-1.5 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700" :title="t('users.edit')" @click="openEdit(u)"><Pencil class="h-4 w-4" /></button>
+                                    <button class="rounded p-1.5 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30" :title="t('actions.delete')" @click="confirmDelete(u)"><Trash2 class="h-4 w-4" /></button>
                                 </div>
                             </td>
                         </tr>
-                        <tr v-if="!filtered.length"><td colspan="6" class="px-4 py-8 text-center text-slate-400">No hay usuarios registrados.</td></tr>
+                        <tr v-if="!filtered.length"><td colspan="7" class="px-4 py-8 text-center text-slate-400">{{ t('users.empty') }}</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -178,38 +185,38 @@ function confirmDelete(u: User) {
         <div v-if="open" class="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/40 p-6">
             <div class="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl dark:bg-slate-800">
                 <div class="flex items-start justify-between">
-                    <h2 class="text-xl font-semibold">{{ editing ? 'Editar usuario' : 'Nuevo usuario' }}</h2>
+                    <h2 class="text-xl font-semibold">{{ editing ? t('users.edit_user') : t('users.new_user') }}</h2>
                     <button class="rounded p-1 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700" @click="open = false"><X class="h-5 w-5" /></button>
                 </div>
 
                 <form class="mt-5 space-y-4" @submit.prevent="submit">
                     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <div>
-                            <label :class="label">Nombres y Apellidos <span class="text-red-600">*</span></label>
+                            <label :class="label">{{ t('users.col_name') }} <span class="text-red-600">*</span></label>
                             <input v-model="form.name" :class="input" />
                             <p v-if="form.errors.name" class="mt-1 text-xs text-red-600">{{ form.errors.name }}</p>
                         </div>
                         <div>
-                            <label :class="label">Correo <span class="text-red-600">*</span></label>
+                            <label :class="label">{{ t('users.col_email') }} <span class="text-red-600">*</span></label>
                             <input v-model="form.email" type="email" :class="input" />
                             <p v-if="form.errors.email" class="mt-1 text-xs text-red-600">{{ form.errors.email }}</p>
                         </div>
                         <div>
-                            <label :class="label">Contraseña <span v-if="!editing" class="text-red-600">*</span></label>
-                            <input v-model="form.password" type="password" autocomplete="new-password" :class="input" :placeholder="editing ? 'Dejar vacío para no cambiar' : ''" />
+                            <label :class="label">{{ t('users.password') }} <span v-if="!editing" class="text-red-600">*</span></label>
+                            <input v-model="form.password" type="password" autocomplete="new-password" :class="input" :placeholder="editing ? t('users.password_placeholder') : ''" />
                             <p v-if="form.errors.password" class="mt-1 text-xs text-red-600">{{ form.errors.password }}</p>
                         </div>
                         <div>
-                            <label :class="label">Institución</label>
+                            <label :class="label">{{ t('users.col_institution') }}</label>
                             <select v-model="form.institution_id" :class="input">
-                                <option :value="null">Seleccione…</option>
+                                <option :value="null">{{ t('users.select_placeholder') }}</option>
                                 <option v-for="i in institutions" :key="i.id" :value="i.id">{{ i.short_name }} — {{ i.name }}</option>
                             </select>
                         </div>
                     </div>
 
                     <div>
-                        <label :class="label"><ShieldCheck class="mr-1 inline h-3.5 w-3.5" /> Roles</label>
+                        <label :class="label"><ShieldCheck class="mr-1 inline h-3.5 w-3.5" /> {{ t('users.col_roles') }}</label>
                         <div class="flex flex-wrap gap-2">
                             <button
                                 v-for="r in roles" :key="r" type="button"
@@ -217,18 +224,18 @@ function confirmDelete(u: User) {
                                 :class="form.roles.includes(r) ? 'border-brand bg-brand text-white' : 'border-slate-300 text-slate-600 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-300'"
                                 @click="toggleRole(r)"
                             >{{ r }}</button>
-                            <span v-if="!roles.length" class="text-xs text-slate-400">No hay roles. Créalos en Roles y permisos.</span>
+                            <span v-if="!roles.length" class="text-xs text-slate-400">{{ t('users.no_roles') }}</span>
                         </div>
                     </div>
 
                     <label class="flex items-center gap-2 text-sm">
                         <input v-model="form.blocked" type="checkbox" class="rounded border-slate-300 text-brand focus:ring-brand" />
-                        Cuenta bloqueada (impide el acceso)
+                        {{ t('users.account_blocked') }}
                     </label>
 
                     <div class="flex justify-end gap-2 pt-2">
-                        <button type="button" class="rounded-lg border border-slate-300 px-4 py-2 text-sm hover:bg-slate-50 dark:border-slate-600 dark:hover:bg-slate-700" @click="open = false">Cancelar</button>
-                        <button type="submit" :disabled="form.processing" class="inline-flex items-center gap-1.5 rounded-lg bg-brand px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50"><Save class="h-4 w-4" /> Guardar</button>
+                        <button type="button" class="rounded-lg border border-slate-300 px-4 py-2 text-sm hover:bg-slate-50 dark:border-slate-600 dark:hover:bg-slate-700" @click="open = false">{{ t('actions.cancel') }}</button>
+                        <button type="submit" :disabled="form.processing" class="inline-flex items-center gap-1.5 rounded-lg bg-brand px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50"><Save class="h-4 w-4" /> {{ t('actions.save') }}</button>
                     </div>
                 </form>
             </div>

@@ -58,20 +58,20 @@ class ProjectController extends Controller
     {
         Project::create($request->validated());
 
-        return to_route('proyectos.index')->with('success', 'Proyecto creado correctamente.');
+        return to_route('proyectos.index')->with('success', __('messages.project.created'));
     }
 
     public function update(ProjectRequest $request, Project $project): RedirectResponse
     {
         $project->update($request->validated());
 
-        return to_route('proyectos.index')->with('success', 'Proyecto actualizado correctamente.');
+        return to_route('proyectos.index')->with('success', __('messages.project.updated'));
     }
 
     public function destroy(Project $project): RedirectResponse
     {
         $project->delete();
 
-        return to_route('proyectos.index')->with('success', 'Proyecto eliminado correctamente.');
+        return to_route('proyectos.index')->with('success', __('messages.project.deleted'));
     }
 }

@@ -1,10 +1,13 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { FileText, Download, Eye } from 'lucide-vue-next';
 import { currency, number } from '@/Composables/useProjectFormat';
 import { matchesAllTokens } from '@/Composables/useTokenSearch';
 import GridToolbar, { type GridColumn } from '@/Components/GridToolbar.vue';
+
+const { t } = useI18n({ useScope: 'global' });
 
 interface InstitutionRow {
     code: string; name: string; short_name: string;
@@ -20,10 +23,10 @@ const props = defineProps<{
 const search = ref('');
 const pageSize = ref(25);
 const columns = ref<GridColumn[]>([
-    { key: 'institution', label: 'Institución', visible: true },
-    { key: 'projects_count', label: 'Proyectos', visible: true },
-    { key: 'budget', label: 'Presupuesto', visible: true },
-    { key: 'executed', label: 'Ejecutado', visible: true },
+    { key: 'institution', label: t('reports.col_institution'), visible: true },
+    { key: 'projects_count', label: t('reports.col_projects'), visible: true },
+    { key: 'budget', label: t('reports.col_budget'), visible: true },
+    { key: 'executed', label: t('reports.col_executed'), visible: true },
     { key: 'pct', label: '%', visible: true },
 ]);
 const vis = (k: string) => columns.value.find((c) => c.key === k)?.visible ?? true;
@@ -37,26 +40,26 @@ const visibleRows = computed(() => filtered.value.slice(0, pageSize.value));
 <template>
     <AppLayout>
         <header class="mb-6">
-            <h1 class="text-2xl font-semibold">Reportes institucionales</h1>
-            <p class="text-sm text-slate-500">Generación y exportación de reportes ejecutivos</p>
+            <h1 class="text-2xl font-semibold">{{ t('reports.title') }}</h1>
+            <p class="text-sm text-slate-500">{{ t('reports.subtitle') }}</p>
         </header>
 
         <!-- Tarjetas de resumen agregado -->
         <div class="mb-6 grid grid-cols-1 gap-4 md:grid-cols-3">
             <div class="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-800">
-                <p class="text-xs text-slate-500">Presupuesto agregado</p>
+                <p class="text-xs text-slate-500">{{ t('reports.aggregate_budget') }}</p>
                 <p class="mt-1 text-2xl font-bold">{{ currency(summary.budget) }}</p>
-                <p class="mt-1 text-xs text-slate-400">{{ currency(summary.executed) }} ejecutado ({{ summary.executed_pct }}%)</p>
+                <p class="mt-1 text-xs text-slate-400">{{ t('reports.executed_summary', { amount: currency(summary.executed), pct: summary.executed_pct }) }}</p>
             </div>
             <div class="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-800">
-                <p class="text-xs text-slate-500">Instituciones adscritas</p>
+                <p class="text-xs text-slate-500">{{ t('reports.attached_institutions') }}</p>
                 <p class="mt-1 text-2xl font-bold">{{ summary.institutions }}</p>
-                <p class="mt-1 text-xs text-slate-400">Reportando proyectos activos</p>
+                <p class="mt-1 text-xs text-slate-400">{{ t('reports.reporting_active_projects') }}</p>
             </div>
             <div class="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-800">
-                <p class="text-xs text-slate-500">Beneficiarios reportados</p>
+                <p class="text-xs text-slate-500">{{ t('reports.reported_beneficiaries') }}</p>
                 <p class="mt-1 text-2xl font-bold">{{ number(summary.beneficiaries) }}</p>
-                <p class="mt-1 text-xs text-slate-400">Consolidado nacional</p>
+                <p class="mt-1 text-xs text-slate-400">{{ t('reports.national_consolidated') }}</p>
             </div>
         </div>
 
@@ -84,13 +87,13 @@ const visibleRows = computed(() => filtered.value.slice(0, pageSize.value));
                         :href="route('reportes.download', r.slug)"
                         class="inline-flex items-center gap-1.5 rounded-lg bg-brand px-3 py-2 text-sm font-medium text-white hover:opacity-90"
                     >
-                        <Download class="h-4 w-4" /> Descargar
+                        <Download class="h-4 w-4" /> {{ t('reports.download') }}
                     </a>
                     <a
                         :href="route('reportes.preview', r.slug)" target="_blank" rel="noopener"
                         class="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 px-3 py-2 text-sm hover:bg-slate-50 dark:border-slate-600 dark:hover:bg-slate-700"
                     >
-                        <Eye class="h-4 w-4" /> Vista previa
+                        <Eye class="h-4 w-4" /> {{ t('reports.preview') }}
                     </a>
                 </div>
             </div>
@@ -99,24 +102,24 @@ const visibleRows = computed(() => filtered.value.slice(0, pageSize.value));
         <!-- Ejecución por institución -->
         <div class="rounded-xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800">
             <h2 class="border-b border-slate-200 px-5 py-4 text-sm font-semibold uppercase tracking-wide text-slate-500 dark:border-slate-700">
-                Ejecución por institución
+                {{ t('reports.execution_by_institution') }}
             </h2>
             <GridToolbar
                 v-model:search="search"
                 v-model:page-size="pageSize"
                 v-model:columns="columns"
                 :total="filtered.length"
-                search-placeholder="Buscar institución…"
+                :search-placeholder="t('reports.search_institution_placeholder')"
                 :export-url="route('reportes.institution-export')"
             />
             <div class="overflow-x-auto">
                 <table class="w-full text-sm">
                     <thead class="text-left text-xs uppercase tracking-wide text-slate-400">
                         <tr>
-                            <th v-if="vis('institution')" class="px-5 py-3 font-medium">Institución</th>
-                            <th v-if="vis('projects_count')" class="px-5 py-3 font-medium">Proyectos</th>
-                            <th v-if="vis('budget')" class="px-5 py-3 font-medium">Presupuesto</th>
-                            <th v-if="vis('executed')" class="px-5 py-3 font-medium">Ejecutado</th>
+                            <th v-if="vis('institution')" class="px-5 py-3 font-medium">{{ t('reports.col_institution') }}</th>
+                            <th v-if="vis('projects_count')" class="px-5 py-3 font-medium">{{ t('reports.col_projects') }}</th>
+                            <th v-if="vis('budget')" class="px-5 py-3 font-medium">{{ t('reports.col_budget') }}</th>
+                            <th v-if="vis('executed')" class="px-5 py-3 font-medium">{{ t('reports.col_executed') }}</th>
                             <th v-if="vis('pct')" class="px-5 py-3 font-medium">%</th>
                         </tr>
                     </thead>

@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import { useForm, usePage } from '@inertiajs/vue3';
+import { useI18n } from 'vue-i18n';
 import { computed, ref } from 'vue';
 
 defineProps<{ institution: string; demoEnabled: boolean; localAdminEnabled: boolean }>();
+
+const { t } = useI18n({ useScope: 'global' });
 
 const page = usePage();
 const flashError = computed(() => (page.props.flash as any)?.error as string | undefined);
@@ -80,9 +83,13 @@ function submitLocal() {
             <div v-else class="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-brand/10 text-brand">
                 <span class="text-lg font-bold">M</span>
             </div>
-            <h1 class="mt-4 text-2xl font-bold text-slate-900">Sistema META</h1>
-            <p class="mt-1 text-sm text-slate-500">Monitoreo Estratégico de Acciones</p>
+            <h1 class="mt-4 text-2xl font-bold text-slate-900">{{ t('auth.app_title') }}</h1>
+            <p class="mt-1 text-sm text-slate-500">{{ t('auth.tagline') }}</p>
             <p class="text-xs text-slate-400">{{ institution }}</p>
+
+            <p v-if="flashError" class="mt-6 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">
+                {{ flashError }}
+            </p>
 
             <a
                 :href="route('google.redirect')"
@@ -95,24 +102,24 @@ function submitLocal() {
                     <path fill="#4CAF50" d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238C29.211 35.091 26.715 36 24 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z"/>
                     <path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303a12.04 12.04 0 0 1-4.087 5.571l.003-.002 6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917z"/>
                 </svg>
-                Iniciar sesión con Google Workspace
+                {{ t('auth.login_with_google') }}
             </a>
 
             <!-- Acceso temporal de demo -->
             <div v-if="demoEnabled" class="mt-6 border-t border-slate-200 pt-6 text-left">
-                <p class="mb-3 text-center text-xs uppercase tracking-wide text-slate-400">Acceso temporal (demo)</p>
+                <p class="mb-3 text-center text-xs uppercase tracking-wide text-slate-400">{{ t('auth.demo_title') }}</p>
 
-                <p v-if="flashError || form.errors.email" class="mb-3 rounded-lg bg-red-50 px-3 py-2 text-center text-xs text-red-600">
-                    {{ form.errors.email || flashError }}
+                <p v-if="form.errors.email" class="mb-3 rounded-lg bg-red-50 px-3 py-2 text-center text-xs text-red-600">
+                    {{ form.errors.email }}
                 </p>
 
-                <label class="mb-1 block text-xs text-slate-500">Correo</label>
+                <label class="mb-1 block text-xs text-slate-500">{{ t('auth.email') }}</label>
                 <input
                     v-model="form.email" type="email" autocomplete="username"
                     class="mb-3 w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-800 outline-none focus:border-brand focus:bg-white"
                     @keyup.enter="submitDemo"
                 />
-                <label class="mb-1 block text-xs text-slate-500">Contraseña</label>
+                <label class="mb-1 block text-xs text-slate-500">{{ t('auth.password') }}</label>
                 <input
                     v-model="form.password" type="password" autocomplete="current-password"
                     class="mb-4 w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-800 outline-none focus:border-brand focus:bg-white"
@@ -124,25 +131,25 @@ function submitLocal() {
                     class="w-full rounded-lg bg-brand px-4 py-2 text-sm font-medium text-white transition hover:opacity-90 disabled:opacity-50"
                     @click="submitDemo"
                 >
-                    Acceder
+                    {{ t('auth.access') }}
                 </button>
             </div>
 
             <!-- Acceso local (Super Admin y cuentas autorizadas) -->
             <div v-if="localAdminEnabled" class="mt-6 border-t border-slate-200 pt-6 text-left">
-                <p class="mb-3 text-center text-xs uppercase tracking-wide text-slate-400">Acceso local (correo y contraseña)</p>
+                <p class="mb-3 text-center text-xs uppercase tracking-wide text-slate-400">{{ t('auth.local_title') }}</p>
 
                 <p v-if="localForm.errors.email" class="mb-3 rounded-lg bg-red-50 px-3 py-2 text-center text-xs text-red-600">
                     {{ localForm.errors.email }}
                 </p>
 
-                <label class="mb-1 block text-xs text-slate-500">Correo</label>
+                <label class="mb-1 block text-xs text-slate-500">{{ t('auth.email') }}</label>
                 <input
                     v-model="localForm.email" type="email" autocomplete="username"
                     class="mb-3 w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-800 outline-none focus:border-brand focus:bg-white"
                     @keyup.enter="submitLocal"
                 />
-                <label class="mb-1 block text-xs text-slate-500">Contraseña</label>
+                <label class="mb-1 block text-xs text-slate-500">{{ t('auth.password') }}</label>
                 <input
                     v-model="localForm.password" type="password" autocomplete="current-password"
                     class="mb-4 w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-800 outline-none focus:border-brand focus:bg-white"
@@ -153,7 +160,7 @@ function submitLocal() {
                     class="w-full rounded-lg bg-slate-800 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-900 disabled:opacity-50"
                     @click="submitLocal"
                 >
-                    Acceder
+                    {{ t('auth.access') }}
                 </button>
             </div>
 

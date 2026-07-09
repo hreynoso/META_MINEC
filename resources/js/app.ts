@@ -1,14 +1,14 @@
 import '../css/app.css';
 
 import { createApp, h, type DefineComponent } from 'vue';
-import { createInertiaApp } from '@inertiajs/vue3';
+import { createInertiaApp, router } from '@inertiajs/vue3';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import PrimeVue from 'primevue/config';
 import Aura from '@primevue/themes/aura';
 import ConfirmationService from 'primevue/confirmationservice';
 import ToastService from 'primevue/toastservice';
 import { ZiggyVue } from 'ziggy-js';
-import { i18n } from './i18n';
+import { i18n, setLocale } from './i18n';
 
 const appName = import.meta.env.VITE_APP_NAME || 'META MINEC';
 
@@ -20,6 +20,11 @@ createInertiaApp({
             import.meta.glob<DefineComponent>('./Pages/**/*.vue'),
         ),
     setup({ el, App, props, plugin }) {
+        // Idioma del sistema (Configuración → Idioma): inicial desde el backend y
+        // re-sincronizado en cada navegación de Inertia (p. ej. al cambiarlo).
+        setLocale((props.initialPage.props as any)?.locale);
+        router.on('success', (event) => setLocale((event.detail.page.props as any)?.locale));
+
         const app = createApp({ render: () => h(App, props) })
             .use(plugin)
             .use(i18n)

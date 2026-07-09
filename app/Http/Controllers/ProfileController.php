@@ -25,6 +25,6 @@ class ProfileController extends Controller
         $path = $request->file('photo')->store('avatars', 'public');
         $user->forceFill(['avatar_path' => $path])->save();
 
-        return back()->with('success', 'Foto de perfil actualizada.');
+        return back()->with('success', __('messages.profile.photo_updated'));
     }
 }

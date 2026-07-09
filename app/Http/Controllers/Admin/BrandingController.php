@@ -37,7 +37,7 @@ class BrandingController extends Controller
             Setting::put("branding.color.{$key}", $data[$key]);
         }
 
-        return back()->with('success', 'Colores del sistema actualizados.');
+        return back()->with('success', __('messages.branding.colors_updated'));
     }
 
     public function update(Request $request): RedirectResponse
@@ -68,6 +68,6 @@ class BrandingController extends Controller
             Setting::put("branding.{$key}", $path);
         }
 
-        return back()->with('success', 'Identidad visual actualizada.');
+        return back()->with('success', __('messages.branding.updated'));
     }
 }

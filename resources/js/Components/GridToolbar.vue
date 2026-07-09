@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { ref, computed, useSlots } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { Columns3, FileSpreadsheet, Filter, Search } from 'lucide-vue-next';
+
+const { t } = useI18n({ useScope: 'global' });
 
 export interface GridColumn { key: string; label: string; visible: boolean }
 
@@ -13,7 +16,6 @@ const props = withDefaults(defineProps<{
     pageSizes?: number[];
     exportUrl?: string;
 }>(), {
-    searchPlaceholder: 'Buscar…',
     pageSizes: () => [10, 25, 50, 100],
 });
 
@@ -42,7 +44,7 @@ function toggleColumn(key: string) {
             <!-- Columnas -->
             <div v-if="columns?.length" class="relative">
                 <button class="tbtn" type="button" @click="showColumns = !showColumns">
-                    <Columns3 class="h-4 w-4" /> Columnas
+                    <Columns3 class="h-4 w-4" /> {{ t('grid.columns') }}
                 </button>
                 <div v-if="showColumns" class="absolute z-20 mt-1 w-56 rounded-lg border border-slate-200 bg-white p-2 shadow-lg dark:border-slate-700 dark:bg-slate-800">
                     <label v-for="c in columns" :key="c.key" class="flex items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-slate-50 dark:hover:bg-slate-700">
@@ -62,7 +64,7 @@ function toggleColumn(key: string) {
 
             <!-- Mostrar -->
             <div class="flex items-center gap-1.5 text-sm text-slate-500">
-                <span>Mostrar</span>
+                <span>{{ t('grid.show') }}</span>
                 <select
                     :value="pageSize"
                     class="rounded-lg border border-slate-300 px-2 py-1.5 text-sm dark:border-slate-600 dark:bg-slate-900"
@@ -72,17 +74,17 @@ function toggleColumn(key: string) {
                 </select>
             </div>
 
-            <span class="text-sm text-slate-400">{{ total.toLocaleString('es-DO') }} registros</span>
+            <span class="text-sm text-slate-400">{{ t('toolbar.records', { count: total.toLocaleString('es-DO') }) }}</span>
 
             <!-- Derecha: filtros + búsqueda -->
             <div class="ml-auto flex items-center gap-2">
                 <button v-if="hasFilters" class="tbtn" type="button" @click="showFilters = !showFilters">
-                    <Filter class="h-4 w-4" /> Filtros
+                    <Filter class="h-4 w-4" /> {{ t('grid.filters') }}
                 </button>
                 <div class="flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-2 dark:border-slate-600 dark:bg-slate-900">
                     <Search class="h-4 w-4 opacity-50" />
                     <input
-                        :value="search" type="text" :placeholder="searchPlaceholder"
+                        :value="search" type="text" :placeholder="searchPlaceholder ?? t('grid.search')"
                         class="w-56 bg-transparent py-1.5 text-sm outline-none"
                         @input="emit('update:search', ($event.target as HTMLInputElement).value)"
                     />

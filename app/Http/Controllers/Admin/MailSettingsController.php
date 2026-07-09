@@ -81,7 +81,7 @@ class MailSettingsController extends Controller
             Setting::put('mail.smtp.password', $data['smtp_password']);
         }
 
-        return back()->with('success', 'Configuración de correo actualizada.');
+        return back()->with('success', __('messages.mail.updated'));
     }
 
     public function test(Request $request): RedirectResponse
@@ -100,10 +100,10 @@ class MailSettingsController extends Controller
         try {
             Mail::raw($body, fn ($m) => $m->to($data['to'])->subject($subject));
         } catch (Throwable $e) {
-            return back()->with('error', 'No se pudo enviar el correo de prueba: '.$e->getMessage());
+            return back()->with('error', __('messages.mail.test_failed', ['error' => $e->getMessage()]));
         }
 
-        return back()->with('success', 'Correo de prueba enviado a '.$data['to'].'.');
+        return back()->with('success', __('messages.mail.test_sent', ['email' => $data['to']]));
     }
 
     /** Aplica la configuración guardada al mailer en tiempo de ejecución. */

@@ -1,16 +1,17 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue';
 import { useForm } from '@inertiajs/vue3';
+import { useI18n } from 'vue-i18n';
 import ConfigLayout from '@/Components/ConfigLayout.vue';
 import { Sparkles, KeyRound, CheckCircle2, AlertTriangle, Loader2, Plug } from 'lucide-vue-next';
+
+const { t } = useI18n({ useScope: 'global' });
 
 interface Settings {
     provider: string;
     model: string;
     enabled: boolean;
     has_key: boolean;
-    gemini_email: string;
-    has_gemini_password: boolean;
 }
 
 interface AiModel { value: string; label: string }
@@ -50,8 +51,6 @@ const form = useForm({
     model: props.settings.model || '',
     enabled: props.settings.enabled,
     api_key: '',
-    gemini_email: props.settings.gemini_email || '',
-    gemini_password: '',
 });
 
 const currentModels = computed(() => PROVIDERS.find((p) => p.value === form.provider)?.models ?? []);
@@ -75,7 +74,7 @@ const label = 'mb-1 block text-xs font-medium uppercase tracking-wide text-slate
 function submit() {
     form.post(route('configuracion.ia.update'), {
         preserveScroll: true,
-        onSuccess: () => form.reset('api_key', 'gemini_password'),
+        onSuccess: () => form.reset('api_key'),
     });
 }
 
@@ -102,7 +101,7 @@ async function testConnection() {
         const data = await res.json();
         testResult.value = { ok: !!data.ok, message: data.message ?? '' };
     } catch {
-        testResult.value = { ok: false, message: 'No se pudo realizar la prueba de conexión.' };
+        testResult.value = { ok: false, message: t('ai.test_failed') };
     } finally {
         testing.value = false;
     }
@@ -112,72 +111,55 @@ async function testConnection() {
 <template>
     <ConfigLayout section="ia">
         <div class="mb-5">
-            <h2 class="text-lg font-semibold">Inteligencia Artificial</h2>
-            <p class="text-sm text-slate-500">Proveedor y credenciales del API de IA para el informe presidencial y las alertas predictivas.</p>
+            <h2 class="text-lg font-semibold">{{ t('ai.title') }}</h2>
+            <p class="text-sm text-slate-500">{{ t('ai.subtitle') }}</p>
         </div>
 
         <form class="max-w-2xl" @submit.prevent="submit">
             <div class="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-800">
                 <div class="flex items-center gap-2 text-brand">
                     <Sparkles class="h-5 w-5" />
-                    <h2 class="text-sm font-semibold">Proveedor de IA</h2>
+                    <h2 class="text-sm font-semibold">{{ t('ai.provider_section') }}</h2>
                 </div>
 
                 <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <div>
-                        <label :class="label">Proveedor</label>
+                        <label :class="label">{{ t('ai.provider_label') }}</label>
                         <select v-model="form.provider" :class="input">
                             <option v-for="p in PROVIDERS" :key="p.value" :value="p.value">{{ p.label }}</option>
                         </select>
                         <p v-if="form.errors.provider" class="mt-1 text-xs text-red-600">{{ form.errors.provider }}</p>
                     </div>
                     <div>
-                        <label :class="label">Modelo</label>
+                        <label :class="label">{{ t('ai.model_label') }}</label>
                         <select v-model="form.model" :class="input">
                             <option v-for="m in currentModels" :key="m.value" :value="m.value">{{ m.label }}</option>
                         </select>
-                        <p class="mt-1 text-xs text-slate-400">Modelos disponibles del proveedor seleccionado.</p>
+                        <p class="mt-1 text-xs text-slate-400">{{ t('ai.models_hint') }}</p>
                         <p v-if="form.errors.model" class="mt-1 text-xs text-red-600">{{ form.errors.model }}</p>
                     </div>
                 </div>
 
-                <!-- Credenciales de Google Gemini (correo y contraseña) -->
-                <div v-if="form.provider === 'gemini'" class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    <div>
-                        <label :class="label">Correo</label>
-                        <input v-model="form.gemini_email" type="email" autocomplete="off" :class="input" placeholder="correo@dominio" />
-                        <p v-if="form.errors.gemini_email" class="mt-1 text-xs text-red-600">{{ form.errors.gemini_email }}</p>
-                    </div>
-                    <div>
-                        <label :class="label">Contraseña</label>
-                        <input
-                            v-model="form.gemini_password" type="password" autocomplete="off" :class="input"
-                            :placeholder="settings.has_gemini_password ? '•••••••• (guardada — escribe para reemplazar)' : ''"
-                        />
-                        <p v-if="form.errors.gemini_password" class="mt-1 text-xs text-red-600">{{ form.errors.gemini_password }}</p>
-                    </div>
-                </div>
-
                 <div class="mt-4">
-                    <label :class="label">Clave del API</label>
+                    <label :class="label">{{ t('ai.api_key_label') }}</label>
                     <div class="flex items-center gap-2 rounded-lg border border-slate-300 bg-slate-50 px-3 focus-within:border-brand focus-within:bg-white dark:border-slate-600 dark:bg-slate-900">
                         <KeyRound class="h-4 w-4 text-slate-400" />
                         <input
                             v-model="form.api_key" type="password" autocomplete="off"
                             class="w-full bg-transparent py-2 text-sm outline-none"
-                            :placeholder="settings.has_key ? '•••••••• (clave guardada — escribe para reemplazar)' : 'Pega aquí la clave del API'"
+                            :placeholder="settings.has_key ? t('ai.api_key_placeholder_saved') : t('ai.api_key_placeholder_empty')"
                         />
                     </div>
                     <p class="mt-1 flex items-center gap-1 text-xs" :class="settings.has_key ? 'text-teal-600' : 'text-slate-400'">
                         <CheckCircle2 v-if="settings.has_key" class="h-3.5 w-3.5" />
-                        {{ settings.has_key ? 'Hay una clave configurada. Se conserva si dejas el campo vacío.' : 'Aún no hay clave configurada.' }}
+                        {{ settings.has_key ? t('ai.key_configured') : t('ai.key_not_configured') }}
                     </p>
                     <p v-if="form.errors.api_key" class="mt-1 text-xs text-red-600">{{ form.errors.api_key }}</p>
                 </div>
 
                 <label class="mt-4 flex items-center gap-2 text-sm">
                     <input v-model="form.enabled" type="checkbox" class="rounded border-slate-300 text-brand focus:ring-brand" />
-                    Habilitar generación con IA (informe presidencial)
+                    {{ t('ai.enable_ai') }}
                 </label>
             </div>
 
@@ -200,7 +182,7 @@ async function testConnection() {
                     :disabled="form.processing"
                     class="rounded-lg bg-brand px-5 py-2.5 text-sm font-medium text-white transition hover:opacity-90 disabled:opacity-50"
                 >
-                    {{ form.processing ? 'Guardando…' : 'Guardar configuración' }}
+                    {{ form.processing ? t('ai.saving') : t('ai.save_config') }}
                 </button>
                 <button
                     type="button"
@@ -210,7 +192,7 @@ async function testConnection() {
                 >
                     <Loader2 v-if="testing" class="h-4 w-4 animate-spin" />
                     <Plug v-else class="h-4 w-4" />
-                    {{ testing ? 'Probando…' : 'Probar conexión' }}
+                    {{ testing ? t('ai.testing') : t('ai.test_connection') }}
                 </button>
             </div>
         </form>

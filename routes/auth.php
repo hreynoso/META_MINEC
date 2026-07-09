@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\DemoLoginController;
+use App\Http\Controllers\Auth\DeviceSessionController;
 use App\Http\Controllers\Auth\GoogleController;
 use App\Http\Controllers\Auth\LocalAdminController;
 use App\Http\Controllers\Auth\LoginController;
@@ -17,6 +18,13 @@ Route::middleware('guest')->group(function () {
 
     // Acceso local exclusivo de la cuenta Super Admin (break-glass)
     Route::post('/acceso-administrativo', [LocalAdminController::class, 'store'])->name('local-admin.login');
+});
+
+// Aviso "sesión activa en otro dispositivo" (un solo dispositivo por usuario).
+Route::middleware('auth')->group(function () {
+    Route::get('/sesion/conflicto', [DeviceSessionController::class, 'conflict'])->name('device.conflict');
+    Route::post('/sesion/conflicto/continuar', [DeviceSessionController::class, 'continueHere'])->name('device.conflict.continue');
+    Route::post('/sesion/conflicto/cancelar', [DeviceSessionController::class, 'cancel'])->name('device.conflict.cancel');
 });
 
 Route::post('/logout', [GoogleController::class, 'logout'])

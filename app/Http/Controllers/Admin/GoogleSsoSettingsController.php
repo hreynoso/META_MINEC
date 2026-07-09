@@ -51,6 +51,6 @@ class GoogleSsoSettingsController extends Controller
             Setting::put('sso.google.client_secret', $validated['client_secret']);
         }
 
-        return back()->with('success', 'Configuración de SSO de Google actualizada.');
+        return back()->with('success', __('messages.sso.updated'));
     }
 }

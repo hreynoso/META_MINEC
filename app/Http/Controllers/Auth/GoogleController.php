@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Support\DeviceSession;
 use App\Support\GoogleSso;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Laravel\Socialite\Facades\Socialite;
@@ -34,7 +36,7 @@ class GoogleController extends Controller
             $googleUser = Socialite::driver('google')->user();
         } catch (\Throwable $e) {
             return redirect()->route('login')
-                ->with('error', 'No fue posible autenticar con Google Workspace.');
+                ->with('error', __('messages.auth.google_failed'));
         }
 
         $email = $googleUser->getEmail();
@@ -44,7 +46,7 @@ class GoogleController extends Controller
         $domain = config('services.google.hosted_domain');
         if ($domain && ! Str::endsWith(Str::lower((string) $email), '@'.Str::lower($domain))) {
             return redirect()->route('login')
-                ->with('error', 'Solo se permite el acceso con cuentas de '.$domain.'.');
+                ->with('error', __('messages.auth.google_domain_only', ['domain' => $domain]));
         }
 
         $user = User::updateOrCreate(
@@ -57,7 +59,7 @@ class GoogleController extends Controller
 
         if ($user->isBlocked()) {
             return redirect()->route('login')
-                ->with('error', 'Su cuenta ha sido bloqueada. Contacte al administrador.');
+                ->with('error', __('messages.auth.account_blocked'));
         }
 
         // Genera password aleatoria si el registro es nuevo (SSO puro; nunca se usa)
@@ -66,15 +68,27 @@ class GoogleController extends Controller
         }
 
         Auth::login($user, remember: true);
+        request()->session()->regenerate();
+
+        // Un solo dispositivo: si ya hay otra sesión activa, pide confirmación.
+        if ($redirect = DeviceSession::resolveLogin(request(), $user)) {
+            return $redirect;
+        }
 
         return redirect()->intended(route('dashboard'));
     }
 
-    public function logout(): RedirectResponse
+    public function logout(Request $request): RedirectResponse
     {
+        // Libera la propiedad del dispositivo solo si esta era la sesión dueña.
+        if (($user = $request->user())
+            && $user->current_session_id === $request->session()->getId()) {
+            DeviceSession::release($user);
+        }
+
         Auth::logout();
-        request()->session()->invalidate();
-        request()->session()->regenerateToken();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
 
         return redirect()->route('login');
     }

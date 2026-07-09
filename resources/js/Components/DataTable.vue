@@ -1,9 +1,12 @@
 <script setup lang="ts" generic="T extends Record<string, any>">
 import { ref, computed, toRef } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { Columns3, FileSpreadsheet, Filter, Search } from 'lucide-vue-next';
 import SortableTh from '@/Components/SortableTh.vue';
 import { useSortable } from '@/Composables/useSortable';
 import { useTokenSearch } from '@/Composables/useTokenSearch';
+
+const { t } = useI18n({ useScope: 'global' });
 
 const props = defineProps<{
     rows: T[];
@@ -26,18 +29,18 @@ const visible = computed(() => (sorted.value as T[]).slice(0, pageSize.value));
     <div class="rounded-xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800">
         <!-- Toolbar uniforme -->
         <div class="flex flex-wrap items-center gap-2 border-b border-slate-200 p-3 dark:border-slate-700">
-            <button class="tbtn"><Columns3 class="h-4 w-4" /> Columnas</button>
-            <button class="tbtn" @click="emit('export')"><FileSpreadsheet class="h-4 w-4" /> XLSX</button>
+            <button class="tbtn"><Columns3 class="h-4 w-4" /> {{ t('grid.columns') }}</button>
+            <button class="tbtn" @click="emit('export')"><FileSpreadsheet class="h-4 w-4" /> {{ t('grid.export_xlsx') }}</button>
             <select v-model.number="pageSize" class="tbtn">
-                <option :value="10">Mostrar 10</option>
-                <option :value="25">Mostrar 25</option>
-                <option :value="50">Mostrar 50</option>
-                <option :value="100">Mostrar 100</option>
+                <option :value="10">{{ t('grid.show') }} 10</option>
+                <option :value="25">{{ t('grid.show') }} 25</option>
+                <option :value="50">{{ t('grid.show') }} 50</option>
+                <option :value="100">{{ t('grid.show') }} 100</option>
             </select>
-            <button class="tbtn"><Filter class="h-4 w-4" /> Filtros</button>
+            <button class="tbtn"><Filter class="h-4 w-4" /> {{ t('grid.filters') }}</button>
             <div class="ml-auto flex items-center gap-2 rounded-lg border border-slate-300 px-2 dark:border-slate-600">
                 <Search class="h-4 w-4 opacity-50" />
-                <input v-model="query" type="text" placeholder="Buscar..." class="bg-transparent py-1.5 text-sm outline-none" />
+                <input v-model="query" type="text" :placeholder="t('grid.search')" class="bg-transparent py-1.5 text-sm outline-none" />
             </div>
         </div>
 
@@ -60,7 +63,7 @@ const visible = computed(() => (sorted.value as T[]).slice(0, pageSize.value));
                     <td v-for="c in columns" :key="c.key" class="px-3 py-2 text-sm">{{ row[c.key] }}</td>
                 </tr>
                 <tr v-if="visible.length === 0">
-                    <td :colspan="columns.length" class="px-3 py-6 text-center text-sm text-slate-400">Sin registros</td>
+                    <td :colspan="columns.length" class="px-3 py-6 text-center text-sm text-slate-400">{{ t('grid.empty') }}</td>
                 </tr>
             </tbody>
         </table>

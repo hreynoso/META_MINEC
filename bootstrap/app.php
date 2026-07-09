@@ -1,9 +1,11 @@
 <?php
 
+use App\Http\Middleware\EnforceSingleDevice;
 use App\Http\Middleware\EnforceSystemLock;
 use App\Http\Middleware\EnsureUserIsNotBlocked;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\SecurityHeaders;
+use App\Http\Middleware\SetLocale;
 use App\Http\Middleware\TrackActivity;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -30,8 +32,10 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->trustProxies(at: '*');
 
         $middleware->web(append: [
+            SetLocale::class,              // idioma del sistema (Configuración → Idioma)
             HandleInertiaRequests::class,
             EnsureUserIsNotBlocked::class,
+            EnforceSingleDevice::class,    // un solo dispositivo activo por usuario
             EnforceSystemLock::class,      // "modo mantenimiento" controlado por Setting
             TrackActivity::class,          // marca de última actividad (usuarios conectados)
             SecurityHeaders::class,

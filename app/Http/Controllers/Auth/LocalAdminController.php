@@ -53,19 +53,24 @@ class LocalAdminController extends Controller
             RateLimiter::hit($this->throttleKey($request), self::DECAY_SECONDS);
 
             throw ValidationException::withMessages([
-                'email' => 'Credenciales no válidas para el acceso local.',
+                'email' => __('messages.auth.invalid_local_credentials'),
             ]);
         }
 
         if ($user->isBlocked()) {
             throw ValidationException::withMessages([
-                'email' => 'La cuenta está bloqueada. Contacte al administrador.',
+                'email' => __('messages.auth.account_blocked'),
             ]);
         }
 
         RateLimiter::clear($this->throttleKey($request));
         Auth::login($user, remember: true);
         $request->session()->regenerate();
+
+        // Un solo dispositivo: si ya hay otra sesión activa, pide confirmación.
+        if ($redirect = \App\Support\DeviceSession::resolveLogin($request, $user)) {
+            return $redirect;
+        }
 
         return redirect()->intended(route('dashboard'));
     }
@@ -82,7 +87,7 @@ class LocalAdminController extends Controller
         $seconds = RateLimiter::availableIn($this->throttleKey($request));
 
         throw ValidationException::withMessages([
-            'email' => "Demasiados intentos fallidos. Intente de nuevo en {$seconds} segundos.",
+            'email' => __('messages.auth.too_many_attempts', ['seconds' => $seconds]),
         ]);
     }
 

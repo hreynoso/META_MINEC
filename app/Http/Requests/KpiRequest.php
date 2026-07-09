@@ -40,20 +40,6 @@ class KpiRequest extends FormRequest
         ];
     }
 
-    /**
-     * @return array<string, string>
-     */
-    public function attributes(): array
-    {
-        return [
-            'key' => 'clave',
-            'label' => 'nombre del indicador',
-            'value' => 'valor',
-            'unit' => 'unidad',
-            'target' => 'meta',
-            'trend' => 'tendencia',
-            'strategic' => 'estratégico',
-            'sort' => 'orden',
-        ];
-    }
+    // Los nombres de campo (attributes) se resuelven por idioma desde
+    // lang/{es,en}/validation.php para respetar el idioma del sistema.
 }

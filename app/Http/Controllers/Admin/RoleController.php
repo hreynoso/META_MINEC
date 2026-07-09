@@ -56,7 +56,7 @@ class RoleController extends Controller
         $role = Role::findOrCreate($data['name'], 'web');
         $role->syncPermissions($data['permissions'] ?? []);
 
-        return back()->with('success', 'Rol creado correctamente.');
+        return back()->with('success', __('messages.role.created'));
     }
 
     public function update(Request $request, Role $role): RedirectResponse
@@ -67,18 +67,18 @@ class RoleController extends Controller
         $role->save();
         $role->syncPermissions($data['permissions'] ?? []);
 
-        return back()->with('success', 'Rol actualizado correctamente.');
+        return back()->with('success', __('messages.role.updated'));
     }
 
     public function destroy(Role $role): RedirectResponse
     {
         if (in_array($role->name, ['Super Admin', 'Administrador'], true)) {
-            return back()->with('error', "El rol {$role->name} no se puede eliminar.");
+            return back()->with('error', __('messages.role.cannot_delete', ['name' => $role->name]));
         }
 
         $role->delete();
 
-        return back()->with('success', 'Rol eliminado correctamente.');
+        return back()->with('success', __('messages.role.deleted'));
     }
 
     private function ensurePermissions(): void
