@@ -29,6 +29,8 @@ class DemoLoginController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
+        // SSO solo Google: sin login local mientras sso_only esté activo.
+        abort_if((bool) config('security.sso_only'), 404);
         abort_unless((bool) config('security.demo_login'), 404);
 
         $credentials = $request->validate([

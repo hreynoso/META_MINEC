@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use App\Support\SheetExport;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -36,7 +37,7 @@ class LogController extends Controller
             ->map(fn (Activity $a) => [
                 'id' => $a->id,
                 'datetime' => $a->created_at?->format('d/m/Y h:i A'),
-                'user' => $a->causer?->name ?? 'Sistema',
+                'user' => $this->causerName($a),
                 'action' => self::EVENT[$a->event] ?? ($a->description ?: '—'),
                 'section' => $this->section($a),
                 'detail' => $this->detail($a),
@@ -50,13 +51,40 @@ class LogController extends Controller
         $rows = Activity::with('causer')->latest()->limit(2000)->get()
             ->map(fn (Activity $a) => [
                 $a->created_at?->format('d/m/Y h:i A'),
-                $a->causer?->name ?? 'Sistema',
+                $this->causerName($a),
                 self::EVENT[$a->event] ?? ($a->description ?: '—'),
                 $this->section($a),
                 $this->detail($a),
             ])->all();
 
         return SheetExport::stream('logs-sistema', ['Fecha y hora', 'Usuario', 'Acción', 'Sección', 'Detalle'], $rows);
+    }
+
+    /** Cache de correo → nombre para no repetir consultas en listados largos. */
+    private static array $nameByEmail = [];
+
+    /**
+     * Nombres y apellidos del actor. En eventos de acceso el causer suele venir
+     * vacío (intentos fallidos, bloqueos), así que se resuelve por el correo
+     * registrado en las propiedades del evento.
+     */
+    private function causerName(Activity $a): string
+    {
+        if (filled($a->causer?->name)) {
+            return $a->causer->name;
+        }
+
+        $email = $a->properties->get('email');
+
+        if (filled($email)) {
+            if (! array_key_exists($email, self::$nameByEmail)) {
+                self::$nameByEmail[$email] = User::where('email', $email)->value('name');
+            }
+
+            return self::$nameByEmail[$email] ?? $email;
+        }
+
+        return 'Sistema';
     }
 
     private function section(Activity $a): string

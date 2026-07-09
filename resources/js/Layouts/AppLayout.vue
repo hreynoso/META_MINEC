@@ -63,7 +63,7 @@ function isActive(name: string | null): boolean {
             <!-- Sidebar fijo: no se desplaza con el scroll del contenido -->
             <aside
                 v-if="sidebarOpen"
-                class="relative flex h-screen w-64 shrink-0 flex-col overflow-y-auto bg-shell text-slate-300"
+                class="relative flex h-screen w-64 shrink-0 flex-col overflow-y-auto overflow-x-hidden bg-shell text-slate-300"
             >
                 <!-- Botón circular de colapso (estilo SED), sobre el borde derecho -->
                 <button
@@ -73,15 +73,15 @@ function isActive(name: string | null): boolean {
                 >
                     <ChevronLeft class="h-4 w-4" />
                 </button>
-                <!-- Logo institucional a todo el ancho del sidebar -->
-                <div v-if="logoSidebar" class="px-3 py-4">
+                <!-- Logo institucional (enlaza al Dashboard) -->
+                <Link v-if="logoSidebar" :href="route('dashboard')" class="block px-3 py-4" title="Ir al Dashboard">
                     <img
                         :src="logoSidebar"
                         alt="Logo institucional"
                         class="h-auto w-full object-contain"
                     />
-                </div>
-                <div v-else class="flex items-center gap-3 px-5 py-4">
+                </Link>
+                <Link v-else :href="route('dashboard')" class="flex items-center gap-3 px-5 py-4" title="Ir al Dashboard">
                     <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-brand/20 text-brand">
                         <LayoutDashboard class="h-5 w-5" />
                     </div>
@@ -89,7 +89,7 @@ function isActive(name: string | null): boolean {
                         <p class="text-sm font-semibold text-white">Sistema META</p>
                         <p class="text-[11px] text-slate-400">MINEC · El Salvador</p>
                     </div>
-                </div>
+                </Link>
 
                 <nav class="mt-2 flex-1 space-y-1 px-3">
                     <template v-for="item in nav" :key="item.label">

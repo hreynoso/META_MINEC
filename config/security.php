@@ -1,11 +1,14 @@
 <?php
 
 return [
-    // A.9.4.2 se cubre con SSO institucional; NO se implementa 2FA/TOTP.
-    'sso_only' => true,
+    // Autenticación exclusiva por SSO Google Workspace. A.9.4.2 se cubre con el
+    // SSO institucional; NO se implementa 2FA/TOTP ni login local. Con esto
+    // activo, el único método de acceso es "Iniciar sesión con Google".
+    'sso_only' => (bool) env('SECURITY_SSO_ONLY', true),
 
-    // Acceso temporal de demo (correo+contraseña). Apagar en producción con SSO.
-    'demo_login' => (bool) env('DEMO_LOGIN_ENABLED', false),
+    // Acceso temporal de demo (correo+contraseña). Queda deshabilitado siempre
+    // que sso_only esté activo (SSO solo Google).
+    'demo_login' => ! (bool) env('SECURITY_SSO_ONLY', true) && (bool) env('DEMO_LOGIN_ENABLED', false),
 
     // Historial de contrasenas (PasswordHistory)
     'password_history' => [

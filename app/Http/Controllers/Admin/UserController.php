@@ -57,6 +57,10 @@ class UserController extends Controller
     {
         $data = $this->validateUser($request);
 
+        if ($this->grantsAdminRole($request, $data, null)) {
+            return back()->with('error', 'Solo un usuario con el rol Administrador puede asignar el rol Administrador.');
+        }
+
         $user = User::create([
             'name' => $data['name'],
             'email' => $data['email'],
@@ -73,6 +77,10 @@ class UserController extends Controller
     public function update(Request $request, User $user): RedirectResponse
     {
         $data = $this->validateUser($request, $user);
+
+        if ($this->grantsAdminRole($request, $data, $user)) {
+            return back()->with('error', 'Solo un usuario con el rol Administrador puede asignar el rol Administrador.');
+        }
 
         $user->fill([
             'name' => $data['name'],
@@ -100,6 +108,20 @@ class UserController extends Controller
         $user->delete();
 
         return back()->with('success', 'Usuario eliminado correctamente.');
+    }
+
+    /**
+     * ¿La operación intenta OTORGAR el rol Administrador sin que el usuario que
+     * la ejecuta lo tenga? Solo un Administrador puede conceder ese rol.
+     *
+     * @param  array<string, mixed>  $data
+     */
+    private function grantsAdminRole(Request $request, array $data, ?User $user): bool
+    {
+        $wantsAdmin = in_array('Administrador', $data['roles'] ?? [], true);
+        $alreadyAdmin = $user?->hasRole('Administrador') ?? false;
+
+        return $wantsAdmin && ! $alreadyAdmin && ! $request->user()->hasRole('Administrador');
     }
 
     /**
