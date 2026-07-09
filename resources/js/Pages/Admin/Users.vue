@@ -185,7 +185,7 @@ function confirmDelete(u: User) {
                 <form class="mt-5 space-y-4" @submit.prevent="submit">
                     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <div>
-                            <label :class="label">Nombre <span class="text-red-600">*</span></label>
+                            <label :class="label">Nombres y Apellidos <span class="text-red-600">*</span></label>
                             <input v-model="form.name" :class="input" />
                             <p v-if="form.errors.name" class="mt-1 text-xs text-red-600">{{ form.errors.name }}</p>
                         </div>
