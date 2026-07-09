@@ -40,6 +40,7 @@ class DashboardController extends Controller
             ->orderBy('name')
             ->get()
             ->map(fn (PresidentialGoal $g) => [
+                'id' => $g->id,
                 'name' => $g->name,
                 'count' => $g->projects_count,
             ]);

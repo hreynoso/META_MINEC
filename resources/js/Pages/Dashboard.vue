@@ -9,7 +9,7 @@ defineProps<{
         completed: number; beneficiaries: number; alert: number;
     };
     strategicKpis: { label: string; value: number; unit: string; target: number; achievement: number; trend: string }[];
-    goals: { name: string; count: number }[];
+    goals: { id: number; name: string; count: number }[];
     portfolio: { code: string; name: string; institution: string; status: string; progress: number }[];
 }>();
 
@@ -93,9 +93,15 @@ const trendIcon = (t: string) => (t === 'up' ? TrendingUp : t === 'down' ? Trend
             <section class="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-800">
                 <h2 class="mb-4 text-sm font-semibold uppercase tracking-wide text-slate-500">Metas presidenciales</h2>
                 <ul class="space-y-2">
-                    <li v-for="g in goals" :key="g.name" class="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2 text-sm dark:bg-slate-700/40">
-                        <span>{{ g.name }}</span>
-                        <span class="flex h-6 w-6 items-center justify-center rounded-full bg-brand text-xs font-semibold text-white">{{ g.count }}</span>
+                    <li v-for="g in goals" :key="g.id">
+                        <a
+                            :href="route('proyectos.index', { meta: g.id })"
+                            class="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2 text-sm transition hover:bg-slate-100 dark:bg-slate-700/40 dark:hover:bg-slate-700"
+                            :title="`Ver proyectos de: ${g.name}`"
+                        >
+                            <span>{{ g.name }}</span>
+                            <span class="flex h-6 w-6 items-center justify-center rounded-full bg-brand text-xs font-semibold text-white">{{ g.count }}</span>
+                        </a>
                     </li>
                 </ul>
             </section>

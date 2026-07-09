@@ -2,7 +2,7 @@
 import { ref, computed } from 'vue';
 import { router } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
-import { Search, Download, Upload, Plus, X, MapPin, Building2, Pencil, Trash2, Users } from 'lucide-vue-next';
+import { Search, Download, Upload, Plus, X, MapPin, Building2, Pencil, Trash2, Users, Target } from 'lucide-vue-next';
 import { matchesAllTokens } from '@/Composables/useTokenSearch';
 import { useConfirm } from '@/Composables/useConfirm';
 import ProjectFormModal from '@/Components/ProjectFormModal.vue';
@@ -30,13 +30,16 @@ const props = defineProps<{
 // desde las tarjetas del dashboard:
 //   ?status=en_riesgo|en_ejecucion  -> preselecciona el estado
 //   ?beneficiarios=1                -> solo proyectos que aportan beneficiarios
+//   ?meta=<id>                      -> proyectos de una meta presidencial
 const urlParams = new URLSearchParams(window.location.search);
 const initialStatus = urlParams.get('status') ?? '';
+const initialMeta = Number(urlParams.get('meta')) || null;
 
 const q = ref('');
 const institution = ref('');
 const status = ref(STATUS_OPTIONS.some((s) => s.value === initialStatus) ? initialStatus : '');
 const onlyBeneficiaries = ref(urlParams.get('beneficiarios') === '1');
+const goalFilter = ref<number | null>(props.goals.some((g) => g.id === initialMeta) ? initialMeta : null);
 const selected = ref<Project | null>(null);
 
 // Modal de crear/editar: null = cerrado; se distingue crear (editing === null) de editar.
@@ -79,6 +82,7 @@ const filtered = computed(() => {
     const list = props.projects.filter((p) => {
         if (institution.value && p.institution !== institution.value) return false;
         if (status.value && p.status !== status.value) return false;
+        if (goalFilter.value && p.presidential_goal_id !== goalFilter.value) return false;
         if (onlyBeneficiaries.value && !(p.beneficiaries > 0)) return false;
         if (q.value.trim()) {
             const hay = `${p.code} ${p.name} ${p.responsible ?? ''}`;
@@ -99,6 +103,9 @@ const filtered = computed(() => {
 const beneficiariesTotal = computed(() =>
     filtered.value.reduce((sum, p) => sum + (p.beneficiaries || 0), 0),
 );
+
+// Nombre de la meta presidencial activa (para el chip del filtro).
+const goalName = computed(() => props.goals.find((g) => g.id === goalFilter.value)?.name ?? '');
 </script>
 
 <template>
@@ -124,6 +131,15 @@ const beneficiariesTotal = computed(() =>
         <!-- Toolbar de filtros -->
         <div class="mb-4 flex flex-wrap items-center gap-3">
             <p class="text-sm text-slate-500">{{ filtered.length }} proyecto(s)</p>
+            <button
+                v-if="goalFilter"
+                type="button"
+                class="inline-flex items-center gap-1.5 rounded-full bg-brand/10 px-3 py-1 text-xs font-medium text-brand hover:bg-brand/20"
+                @click="goalFilter = null"
+            >
+                <Target class="h-3 w-3" /> {{ goalName }}
+                <X class="h-3 w-3" />
+            </button>
             <button
                 v-if="onlyBeneficiaries"
                 type="button"
