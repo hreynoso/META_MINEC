@@ -14,6 +14,7 @@ use App\Http\Controllers\MemoirController;
 use App\Http\Controllers\MinisterController;
 use App\Http\Controllers\NetworkController;
 use App\Http\Controllers\PredictiveController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SessionController;
@@ -94,6 +95,9 @@ Route::middleware(['auth'])->group(function () {
     // Configuración → Inteligencia Artificial (proveedor, clave del API, modelo)
     Route::get('/configuracion/ia', [AiSettingsController::class, 'edit'])->name('configuracion.ia.edit');
     Route::post('/configuracion/ia', [AiSettingsController::class, 'update'])->name('configuracion.ia.update');
+
+    // Perfil del usuario (cambio de foto de perfil)
+    Route::post('/perfil/foto', [ProfileController::class, 'updatePhoto'])->name('perfil.foto.update');
 
     // Keep-alive de sesion (cada 15 min desde el cliente)
     Route::post('/keep-alive', [SessionController::class, 'keepAlive'])->name('keep-alive');

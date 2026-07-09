@@ -4,6 +4,7 @@ import { Link, usePage } from '@inertiajs/vue3';
 import Toast from 'primevue/toast';
 import { useToast } from 'primevue/usetoast';
 import ConfirmDialog from '@/Components/ConfirmDialog.vue';
+import ProfileModal from '@/Components/ProfileModal.vue';
 import {
     LayoutDashboard, Crown, FolderKanban, Gauge, FileBarChart,
     Sparkles, BookText, MessagesSquare, Settings, LogOut, ChevronLeft, ChevronRight, ScrollText,
@@ -11,6 +12,12 @@ import {
 
 const page = usePage();
 const sidebarOpen = ref(true);
+const profileOpen = ref(false);
+
+// Datos del usuario autenticado (compartidos por el backend).
+const authUser = computed(() => (page.props.auth as any)?.user ?? {});
+const authRoles = computed<string[]>(() => (page.props.auth as any)?.roles ?? []);
+const primaryRole = computed(() => authRoles.value[0] ?? 'Usuario');
 
 // Colores administrables (Configuración → Branding) aplicados como variables CSS.
 const colors = computed(() => (page.props.branding as any)?.colors ?? {});
@@ -141,15 +148,26 @@ function isActive(name: string | null): boolean {
                         </button>
                         <p class="text-lg font-bold tracking-tight text-slate-800 dark:text-slate-100">Sistema META</p>
                     </div>
-                    <div class="flex items-center gap-3">
+                    <button
+                        type="button"
+                        class="flex items-center gap-3 rounded-lg px-1.5 py-1 transition hover:bg-slate-100 dark:hover:bg-slate-700"
+                        title="Ver perfil del usuario"
+                        @click="profileOpen = true"
+                    >
                         <div class="text-right leading-tight">
-                            <p class="text-sm font-medium">{{ (page.props.auth as any)?.user?.name ?? 'Usuario' }}</p>
-                            <p class="text-xs text-slate-500">Administrador · MINEC</p>
+                            <p class="text-sm font-medium">{{ authUser.name ?? 'Usuario' }}</p>
+                            <p class="text-xs text-slate-500">{{ primaryRole }} · MINEC</p>
                         </div>
-                        <div class="flex h-9 w-9 items-center justify-center rounded-full bg-brand font-semibold text-white">
-                            {{ ((page.props.auth as any)?.user?.name ?? 'U').slice(0, 1) }}
+                        <img
+                            v-if="authUser.avatar"
+                            :src="authUser.avatar"
+                            alt="Foto de perfil"
+                            class="h-9 w-9 rounded-full object-cover"
+                        />
+                        <div v-else class="flex h-9 w-9 items-center justify-center rounded-full bg-brand font-semibold text-white">
+                            {{ (authUser.name ?? 'U').slice(0, 1) }}
                         </div>
-                    </div>
+                    </button>
                 </header>
 
                 <main class="flex-1 overflow-y-auto p-6">
@@ -161,6 +179,9 @@ function isActive(name: string | null): boolean {
                 </footer>
             </div>
         </div>
+
+        <!-- Perfil del usuario -->
+        <ProfileModal v-if="profileOpen" @close="profileOpen = false" />
 
         <!-- Servicios globales de UI: confirmaciones y toasts -->
         <ConfirmDialog />
