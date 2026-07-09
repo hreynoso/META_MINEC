@@ -17,7 +17,7 @@ class EnforceSystemLock
     {
         $locked = (bool) Setting::value(config('security.system_lock_setting_key'), false);
 
-        if ($locked && ! $request->user()?->hasRole('Administrador')) {
+        if ($locked && ! $request->user()?->hasAnyRole(['Super Admin', 'Administrador'])) {
             if ($request->expectsJson() || $request->header('X-Inertia')) {
                 abort(503, 'Sistema en mantenimiento.');
             }

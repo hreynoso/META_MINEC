@@ -10,6 +10,11 @@ return [
     // que sso_only esté activo (SSO solo Google).
     'demo_login' => ! (bool) env('SECURITY_SSO_ONLY', true) && (bool) env('DEMO_LOGIN_ENABLED', false),
 
+    // Acceso local de la cuenta Super Admin (break-glass). Es independiente del
+    // SSO: solo funciona para el usuario con rol "Super Admin". El resto de
+    // usuarios entra exclusivamente por Google.
+    'local_admin_login' => (bool) env('SECURITY_LOCAL_ADMIN_LOGIN', true),
+
     // Historial de contrasenas (PasswordHistory)
     'password_history' => [
         'enabled' => true,

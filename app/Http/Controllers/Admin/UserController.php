@@ -120,8 +120,9 @@ class UserController extends Controller
     {
         $wantsAdmin = in_array('Administrador', $data['roles'] ?? [], true);
         $alreadyAdmin = $user?->hasRole('Administrador') ?? false;
+        $canGrant = $request->user()->hasAnyRole(['Super Admin', 'Administrador']);
 
-        return $wantsAdmin && ! $alreadyAdmin && ! $request->user()->hasRole('Administrador');
+        return $wantsAdmin && ! $alreadyAdmin && ! $canGrant;
     }
 
     /**

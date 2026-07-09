@@ -44,7 +44,11 @@ watch(
 // Logo del sidebar administrable desde Configuración (null = usa el ícono).
 const logoSidebar = computed(() => (page.props.branding as any)?.assets?.logo_sidebar as string | undefined);
 
+// Acceso al área de administración (Configuración y Logs).
+const isAdmin = computed(() => authRoles.value.includes('Super Admin') || authRoles.value.includes('Administrador'));
+
 // route: nombre de ruta Ziggy si ya existe; null = módulo de fase posterior.
+// adminOnly: solo visible para Super Admin / Administrador.
 const nav = [
     { label: 'Dashboard', icon: LayoutDashboard, route: 'dashboard' },
     { label: 'Ministra', icon: Crown, route: 'ministra.index' },
@@ -54,9 +58,11 @@ const nav = [
     { label: 'IA Predictiva', icon: Sparkles, route: 'ia-predictiva.index' },
     { label: 'Memorias', icon: BookText, route: 'memorias.index' },
     { label: 'Red de Gestores', icon: MessagesSquare, route: 'red-gestores.index' },
-    { label: 'Logs del Sistema', icon: ScrollText, route: 'logs.index' },
-    { label: 'Configuración', icon: Settings, route: 'configuracion.edit' },
+    { label: 'Logs del Sistema', icon: ScrollText, route: 'logs.index', adminOnly: true },
+    { label: 'Configuración', icon: Settings, route: 'configuracion.edit', adminOnly: true },
 ];
+
+const visibleNav = computed(() => nav.filter((item) => !item.adminOnly || isAdmin.value));
 
 function isActive(name: string | null): boolean {
     if (!name) return false;
@@ -103,7 +109,7 @@ function isActive(name: string | null): boolean {
                 </Link>
 
                 <nav class="mt-2 flex-1 space-y-1 px-3">
-                    <template v-for="item in nav" :key="item.label">
+                    <template v-for="item in visibleNav" :key="item.label">
                         <Link
                             v-if="item.route"
                             :href="route(item.route)"

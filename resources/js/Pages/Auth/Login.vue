@@ -2,7 +2,7 @@
 import { useForm, usePage } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 
-defineProps<{ institution: string; demoEnabled: boolean }>();
+defineProps<{ institution: string; demoEnabled: boolean; localAdminEnabled: boolean }>();
 
 const page = usePage();
 const flashError = computed(() => (page.props.flash as any)?.error as string | undefined);
@@ -56,6 +56,14 @@ const form = useForm({ email: '', password: '' });
 
 function submitDemo() {
     form.post(route('demo.login'), { preserveScroll: true });
+}
+
+// Acceso local exclusivo de la cuenta Super Admin (break-glass).
+const showLocal = ref(false);
+const localForm = useForm({ email: '', password: '' });
+
+function submitLocal() {
+    localForm.post(route('local-admin.login'), { preserveScroll: true });
 }
 </script>
 
@@ -119,6 +127,43 @@ function submitDemo() {
                 >
                     Acceder
                 </button>
+            </div>
+
+            <!-- Acceso administrativo local (solo cuenta Super Admin) -->
+            <div v-if="localAdminEnabled" class="mt-6 border-t border-slate-200 pt-4 text-left">
+                <button
+                    type="button"
+                    class="mx-auto block text-xs text-slate-400 hover:text-slate-600"
+                    @click="showLocal = !showLocal"
+                >
+                    Acceso administrativo local
+                </button>
+
+                <div v-if="showLocal" class="mt-4">
+                    <p v-if="localForm.errors.email" class="mb-3 rounded-lg bg-red-50 px-3 py-2 text-center text-xs text-red-600">
+                        {{ localForm.errors.email }}
+                    </p>
+
+                    <label class="mb-1 block text-xs text-slate-500">Correo</label>
+                    <input
+                        v-model="localForm.email" type="email" autocomplete="username"
+                        class="mb-3 w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-800 outline-none focus:border-brand focus:bg-white"
+                        @keyup.enter="submitLocal"
+                    />
+                    <label class="mb-1 block text-xs text-slate-500">Contraseña</label>
+                    <input
+                        v-model="localForm.password" type="password" autocomplete="current-password"
+                        class="mb-4 w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-800 outline-none focus:border-brand focus:bg-white"
+                        @keyup.enter="submitLocal"
+                    />
+                    <button
+                        :disabled="localForm.processing"
+                        class="w-full rounded-lg bg-slate-800 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-900 disabled:opacity-50"
+                        @click="submitLocal"
+                    >
+                        Acceder como Super Admin
+                    </button>
+                </div>
             </div>
 
             <p class="mt-6 text-xs text-slate-400">

@@ -9,15 +9,20 @@ const props = defineProps<{ section: string }>();
 const page = usePage();
 const user = computed(() => (page.props.auth as any)?.user ?? {});
 const online = computed(() => (page.props.auth as any)?.online ?? 1);
+const roles = computed<string[]>(() => (page.props.auth as any)?.roles ?? []);
+const isSuperAdmin = computed(() => roles.value.includes('Super Admin'));
 
+// superOnly: secciones de máximo privilegio (solo Super Admin).
 const sections = [
     { key: 'branding', label: 'Branding', sub: 'Logos, imágenes y colores', icon: Palette, route: 'configuracion.edit' },
     { key: 'correo', label: 'Correo', sub: 'SMTP / Mailgun + prueba', icon: Mail, route: 'configuracion.correo.edit' },
-    { key: 'usuarios', label: 'Usuarios', sub: 'Usuarios del sistema', icon: Users, route: 'configuracion.usuarios.index' },
-    { key: 'roles', label: 'Roles y permisos', sub: 'Atributos de acceso', icon: ShieldCheck, route: 'configuracion.roles.index' },
+    { key: 'usuarios', label: 'Usuarios', sub: 'Usuarios del sistema', icon: Users, route: 'configuracion.usuarios.index', superOnly: true },
+    { key: 'roles', label: 'Roles y permisos', sub: 'Atributos de acceso', icon: ShieldCheck, route: 'configuracion.roles.index', superOnly: true },
     { key: 'notificaciones', label: 'Notificaciones', sub: 'Correos automáticos del sistema', icon: Bell, route: 'configuracion.notificaciones.edit' },
-    { key: 'ia', label: 'Inteligencia Artificial', sub: 'Proveedor y credenciales del API', icon: Sparkles, route: 'configuracion.ia.edit' },
+    { key: 'ia', label: 'Inteligencia Artificial', sub: 'Proveedor y credenciales del API', icon: Sparkles, route: 'configuracion.ia.edit', superOnly: true },
 ];
+
+const visibleSections = computed(() => sections.filter((s) => !s.superOnly || isSuperAdmin.value));
 
 const activeLabel = computed(() => sections.find((s) => s.key === props.section)?.label ?? 'Configuración');
 
@@ -78,7 +83,7 @@ onBeforeUnmount(() => { if (timer) window.clearInterval(timer); });
             <aside class="w-full shrink-0 lg:sticky lg:top-0 lg:w-72 lg:self-start">
                 <nav class="space-y-1 rounded-xl border border-slate-200 bg-white p-2 dark:border-slate-700 dark:bg-slate-800">
                     <Link
-                        v-for="s in sections" :key="s.key"
+                        v-for="s in visibleSections" :key="s.key"
                         :href="route(s.route)"
                         class="flex items-start gap-3 rounded-lg border-l-2 px-3 py-2.5 transition"
                         :class="s.key === section

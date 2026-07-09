@@ -60,6 +60,9 @@ COPY --chown=root:root docker/s6-overlay/s6-rc.d /etc/s6-overlay/s6-rc.d
 # La subida web de GitHub no conserva el bit de ejecucion: lo forzamos aqui.
 USER root
 RUN chmod +x /etc/s6-overlay/s6-rc.d/horizon/run
+# Sincronización de la cuenta local Super Admin (corre tras las migraciones)
+COPY --chown=root:root docker/entrypoint.d/98-superadmin.sh /etc/entrypoint.d/98-superadmin.sh
+RUN chmod +x /etc/entrypoint.d/98-superadmin.sh
 # Script de seed opcional (corre tras la migración de AUTORUN si el flag está activo)
 COPY --chown=root:root docker/entrypoint.d/99-seed.sh /etc/entrypoint.d/99-seed.sh
 RUN chmod +x /etc/entrypoint.d/99-seed.sh

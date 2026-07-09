@@ -61,40 +61,47 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/reportes/{report}/vista-previa', [ReportController::class, 'preview'])->name('reportes.preview');
     Route::get('/reportes/{report}/descargar', [ReportController::class, 'download'])->name('reportes.download');
 
-    // Logs del Sistema (bitácora de actividad)
-    Route::get('/logs/export', [LogController::class, 'export'])->name('logs.export');
-    Route::get('/logs', [LogController::class, 'index'])->name('logs.index');
+    // ── Área de administración: acceso privilegiado (ISO 27001 A.5.15 / A.8.2) ──
+    // Configuración general, correo, notificaciones y logs: Super Admin o Administrador.
+    Route::middleware('role:Super Admin|Administrador')->group(function () {
+        // Logs del Sistema (bitácora de actividad)
+        Route::get('/logs/export', [LogController::class, 'export'])->name('logs.export');
+        Route::get('/logs', [LogController::class, 'index'])->name('logs.index');
 
-    // Configuración → Branding (logos, imágenes y colores del sistema)
-    Route::get('/configuracion', [BrandingController::class, 'edit'])->name('configuracion.edit');
-    Route::post('/configuracion/branding', [BrandingController::class, 'update'])->name('configuracion.branding.update');
-    Route::post('/configuracion/branding/colores', [BrandingController::class, 'updateColors'])->name('configuracion.branding.colors');
+        // Configuración → Branding (logos, imágenes y colores del sistema)
+        Route::get('/configuracion', [BrandingController::class, 'edit'])->name('configuracion.edit');
+        Route::post('/configuracion/branding', [BrandingController::class, 'update'])->name('configuracion.branding.update');
+        Route::post('/configuracion/branding/colores', [BrandingController::class, 'updateColors'])->name('configuracion.branding.colors');
 
-    // Configuración → Usuarios
-    Route::get('/configuracion/usuarios/export', [UserController::class, 'export'])->name('configuracion.usuarios.export');
-    Route::get('/configuracion/usuarios', [UserController::class, 'index'])->name('configuracion.usuarios.index');
-    Route::post('/configuracion/usuarios', [UserController::class, 'store'])->name('configuracion.usuarios.store');
-    Route::put('/configuracion/usuarios/{user}', [UserController::class, 'update'])->name('configuracion.usuarios.update');
-    Route::delete('/configuracion/usuarios/{user}', [UserController::class, 'destroy'])->name('configuracion.usuarios.destroy');
+        // Configuración → Correo (proveedor Mailgun/SMTP + envío de prueba)
+        Route::get('/configuracion/correo', [MailSettingsController::class, 'edit'])->name('configuracion.correo.edit');
+        Route::post('/configuracion/correo', [MailSettingsController::class, 'update'])->name('configuracion.correo.update');
+        Route::post('/configuracion/correo/prueba', [MailSettingsController::class, 'test'])->name('configuracion.correo.test');
 
-    // Configuración → Roles y permisos
-    Route::get('/configuracion/roles', [RoleController::class, 'index'])->name('configuracion.roles.index');
-    Route::post('/configuracion/roles', [RoleController::class, 'store'])->name('configuracion.roles.store');
-    Route::put('/configuracion/roles/{role}', [RoleController::class, 'update'])->name('configuracion.roles.update');
-    Route::delete('/configuracion/roles/{role}', [RoleController::class, 'destroy'])->name('configuracion.roles.destroy');
+        // Configuración → Notificaciones
+        Route::get('/configuracion/notificaciones', [NotificationSettingsController::class, 'edit'])->name('configuracion.notificaciones.edit');
+        Route::post('/configuracion/notificaciones', [NotificationSettingsController::class, 'update'])->name('configuracion.notificaciones.update');
+    });
 
-    // Configuración → Correo (proveedor Mailgun/SMTP + envío de prueba)
-    Route::get('/configuracion/correo', [MailSettingsController::class, 'edit'])->name('configuracion.correo.edit');
-    Route::post('/configuracion/correo', [MailSettingsController::class, 'update'])->name('configuracion.correo.update');
-    Route::post('/configuracion/correo/prueba', [MailSettingsController::class, 'test'])->name('configuracion.correo.test');
+    // ── Máximo privilegio: solo Super Admin (cuenta local break-glass) ──
+    Route::middleware('role:Super Admin')->group(function () {
+        // Configuración → Usuarios
+        Route::get('/configuracion/usuarios/export', [UserController::class, 'export'])->name('configuracion.usuarios.export');
+        Route::get('/configuracion/usuarios', [UserController::class, 'index'])->name('configuracion.usuarios.index');
+        Route::post('/configuracion/usuarios', [UserController::class, 'store'])->name('configuracion.usuarios.store');
+        Route::put('/configuracion/usuarios/{user}', [UserController::class, 'update'])->name('configuracion.usuarios.update');
+        Route::delete('/configuracion/usuarios/{user}', [UserController::class, 'destroy'])->name('configuracion.usuarios.destroy');
 
-    // Configuración → Notificaciones
-    Route::get('/configuracion/notificaciones', [NotificationSettingsController::class, 'edit'])->name('configuracion.notificaciones.edit');
-    Route::post('/configuracion/notificaciones', [NotificationSettingsController::class, 'update'])->name('configuracion.notificaciones.update');
+        // Configuración → Roles y permisos
+        Route::get('/configuracion/roles', [RoleController::class, 'index'])->name('configuracion.roles.index');
+        Route::post('/configuracion/roles', [RoleController::class, 'store'])->name('configuracion.roles.store');
+        Route::put('/configuracion/roles/{role}', [RoleController::class, 'update'])->name('configuracion.roles.update');
+        Route::delete('/configuracion/roles/{role}', [RoleController::class, 'destroy'])->name('configuracion.roles.destroy');
 
-    // Configuración → Inteligencia Artificial (proveedor, clave del API, modelo)
-    Route::get('/configuracion/ia', [AiSettingsController::class, 'edit'])->name('configuracion.ia.edit');
-    Route::post('/configuracion/ia', [AiSettingsController::class, 'update'])->name('configuracion.ia.update');
+        // Configuración → Inteligencia Artificial (proveedor, clave del API, modelo)
+        Route::get('/configuracion/ia', [AiSettingsController::class, 'edit'])->name('configuracion.ia.edit');
+        Route::post('/configuracion/ia', [AiSettingsController::class, 'update'])->name('configuracion.ia.update');
+    });
 
     // Perfil del usuario (cambio de foto de perfil)
     Route::post('/perfil/foto', [ProfileController::class, 'updatePhoto'])->name('perfil.foto.update');

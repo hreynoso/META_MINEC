@@ -72,8 +72,8 @@ class RoleController extends Controller
 
     public function destroy(Role $role): RedirectResponse
     {
-        if ($role->name === 'Administrador') {
-            return back()->with('error', 'El rol Administrador no se puede eliminar.');
+        if (in_array($role->name, ['Super Admin', 'Administrador'], true)) {
+            return back()->with('error', "El rol {$role->name} no se puede eliminar.");
         }
 
         $role->delete();
