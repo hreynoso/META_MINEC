@@ -38,6 +38,15 @@ async function loadHistory() {
 
 onMounted(loadHistory);
 
+// Dispara la descarga del PDF de una memoria sin salir de la página.
+function downloadMemoir(id: number) {
+    const a = document.createElement('a');
+    a.href = route('memorias.report', id);
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+}
+
 async function generate() {
     if (!institutionId.value || !periodo.value.trim()) return;
     loading.value = true;
@@ -62,7 +71,11 @@ async function generate() {
         draft.value = data.draft ?? '';
         message.value = data.message ?? null;
         currentGenerationId.value = data.generation?.id ?? null;
-        if (data.generation) await loadHistory();
+        if (data.generation) {
+            await loadHistory();
+            // Exporta automáticamente el PDF de la memoria al completar.
+            downloadMemoir(currentGenerationId.value!);
+        }
     } catch {
         message.value = 'No se pudo generar la memoria. Intenta de nuevo.';
     } finally {
