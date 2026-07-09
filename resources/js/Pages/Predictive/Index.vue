@@ -11,19 +11,20 @@ interface Prediction {
     physical_progress: number; financial_progress: number;
     risk: string; risk_label: string; status: string; status_label: string;
     score: number; expected: number | null; failing: boolean;
-    factors: string[]; recommendation: string;
+    factors: string[]; recommendation: string; last_generation: Generation | null;
 }
 
 const props = defineProps<{ ranking: Prediction[] }>();
 
-const selected = ref<Prediction | null>(props.ranking[0] ?? null);
-const recommendation = ref<string>(props.ranking[0]?.recommendation ?? '');
-const aiUsed = ref(false);
+const first = props.ranking[0] ?? null;
+const selected = ref<Prediction | null>(first);
+const recommendation = ref<string>(first?.last_generation?.recommendation ?? first?.recommendation ?? '');
+const aiUsed = ref(Boolean(first?.last_generation));
 const aiLoading = ref(false);
 const aiMessage = ref<string | null>(null);
 
 // Metadatos de la última generación con IA e historial por proyecto.
-const lastGeneration = ref<Generation | null>(null);
+const lastGeneration = ref<Generation | null>(first?.last_generation ?? null);
 const history = ref<HistoryItem[]>([]);
 const showHistory = ref(false);
 const historyLoading = ref(false);
@@ -31,10 +32,11 @@ const historyLoaded = ref(false);
 
 function select(p: Prediction) {
     selected.value = p;
-    recommendation.value = p.recommendation;
-    aiUsed.value = false;
+    // Muestra la última generación con IA si existe; si no, la del modelo.
+    recommendation.value = p.last_generation?.recommendation ?? p.recommendation;
+    aiUsed.value = Boolean(p.last_generation);
+    lastGeneration.value = p.last_generation ?? null;
     aiMessage.value = null;
-    lastGeneration.value = null;
     history.value = [];
     showHistory.value = false;
     historyLoaded.value = false;

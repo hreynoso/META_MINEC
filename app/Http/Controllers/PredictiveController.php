@@ -16,8 +16,25 @@ class PredictiveController extends Controller
 {
     public function index(PredictionService $pred): Response
     {
+        $ranking = $pred->ranking();
+
+        // Adjunta la última generación con IA de cada proyecto (una sola consulta).
+        $latest = AiRecommendation::with('user')
+            ->whereIn('project_id', array_column($ranking, 'id'))
+            ->latest()
+            ->get()
+            ->unique('project_id')
+            ->keyBy('project_id');
+
+        $ranking = array_map(function (array $item) use ($latest) {
+            $rec = $latest->get($item['id']);
+            $item['last_generation'] = $rec ? $this->formatGeneration($rec) : null;
+
+            return $item;
+        }, $ranking);
+
         return Inertia::render('Predictive/Index', [
-            'ranking' => $pred->ranking(),
+            'ranking' => $ranking,
         ]);
     }
 
