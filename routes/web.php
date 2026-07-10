@@ -5,8 +5,10 @@ use App\Http\Controllers\Admin\BrandingController;
 use App\Http\Controllers\Admin\GoogleSsoSettingsController;
 use App\Http\Controllers\Admin\LanguageSettingsController;
 use App\Http\Controllers\Admin\NotificationSettingsController;
+use App\Http\Controllers\Admin\SecurityController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\AupController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\KpiController;
 use App\Http\Controllers\Admin\MailSettingsController;
@@ -102,6 +104,9 @@ Route::middleware(['auth'])->group(function () {
         // Configuración → Idioma (español / inglés)
         Route::get('/configuracion/idioma', [LanguageSettingsController::class, 'edit'])->name('configuracion.idioma.edit');
         Route::post('/configuracion/idioma', [LanguageSettingsController::class, 'update'])->name('configuracion.idioma.update');
+
+        // Configuración → Seguridad (pruebas automatizadas / autoevaluación A.8.29)
+        Route::get('/configuracion/seguridad', [SecurityController::class, 'index'])->name('configuracion.seguridad');
     });
 
     // ── Máximo privilegio: solo Super Admin (cuenta local break-glass) ──
@@ -138,6 +143,9 @@ Route::middleware(['auth'])->group(function () {
 
     // Lista de usuarios conectados (modal del contador en Configuración)
     Route::get('/usuarios-conectados', [SessionController::class, 'connected'])->name('sesiones.conectadas');
+
+    // Aceptación del aviso de uso aceptable (A.5.10 / A.5.34)
+    Route::post('/aviso-uso/aceptar', [AupController::class, 'accept'])->name('aup.accept');
 });
 
 // Webhook público de Mailgun (sin auth ni CSRF; excluido en bootstrap/app.php).

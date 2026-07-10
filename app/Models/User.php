@@ -29,6 +29,8 @@ class User extends Authenticatable
         'current_session_ip',
         'current_session_agent',
         'current_session_active_at',
+        'aup_accepted_at',
+        'aup_accepted_version',
     ];
 
     protected $hidden = [
@@ -44,6 +46,7 @@ class User extends Authenticatable
             'last_seen_at' => 'datetime',
             'last_login_at' => 'datetime',
             'current_session_active_at' => 'datetime',
+            'aup_accepted_at' => 'datetime',
             'password' => 'hashed',
         ];
     }

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
-import { Link, usePage } from '@inertiajs/vue3';
+import { Link, useForm, usePage } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 import ConfirmDialog from '@/Components/ConfirmDialog.vue';
 import ProfileModal from '@/Components/ProfileModal.vue';
@@ -16,6 +16,16 @@ const { t } = useI18n({ useScope: 'global' });
 
 // Cierre de sesión por inactividad (A.8.9): aviso con cuenta regresiva.
 const { warning: idleWarning, secondsLeft: idleSeconds, stayConnected } = useIdleTimeout();
+
+// Aviso de uso aceptable (A.5.10/A.5.34): bloquea hasta aceptar en el 1er acceso.
+const needsAup = computed(() => Boolean((page.props.auth as any)?.needsAup));
+const aupPoints = ['aup.point_1', 'aup.point_2', 'aup.point_3', 'aup.point_4'];
+const aupForm = useForm({});
+const aupChecked = ref(false);
+function acceptAup() {
+    if (!aupChecked.value) return;
+    aupForm.post('/aviso-uso/aceptar', { preserveScroll: true, onSuccess: () => { aupChecked.value = false; } });
+}
 
 const page = usePage();
 const sidebarOpen = ref(true);
@@ -223,6 +233,49 @@ function isActive(name: string | null): boolean {
                             @click="stayConnected"
                         >
                             {{ t('session.stay_connected') }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </Teleport>
+
+        <!-- Aviso de uso aceptable y privacidad (A.5.10/A.5.34) — bloqueante -->
+        <Teleport to="body">
+            <div v-if="needsAup" class="fixed inset-0 z-[90] flex items-start justify-center overflow-y-auto bg-black/60 p-6">
+                <div class="mt-10 w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl dark:bg-slate-800">
+                    <h2 class="flex items-center gap-2 text-lg font-semibold">
+                        <ScrollText class="h-5 w-5 text-brand" /> {{ t('aup.title') }}
+                    </h2>
+                    <p class="mt-2 text-sm text-slate-600 dark:text-slate-300">{{ t('aup.intro') }}</p>
+
+                    <ul class="mt-4 max-h-64 space-y-2 overflow-y-auto rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">
+                        <li v-for="p in aupPoints" :key="p" class="flex gap-2">
+                            <span class="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-brand" />
+                            <span>{{ t(p) }}</span>
+                        </li>
+                    </ul>
+
+                    <label class="mt-4 flex items-start gap-2 text-sm">
+                        <input v-model="aupChecked" type="checkbox" class="mt-0.5 rounded border-slate-300 text-brand focus:ring-brand" />
+                        <span>{{ t('aup.checkbox') }}</span>
+                    </label>
+
+                    <div class="mt-6 flex justify-between gap-2">
+                        <Link
+                            href="/logout"
+                            method="post"
+                            as="button"
+                            class="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-700"
+                        >
+                            {{ t('aup.decline') }}
+                        </Link>
+                        <button
+                            type="button"
+                            :disabled="!aupChecked || aupForm.processing"
+                            class="rounded-lg bg-brand px-5 py-2 text-sm font-medium text-white shadow-sm transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+                            @click="acceptAup"
+                        >
+                            {{ t('aup.accept') }}
                         </button>
                     </div>
                 </div>

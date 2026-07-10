@@ -35,6 +35,44 @@
         "stay_connected": "Stay connected",
         "logout_now": "Sign out"
     },
+    "aup": {
+        "title": "Acceptable use and privacy notice",
+        "intro": "To access the META System you must read and accept the following usage terms and the processing of your data.",
+        "point_1": "You will use the system only for authorized institutional purposes of MINEC.",
+        "point_2": "You will protect your credentials and session; you will not share them with third parties.",
+        "point_3": "Your access and actions on data are recorded in the system log for security and audit purposes.",
+        "point_4": "Minimal personal data (name, institutional email and optional photo) is processed to operate the system, in line with the security policy.",
+        "checkbox": "I have read and accept the acceptable use notice and the processing of my data.",
+        "accept": "Accept and continue",
+        "decline": "Sign out"
+    },
+    "security": {
+        "title": "Automated security tests",
+        "subtitle": "Self-assessment of the system's security posture (ISO 27001 A.8.29).",
+        "rerun": "Run again",
+        "summary": "{ok} passing · {warn} warnings · {fail} critical",
+        "status": {
+            "ok": "OK",
+            "warn": "Warning",
+            "fail": "Critical",
+            "info": "Info"
+        },
+        "checks": {
+            "https": { "label": "Encryption in transit (HTTPS/HSTS)", "detail": "HSTS forces HTTPS in the browser." },
+            "csp": { "label": "Content-Security-Policy", "detail": "Mitigates XSS and content injection." },
+            "debug": { "label": "Debug mode disabled", "detail": "APP_DEBUG must be false in production." },
+            "sso_domain": { "label": "Restricted SSO domain", "detail": "Allowed domain: {domain}" },
+            "single_device": { "label": "Single session per user", "detail": "Prevents simultaneous sessions on multiple devices." },
+            "idle": { "label": "Idle timeout", "detail": "The session expires after {minutes} min of inactivity." },
+            "password": { "label": "Password policy", "detail": "At least {min} characters, with complexity and history." },
+            "aup": { "label": "Acceptable use notice", "detail": "Must be accepted on first access." },
+            "admins": { "label": "Administrative accounts", "detail": "{count} account(s) with an administrator role." },
+            "default_role": { "label": "Read-only default role", "detail": "New users receive the role: {role}" },
+            "backups": { "label": "Automated backups", "detail": "Daily database backup." },
+            "log_retention": { "label": "Log retention", "detail": "Kept for {days} days and purged daily." },
+            "accounts": { "label": "Account status", "detail": "{blocked} blocked · {dormant} with no access in 90+ days." }
+        }
+    },
     "actions": {
         "confirm": "Confirm",
         "cancel": "Cancel",
@@ -79,6 +117,8 @@
             "notificaciones_sub": "Automated system emails",
             "ia": "Artificial Intelligence",
             "ia_sub": "API provider and credentials",
+            "seguridad": "Security",
+            "seguridad_sub": "Automated security tests",
             "idioma": "Language",
             "idioma_sub": "Spanish and English"
         },

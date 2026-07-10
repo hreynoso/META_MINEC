@@ -3,7 +3,7 @@ import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { Link, usePage } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 import AppLayout from '@/Layouts/AppLayout.vue';
-import { Palette, Mail, Users, ShieldCheck, Bell, Sparkles, ChevronRight, KeyRound, X, RefreshCw, Languages } from 'lucide-vue-next';
+import { Palette, Mail, Users, ShieldCheck, Bell, Sparkles, ChevronRight, KeyRound, X, RefreshCw, Languages, Lock } from 'lucide-vue-next';
 
 interface ConnectedUser { id: number; name: string; email: string; avatar: string | null; initials: string; lastActive: string | null }
 
@@ -27,6 +27,7 @@ const sections = [
     { key: 'sso', icon: KeyRound, route: 'configuracion.sso.edit', superOnly: true },
     { key: 'notificaciones', icon: Bell, route: 'configuracion.notificaciones.edit' },
     { key: 'ia', icon: Sparkles, route: 'configuracion.ia.edit', superOnly: true },
+    { key: 'seguridad', icon: Lock, route: 'configuracion.seguridad' },
     { key: 'idioma', icon: Languages, route: 'configuracion.idioma.edit' },
 ];
 

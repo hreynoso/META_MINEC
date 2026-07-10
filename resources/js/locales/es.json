@@ -35,6 +35,44 @@
         "stay_connected": "Seguir conectado",
         "logout_now": "Cerrar sesión"
     },
+    "aup": {
+        "title": "Aviso de uso aceptable y privacidad",
+        "intro": "Para acceder al Sistema META debes leer y aceptar las siguientes condiciones de uso y el tratamiento de tus datos.",
+        "point_1": "Usarás el sistema únicamente para fines institucionales autorizados del MINEC.",
+        "point_2": "Protegerás tus credenciales y tu sesión; no las compartirás con terceros.",
+        "point_3": "Tus accesos y acciones sobre los datos quedan registrados en la bitácora del sistema con fines de seguridad y auditoría.",
+        "point_4": "Se tratan datos personales mínimos (nombre, correo institucional y foto opcional) para la operación del sistema, conforme a la política de seguridad.",
+        "checkbox": "He leído y acepto el aviso de uso aceptable y el tratamiento de mis datos.",
+        "accept": "Aceptar y continuar",
+        "decline": "Salir"
+    },
+    "security": {
+        "title": "Pruebas automatizadas de seguridad",
+        "subtitle": "Autoevaluación de la postura de seguridad del sistema (ISO 27001 A.8.29).",
+        "rerun": "Volver a ejecutar",
+        "summary": "{ok} correctas · {warn} advertencias · {fail} críticas",
+        "status": {
+            "ok": "Correcto",
+            "warn": "Advertencia",
+            "fail": "Crítico",
+            "info": "Informativo"
+        },
+        "checks": {
+            "https": { "label": "Cifrado en tránsito (HTTPS/HSTS)", "detail": "HSTS obliga a usar HTTPS en el navegador." },
+            "csp": { "label": "Content-Security-Policy", "detail": "Mitiga XSS e inyección de contenido." },
+            "debug": { "label": "Modo depuración desactivado", "detail": "APP_DEBUG debe estar en falso en producción." },
+            "sso_domain": { "label": "Dominio SSO restringido", "detail": "Dominio permitido: {domain}" },
+            "single_device": { "label": "Sesión única por usuario", "detail": "Impide sesiones simultáneas en varios equipos." },
+            "idle": { "label": "Cierre por inactividad", "detail": "La sesión expira tras {minutes} min sin actividad." },
+            "password": { "label": "Política de contraseñas", "detail": "Mínimo {min} caracteres, con complejidad e historial." },
+            "aup": { "label": "Aviso de uso aceptable", "detail": "Se exige aceptarlo en el primer acceso." },
+            "admins": { "label": "Cuentas administrativas", "detail": "{count} cuenta(s) con rol administrador." },
+            "default_role": { "label": "Rol por defecto de solo lectura", "detail": "Los usuarios nuevos reciben el rol: {role}" },
+            "backups": { "label": "Respaldos automáticos", "detail": "Respaldo diario de la base de datos." },
+            "log_retention": { "label": "Retención de bitácora", "detail": "Se conserva {days} días y se purga a diario." },
+            "accounts": { "label": "Estado de cuentas", "detail": "{blocked} bloqueada(s) · {dormant} sin acceso en 90+ días." }
+        }
+    },
     "actions": {
         "confirm": "Confirmar",
         "cancel": "Cancelar",
@@ -79,6 +117,8 @@
             "notificaciones_sub": "Correos automáticos del sistema",
             "ia": "Inteligencia Artificial",
             "ia_sub": "Proveedor y credenciales del API",
+            "seguridad": "Seguridad",
+            "seguridad_sub": "Pruebas automatizadas de seguridad",
             "idioma": "Idioma",
             "idioma_sub": "Español e inglés"
         },

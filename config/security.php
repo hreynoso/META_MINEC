@@ -74,6 +74,13 @@ return [
     // A.8.10 Retención de la bitácora de actividad (días). Se purga a diario.
     'log_retention_days' => (int) env('SECURITY_LOG_RETENTION_DAYS', 365),
 
+    // A.5.10/A.5.34 Aviso de uso aceptable y privacidad. Se exige aceptarlo en el
+    // primer acceso (local o SSO). Si cambia la versión, se vuelve a solicitar.
+    'aup' => [
+        'enabled' => (bool) env('SECURITY_AUP', true),
+        'version' => (string) env('SECURITY_AUP_VERSION', '1.0'),
+    ],
+
     // Cabeceras de seguridad (middleware SecurityHeaders)
     'headers' => [
         'X-Frame-Options' => 'SAMEORIGIN',
