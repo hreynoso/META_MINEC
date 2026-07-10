@@ -44,35 +44,35 @@ onBeforeUnmount(() => { if (timer) window.clearTimeout(timer); });
 </script>
 
 <template>
-    <Teleport to="body">
-        <Transition
-            enter-active-class="transition duration-300 ease-out"
-            enter-from-class="-translate-y-full opacity-0"
-            enter-to-class="translate-y-0 opacity-100"
-            leave-active-class="transition duration-200 ease-in"
-            leave-from-class="translate-y-0 opacity-100"
-            leave-to-class="-translate-y-full opacity-0"
+    <!-- Superpuesta, justo debajo del encabezado (top-16) y a lo ancho de la
+         columna de contenido (no llega al sidebar; el contenedor padre es relative). -->
+    <Transition
+        enter-active-class="transition duration-300 ease-out"
+        enter-from-class="-translate-y-2 opacity-0"
+        enter-to-class="translate-y-0 opacity-100"
+        leave-active-class="transition duration-200 ease-in"
+        leave-from-class="translate-y-0 opacity-100"
+        leave-to-class="-translate-y-2 opacity-0"
+    >
+        <div
+            v-if="visible"
+            class="absolute inset-x-0 top-16 z-40 flex items-center justify-center gap-2 border-b px-10 py-3 text-sm font-medium shadow-md"
+            :class="type === 'error'
+                ? 'border-red-200 bg-red-50 text-red-700 dark:border-red-900/50 dark:bg-red-900/20 dark:text-red-300'
+                : 'border-teal-200 bg-teal-50 text-teal-700 dark:border-teal-900/50 dark:bg-teal-900/20 dark:text-teal-300'"
+            role="status"
+            aria-live="polite"
         >
-            <div
-                v-if="visible"
-                class="fixed inset-x-0 top-0 z-[100] flex items-center justify-center gap-2 border-b px-10 py-3 text-sm font-medium shadow-md"
-                :class="type === 'error'
-                    ? 'border-red-200 bg-red-50 text-red-700 dark:border-red-900/50 dark:bg-red-900/20 dark:text-red-300'
-                    : 'border-teal-200 bg-teal-50 text-teal-700 dark:border-teal-900/50 dark:bg-teal-900/20 dark:text-teal-300'"
-                role="status"
-                aria-live="polite"
+            <component :is="type === 'error' ? AlertTriangle : CheckCircle2" class="h-5 w-5 shrink-0" />
+            <span class="text-center">{{ message }}</span>
+            <button
+                type="button"
+                class="absolute right-3 top-1/2 -translate-y-1/2 rounded p-1 transition hover:bg-black/5 dark:hover:bg-white/10"
+                aria-label="Cerrar"
+                @click="dismiss"
             >
-                <component :is="type === 'error' ? AlertTriangle : CheckCircle2" class="h-5 w-5 shrink-0" />
-                <span class="text-center">{{ message }}</span>
-                <button
-                    type="button"
-                    class="absolute right-3 top-1/2 -translate-y-1/2 rounded p-1 transition hover:bg-black/5 dark:hover:bg-white/10"
-                    aria-label="Cerrar"
-                    @click="dismiss"
-                >
-                    <X class="h-4 w-4" />
-                </button>
-            </div>
-        </Transition>
-    </Teleport>
+                <X class="h-4 w-4" />
+            </button>
+        </div>
+    </Transition>
 </template>

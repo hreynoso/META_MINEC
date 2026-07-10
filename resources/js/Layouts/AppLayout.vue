@@ -137,7 +137,7 @@ function isActive(name: string | null): boolean {
             </aside>
 
             <!-- Main -->
-            <div class="flex flex-1 flex-col overflow-hidden">
+            <div class="relative flex flex-1 flex-col overflow-hidden">
                 <header class="flex h-16 shrink-0 items-center justify-between border-b border-slate-200 bg-white px-6 dark:border-slate-700 dark:bg-slate-800">
                     <div class="flex items-center gap-3">
                         <button
@@ -172,6 +172,10 @@ function isActive(name: string | null): boolean {
                     </button>
                 </header>
 
+                <!-- Franja informativa: superpuesta, debajo del encabezado y sin
+                     llegar al sidebar (queda dentro de esta columna de contenido). -->
+                <FlashBanner />
+
                 <main class="flex-1 overflow-y-auto p-6">
                     <slot />
                 </main>
@@ -185,8 +189,6 @@ function isActive(name: string | null): boolean {
         <!-- Perfil del usuario -->
         <ProfileModal v-if="profileOpen" @close="profileOpen = false" />
 
-        <!-- Barra informativa superior (flash) + confirmaciones -->
-        <FlashBanner />
         <ConfirmDialog />
     </div>
 </template>
