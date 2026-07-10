@@ -34,8 +34,8 @@ META y su **estado de implementación**. Complementa la
 | 5.6 | Contacto con grupos de interés | 🏢 | Proceso institucional. |
 | 5.7 | Inteligencia de amenazas | ⛔ | No implementado (fuera de alcance actual). |
 | 5.8 | Seguridad en la gestión de proyectos | 🏢 | Proceso institucional. |
-| 5.9 | Inventario de activos | 🟡 | Modelos/BD y dependencias versionadas; sin inventario formal. |
-| 5.10 | Uso aceptable de los activos | ⛔ | Pendiente: aviso de uso aceptable en el login. |
+| 5.9 | Inventario de activos | ✅ | [inventario-activos.md](inventario-activos.md). |
+| 5.10 | Uso aceptable de los activos | ✅ | Aviso de uso aceptable con aceptación obligatoria en el primer acceso (SSO y local). |
 | 5.11 | Devolución de activos | 🟡 | Bloqueo/baja de cuentas (`blocked_at`, gestión de usuarios). |
 | 5.12 | Clasificación de la información | 🏢 | Proceso institucional. |
 | 5.13 | Etiquetado de la información | ➖ | No aplica al sistema. |
@@ -43,7 +43,7 @@ META y su **estado de implementación**. Complementa la
 | 5.15 | Control de acceso | ✅ | RBAC por rol y permiso (`routes/web.php`, Spatie). |
 | 5.16 | Gestión de identidades | ✅ | SSO Google + gestión de usuarios (Configuración → Usuarios). |
 | 5.17 | Información de autenticación | ✅ | SSO; política de contraseñas + historial para cuentas locales (`PasswordPolicy`, `NotInPasswordHistory`). |
-| 5.18 | Derechos de acceso | 🟡 | Alta/baja/asignación por admin; **revisión periódica formal pendiente**. |
+| 5.18 | Derechos de acceso | ✅ | Alta/baja/asignación por admin + revisión periódica en Configuración → Seguridad → Revisión de accesos (con atestación y export). |
 | 5.19–5.22 | Relación con proveedores | 🏢 | Google, proveedor de hosting (Dokploy), proveedores de IA. |
 | 5.23 | Seguridad en servicios en la nube | 🟡 | Google Workspace + hosting; validación de dominio SSO. |
 | 5.24 | Planificación de gestión de incidentes | 🟡 | Política §6. |
@@ -56,10 +56,10 @@ META y su **estado de implementación**. Complementa la
 | 5.31 | Requisitos legales y regulatorios | 🏢 | Proceso institucional. |
 | 5.32 | Derechos de propiedad intelectual | 🏢 | Proceso institucional. |
 | 5.33 | Protección de registros | 🟡 | Bitácora con retención configurable + respaldos. |
-| 5.34 | Privacidad y protección de PII | 🟡 | Datos personales mínimos (nombre, correo, foto opcional); **aviso de privacidad pendiente**. |
+| 5.34 | Privacidad y protección de PII | ✅ | Datos personales mínimos (nombre, correo, foto opcional) + aviso de privacidad aceptado en el primer acceso. |
 | 5.35 | Revisión independiente de seguridad | 🏢 | Proceso institucional. |
 | 5.36 | Cumplimiento de políticas | 🏢 | Proceso institucional. |
-| 5.37 | Procedimientos operativos documentados | 🟡 | README/CLAUDE.md, memorias de despliegue; ampliable. |
+| 5.37 | Procedimientos operativos documentados | ✅ | [procedimientos-operativos.md](procedimientos-operativos.md). |
 
 ## A.6 Controles de personas
 
@@ -91,7 +91,7 @@ META y su **estado de implementación**. Complementa la
 | 8.5 | Autenticación segura | ✅ | SSO Google + validación de dominio; anti–fuerza bruta (RateLimiter + Lockout). |
 | 8.6 | Gestión de capacidad | 🏢 | Infraestructura/hosting. |
 | 8.7 | Protección contra malware | 🏢 | Infraestructura. |
-| 8.8 | Gestión de vulnerabilidades técnicas | 🟡 | Dependencias versionadas; **auditoría automatizada (npm/composer audit) pendiente**. |
+| 8.8 | Gestión de vulnerabilidades técnicas | ✅ | Auditoría en CI (`composer audit` + `npm audit`) en push/PR y semanal; vista en Configuración → Seguridad → Dependencias. |
 | 8.9 | Gestión de la configuración | 🟡 | Config por variables de entorno; Docker/Dokploy como IaC. |
 | 8.10 | Eliminación de información | ✅ | Purga de bitácora por retención (`activitylog:clean`); borrado de archivos (foto/branding). |
 | 8.11 | Enmascaramiento de datos | 🟡 | Claves/secretos nunca se envían al cliente (solo "existe/no existe"). |
@@ -112,7 +112,7 @@ META y su **estado de implementación**. Complementa la
 | 8.26 | Requisitos de seguridad de aplicaciones | 🟡 | Validación, CSRF, CSP, RBAC. |
 | 8.27 | Arquitectura de sistemas segura | 🟡 | Separación de capas; middleware de seguridad. |
 | 8.28 | Codificación segura | 🟡 | Validación, escape de salida, ORM (evita inyección). |
-| 8.29 | Pruebas de seguridad | ⛔ | Pruebas de seguridad automatizadas pendientes. |
+| 8.29 | Pruebas de seguridad | 🟡 | Autoevaluación de postura + auditoría de dependencias en CI; sin pruebas de penetración formales. |
 | 8.30 | Desarrollo subcontratado | 🏢 | Gobernanza institucional. |
 | 8.31 | Separación de entornos | 🟡 | Configuración por entorno; separación dev/prod. |
 | 8.32 | Gestión de cambios | 🟡 | Git + despliegue controlado. |
@@ -121,13 +121,17 @@ META y su **estado de implementación**. Complementa la
 
 ---
 
-## Resumen de brechas priorizadas (aplican y no están completas)
+## Resumen de brechas (aplican y no están completas)
 
-1. **A.5.18 Revisión periódica de accesos** — atestación formal de usuarios/roles.
-2. **A.5.10 / A.5.34** — aviso de uso aceptable y de privacidad en el login.
-3. **A.8.8** — auditoría automatizada de dependencias (npm/composer audit en CI).
-4. **A.8.29** — pruebas de seguridad automatizadas.
-5. **A.5.9 / A.5.37** — inventario de activos y procedimientos operativos formales.
+Las brechas priorizadas de la versión anterior (A.5.18, A.5.10/A.5.34, A.8.8,
+A.5.9/A.5.37) se **cerraron** en esta iteración. Quedan puntos menores/residuales:
+
+- **A.8.29** — pruebas de penetración formales (hay autoevaluación + auditoría de
+  dependencias, pero no *pentest*).
+- **A.5.3 / A.8.25–8.28** — mejoras continuas de segregación de funciones y de ciclo
+  de desarrollo seguro.
+- Controles 🏢 **organizacionales/infraestructura** (RRHH, físicos, proveedores) que
+  se gestionan fuera de la aplicación.
 
 El resto de controles aplicables está ✅ implementado o 🏢 cubierto por la
 organización/infraestructura. Este documento se revisa junto con la Política de
