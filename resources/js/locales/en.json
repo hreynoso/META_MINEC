@@ -89,7 +89,12 @@
             "description": "Select the language for the interface and system messages. It applies to all users.",
             "label": "Language",
             "current": "Current language",
-            "note": "When you change the language, the interface updates immediately."
+            "note": "When you change the language, the interface updates immediately.",
+            "confirm_title": "Confirm language change",
+            "confirm_message": "This change applies the language across the WHOLE system and for ALL users. To continue, type «{word}» and press OK.",
+            "confirm_word": "I accept",
+            "confirm_input_label": "Type «{word}» to confirm",
+            "confirm_ok": "OK"
         }
     },
     "auth": {

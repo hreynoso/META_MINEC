@@ -89,7 +89,12 @@
             "description": "Seleccione el idioma de la interfaz y de los mensajes del sistema. Se aplica para todos los usuarios.",
             "label": "Idioma",
             "current": "Idioma actual",
-            "note": "Al cambiar el idioma, la interfaz se actualiza de inmediato."
+            "note": "Al cambiar el idioma, la interfaz se actualiza de inmediato.",
+            "confirm_title": "Confirmar cambio de idioma",
+            "confirm_message": "Este cambio aplica el idioma en TODO el sistema y para TODOS los usuarios. Para continuar, escribe «{word}» y presiona OK.",
+            "confirm_word": "Acepto",
+            "confirm_input_label": "Escribe «{word}» para confirmar",
+            "confirm_ok": "OK"
         }
     },
     "auth": {
