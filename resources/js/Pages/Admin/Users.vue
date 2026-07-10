@@ -95,6 +95,7 @@ function confirmDelete(u: User) {
         header: t('users.delete_header'),
         message: t('users.delete_message', { name: u.name }),
         acceptLabel: t('actions.delete'),
+        danger: true,
         accept: () => router.delete(route('configuracion.usuarios.destroy', u.id), { preserveScroll: true }),
     });
 }

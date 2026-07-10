@@ -72,6 +72,7 @@ function confirmDelete(k: Kpi) {
         header: t('kpis.delete_header'),
         message: t('kpis.delete_message', { label: k.label }),
         acceptLabel: t('actions.delete'),
+        danger: true,
         accept: () => {
             router.delete(route('kpis.destroy', k.id), { preserveScroll: true });
         },

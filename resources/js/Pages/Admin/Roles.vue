@@ -54,6 +54,7 @@ function confirmDelete(r: Role) {
         header: t('roles.delete_header'),
         message: t('roles.delete_confirm', { name: r.name }),
         acceptLabel: t('actions.delete'),
+        danger: true,
         accept: () => router.delete(route('configuracion.roles.destroy', r.id), { preserveScroll: true }),
     });
 }

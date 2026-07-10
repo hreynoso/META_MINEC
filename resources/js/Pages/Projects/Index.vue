@@ -73,6 +73,7 @@ function confirmDelete(p: Project) {
         header: t('projects.delete_confirm_header'),
         message: t('projects.delete_confirm_message', { name: p.name, code: p.code }),
         acceptLabel: t('actions.delete'),
+        danger: true,
         accept: () => {
             router.delete(route('proyectos.destroy', p.id), {
                 preserveScroll: true,
