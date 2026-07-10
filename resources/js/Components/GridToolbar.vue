@@ -15,8 +15,10 @@ const props = withDefaults(defineProps<{
     columns?: GridColumn[];
     pageSizes?: number[];
     exportUrl?: string;
+    showExport?: boolean;
 }>(), {
     pageSizes: () => [10, 25, 50, 100],
+    showExport: true,
 });
 
 const emit = defineEmits<{
@@ -55,10 +57,10 @@ function toggleColumn(key: string) {
             </div>
 
             <!-- XLSX (descarga nativa server-side si hay exportUrl) -->
-            <a v-if="exportUrl" :href="exportUrl" class="inline-flex items-center gap-1.5 rounded-lg bg-green-600 px-2.5 py-1.5 text-sm font-medium text-white hover:bg-green-700">
+            <a v-if="showExport && exportUrl" :href="exportUrl" class="inline-flex items-center gap-1.5 rounded-lg bg-green-600 px-2.5 py-1.5 text-sm font-medium text-white hover:bg-green-700">
                 <FileSpreadsheet class="h-4 w-4" /> XLSX
             </a>
-            <button v-else class="inline-flex items-center gap-1.5 rounded-lg bg-green-600 px-2.5 py-1.5 text-sm font-medium text-white hover:bg-green-700" type="button" @click="emit('export')">
+            <button v-else-if="showExport" class="inline-flex items-center gap-1.5 rounded-lg bg-green-600 px-2.5 py-1.5 text-sm font-medium text-white hover:bg-green-700" type="button" @click="emit('export')">
                 <FileSpreadsheet class="h-4 w-4" /> XLSX
             </button>
 

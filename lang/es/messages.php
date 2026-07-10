@@ -10,6 +10,7 @@ return [
         'invalid_credentials' => 'Las credenciales no son válidas.',
         'invalid_local_credentials' => 'Credenciales no válidas para el acceso local.',
         'too_many_attempts' => 'Demasiados intentos fallidos. Intente de nuevo en :seconds segundos.',
+        'idle_timeout' => 'Su sesión se cerró por inactividad.',
     ],
 
     'ai' => [
@@ -56,6 +57,7 @@ return [
         'cannot_delete_self' => 'No puedes eliminar tu propia cuenta.',
         'deleted' => 'Usuario eliminado correctamente.',
         'never_logged_in' => 'Nunca',
+        'password_reused' => 'No puede reutilizar una de sus últimas contraseñas.',
     ],
 
     'minister' => [

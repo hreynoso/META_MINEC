@@ -7,6 +7,7 @@ import { Plus, Pencil, Trash2, Star, TrendingUp, TrendingDown, Minus } from 'luc
 import { number } from '@/Composables/useProjectFormat';
 import { TREND_LABEL, trendClass, achievementBarClass } from '@/Composables/useKpiFormat';
 import { useConfirm } from '@/Composables/useConfirm';
+import { useCan } from '@/Composables/useCan';
 import { matchesAllTokens } from '@/Composables/useTokenSearch';
 import GridToolbar, { type GridColumn } from '@/Components/GridToolbar.vue';
 import KpiFormModal from '@/Components/KpiFormModal.vue';
@@ -49,6 +50,7 @@ const formOpen = ref(false);
 const editing = ref<Kpi | null>(null);
 
 const { ask } = useConfirm();
+const { can } = useCan();
 
 const trendIcon = (t: string) => (t === 'up' ? TrendingUp : t === 'down' ? TrendingDown : Minus);
 
@@ -87,7 +89,7 @@ function confirmDelete(k: Kpi) {
                 <h1 class="text-2xl font-semibold">{{ t('kpis.title') }}</h1>
                 <p class="text-sm text-slate-500">{{ t('kpis.subtitle') }}</p>
             </div>
-            <button class="inline-flex items-center gap-1.5 rounded-lg bg-brand px-3 py-2 text-sm font-medium text-white hover:opacity-90" @click="openCreate">
+            <button v-if="can('kpis.gestionar')" class="inline-flex items-center gap-1.5 rounded-lg bg-brand px-3 py-2 text-sm font-medium text-white hover:opacity-90" @click="openCreate">
                 <Plus class="h-4 w-4" /> {{ t('kpis.create_kpi') }}
             </button>
         </header>
@@ -173,7 +175,7 @@ function confirmDelete(k: Kpi) {
                                 </span>
                             </td>
                             <td class="px-4 py-3">
-                                <div class="flex items-center justify-end gap-1">
+                                <div v-if="can('kpis.gestionar')" class="flex items-center justify-end gap-1">
                                     <button class="rounded p-1.5 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700" :title="t('kpis.edit')" @click="openEdit(k)">
                                         <Pencil class="h-4 w-4" />
                                     </button>
@@ -181,6 +183,7 @@ function confirmDelete(k: Kpi) {
                                         <Trash2 class="h-4 w-4" />
                                     </button>
                                 </div>
+                                <span v-else class="text-slate-300">—</span>
                             </td>
                         </tr>
                         <tr v-if="!filtered.length">

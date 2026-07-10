@@ -3,8 +3,10 @@ import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { Sparkles, TriangleAlert, Bot, ChevronDown, ChevronUp, FileDown } from 'lucide-vue-next';
+import { useCan } from '@/Composables/useCan';
 
 const { t } = useI18n({ useScope: 'global' });
+const { can } = useCan();
 
 interface Generation { recommendation: string; user: string; datetime: string | null }
 interface HistoryItem extends Generation { id: number }
@@ -212,6 +214,7 @@ async function loadHistory() {
                             {{ aiUsed ? t('predictive.ai_recommendation') : t('predictive.model_recommendation') }}
                         </p>
                         <button
+                            v-if="can('ia.recomendar')"
                             class="inline-flex items-center gap-1.5 rounded-lg border border-brand px-2.5 py-1 text-xs font-medium text-brand transition hover:bg-brand hover:text-white disabled:opacity-50"
                             :disabled="aiLoading"
                             @click="generateAi"

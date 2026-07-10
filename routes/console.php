@@ -8,3 +8,9 @@ Schedule::call(fn () => app(DropboxBackupService::class)->run())
     ->dailyAt('02:00')
     ->name('backup:daily')
     ->onOneServer();
+
+// A.8.10 — purga de la bitácora de actividad según la retención configurada.
+Schedule::command('activitylog:clean')
+    ->dailyAt('03:00')
+    ->name('logs:clean')
+    ->onOneServer();

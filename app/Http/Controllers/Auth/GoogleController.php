@@ -67,6 +67,13 @@ class GoogleController extends Controller
             $user->forceFill(['password' => bcrypt(Str::random(40))])->save();
         }
 
+        // A.8.3 — least privilege: los usuarios SSO sin rol reciben el rol por
+        // defecto (solo lectura); un administrador los eleva luego.
+        $defaultRole = (string) config('security.default_role');
+        if ($defaultRole !== '' && $user->roles()->count() === 0) {
+            rescue(fn () => $user->assignRole($defaultRole), null, false);
+        }
+
         Auth::login($user, remember: true);
         request()->session()->regenerate();
 

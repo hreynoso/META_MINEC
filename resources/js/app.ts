@@ -54,27 +54,5 @@ createInertiaApp({
     },
 });
 
-/* Keep-alive: cada 15 min mientras la pestana este visible.
-   Ante 401/419 redirige a /login. */
-const KEEP_ALIVE_MS = 15 * 60 * 1000;
-
-setInterval(() => {
-    if (document.visibilityState !== 'visible') return;
-
-    const token = document
-        .querySelector('meta[name="csrf-token"]')
-        ?.getAttribute('content');
-
-    fetch('/keep-alive', {
-        method: 'POST',
-        headers: {
-            'X-CSRF-TOKEN': token ?? '',
-            'X-Requested-With': 'XMLHttpRequest',
-            Accept: 'application/json',
-        },
-    }).then((res) => {
-        if (res.status === 401 || res.status === 419) {
-            window.location.href = '/login';
-        }
-    }).catch(() => {});
-}, KEEP_ALIVE_MS);
+// El keep-alive y el cierre por inactividad se manejan en useIdleTimeout()
+// (montado en AppLayout), que solo mantiene viva la sesión cuando hay actividad.

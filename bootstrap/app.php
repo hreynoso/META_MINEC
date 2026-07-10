@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\EnforceIdleTimeout;
 use App\Http\Middleware\EnforceSingleDevice;
 use App\Http\Middleware\EnforceSystemLock;
 use App\Http\Middleware\EnsureUserIsNotBlocked;
@@ -39,6 +40,7 @@ return Application::configure(basePath: dirname(__DIR__))
             SetLocale::class,              // idioma del sistema (Configuración → Idioma)
             HandleInertiaRequests::class,
             EnsureUserIsNotBlocked::class,
+            EnforceIdleTimeout::class,     // cierre de sesión por inactividad (A.8.9)
             EnforceSingleDevice::class,    // un solo dispositivo activo por usuario
             EnforceSystemLock::class,      // "modo mantenimiento" controlado por Setting
             TrackActivity::class,          // marca de última actividad (usuarios conectados)

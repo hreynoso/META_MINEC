@@ -5,12 +5,17 @@ import { useI18n } from 'vue-i18n';
 import ConfirmDialog from '@/Components/ConfirmDialog.vue';
 import ProfileModal from '@/Components/ProfileModal.vue';
 import FlashBanner from '@/Components/FlashBanner.vue';
+import { useIdleTimeout } from '@/Composables/useIdleTimeout';
+import { useCan } from '@/Composables/useCan';
 import {
     LayoutDashboard, Crown, FolderKanban, Gauge, FileBarChart,
-    Sparkles, BookText, MessagesSquare, Settings, LogOut, ChevronLeft, ChevronRight, ScrollText,
+    Sparkles, BookText, MessagesSquare, Settings, LogOut, ChevronLeft, ChevronRight, ScrollText, Clock,
 } from 'lucide-vue-next';
 
 const { t } = useI18n({ useScope: 'global' });
+
+// Cierre de sesión por inactividad (A.8.9): aviso con cuenta regresiva.
+const { warning: idleWarning, secondsLeft: idleSeconds, stayConnected } = useIdleTimeout();
 
 const page = usePage();
 const sidebarOpen = ref(true);
@@ -38,22 +43,27 @@ const logoSidebar = computed(() => (page.props.branding as any)?.assets?.logo_si
 // Acceso al área de administración (Configuración y Logs).
 const isAdmin = computed(() => authRoles.value.includes('Super Admin') || authRoles.value.includes('Administrador'));
 
-// key: clave de traducción nav.<key>. route: ruta Ziggy si existe; null = fase
-// posterior. adminOnly: solo visible para Super Admin / Administrador.
+// Permisos para ocultar módulos que el usuario no puede ver (A.8.3).
+const { can } = useCan();
+
+// key: clave de traducción nav.<key>. route: ruta Ziggy. adminOnly: solo Super
+// Admin/Administrador. perm: permiso para ver el módulo (null = abierto).
 const nav = [
-    { key: 'dashboard', icon: LayoutDashboard, route: 'dashboard' },
-    { key: 'minister', icon: Crown, route: 'ministra.index' },
-    { key: 'projects', icon: FolderKanban, route: 'proyectos.index' },
-    { key: 'kpis', icon: Gauge, route: 'kpis.index' },
-    { key: 'reports', icon: FileBarChart, route: 'reportes.index' },
-    { key: 'predictive', icon: Sparkles, route: 'ia-predictiva.index' },
-    { key: 'memoirs', icon: BookText, route: 'memorias.index' },
-    { key: 'network', icon: MessagesSquare, route: 'red-gestores.index' },
-    { key: 'logs', icon: ScrollText, route: 'logs.index', adminOnly: true },
-    { key: 'settings', icon: Settings, route: 'configuracion.edit', adminOnly: true },
+    { key: 'dashboard', icon: LayoutDashboard, route: 'dashboard', perm: null },
+    { key: 'minister', icon: Crown, route: 'ministra.index', perm: 'ministra.ver' },
+    { key: 'projects', icon: FolderKanban, route: 'proyectos.index', perm: 'proyectos.ver' },
+    { key: 'kpis', icon: Gauge, route: 'kpis.index', perm: 'kpis.ver' },
+    { key: 'reports', icon: FileBarChart, route: 'reportes.index', perm: 'reportes.ver' },
+    { key: 'predictive', icon: Sparkles, route: 'ia-predictiva.index', perm: 'ia.ver' },
+    { key: 'memoirs', icon: BookText, route: 'memorias.index', perm: 'memorias.generar' },
+    { key: 'network', icon: MessagesSquare, route: 'red-gestores.index', perm: 'gestores.participar' },
+    { key: 'logs', icon: ScrollText, route: 'logs.index', adminOnly: true, perm: null },
+    { key: 'settings', icon: Settings, route: 'configuracion.edit', adminOnly: true, perm: null },
 ];
 
-const visibleNav = computed(() => nav.filter((item) => !item.adminOnly || isAdmin.value));
+const visibleNav = computed(() =>
+    nav.filter((item) => (!item.adminOnly || isAdmin.value) && (!item.perm || can(item.perm))),
+);
 
 function isActive(name: string | null): boolean {
     if (!name) return false;
@@ -188,6 +198,36 @@ function isActive(name: string | null): boolean {
 
         <!-- Perfil del usuario -->
         <ProfileModal v-if="profileOpen" @close="profileOpen = false" />
+
+        <!-- Aviso de cierre de sesión por inactividad (A.8.9) -->
+        <Teleport to="body">
+            <div v-if="idleWarning" class="fixed inset-0 z-[80] flex items-center justify-center bg-black/50 p-6">
+                <div class="w-full max-w-sm rounded-2xl bg-white p-6 text-center shadow-xl dark:bg-slate-800">
+                    <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400">
+                        <Clock class="h-6 w-6" />
+                    </div>
+                    <h2 class="mt-4 text-lg font-semibold">{{ t('session.idle_title') }}</h2>
+                    <p class="mt-1 text-sm text-slate-500 dark:text-slate-300">{{ t('session.idle_message', { seconds: idleSeconds }) }}</p>
+                    <div class="mt-6 flex justify-center gap-2">
+                        <Link
+                            href="/logout"
+                            method="post"
+                            as="button"
+                            class="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-700"
+                        >
+                            {{ t('session.logout_now') }}
+                        </Link>
+                        <button
+                            type="button"
+                            class="rounded-lg bg-brand px-5 py-2 text-sm font-medium text-white transition hover:opacity-90"
+                            @click="stayConnected"
+                        >
+                            {{ t('session.stay_connected') }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </Teleport>
 
         <ConfirmDialog />
     </div>

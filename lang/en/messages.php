@@ -10,6 +10,7 @@ return [
         'invalid_credentials' => 'The credentials are invalid.',
         'invalid_local_credentials' => 'Invalid credentials for local access.',
         'too_many_attempts' => 'Too many failed attempts. Please try again in :seconds seconds.',
+        'idle_timeout' => 'Your session was closed due to inactivity.',
     ],
 
     'ai' => [
@@ -56,6 +57,7 @@ return [
         'cannot_delete_self' => 'You cannot delete your own account.',
         'deleted' => 'User deleted successfully.',
         'never_logged_in' => 'Never',
+        'password_reused' => 'You cannot reuse one of your recent passwords.',
     ],
 
     'minister' => [

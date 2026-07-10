@@ -23,6 +23,14 @@ class HandleInertiaRequests extends Middleware
             'csrf' => csrf_token(),
             // Idioma del sistema (Configuración → Idioma) para sincronizar vue-i18n.
             'locale' => \App\Support\Locale::current(),
+            // A.8.9 — parámetros del cierre de sesión por inactividad (frontend).
+            'security' => [
+                'idle' => [
+                    'enabled' => (bool) config('security.session_idle.enabled', true),
+                    'minutes' => (int) config('security.session_idle.minutes', 30),
+                    'warnSeconds' => (int) config('security.session_idle.warn_seconds', 60),
+                ],
+            ],
             'auth' => [
                 'user' => $request->user()
                     ? [

@@ -6,6 +6,7 @@ import AppLayout from '@/Layouts/AppLayout.vue';
 import { Search, Download, Upload, Plus, X, MapPin, Building2, Pencil, Trash2, Users, Target } from 'lucide-vue-next';
 import { matchesAllTokens } from '@/Composables/useTokenSearch';
 import { useConfirm } from '@/Composables/useConfirm';
+import { useCan } from '@/Composables/useCan';
 import ProjectFormModal from '@/Components/ProjectFormModal.vue';
 import {
     currency, number, STATUS_LABEL, STATUS_OPTIONS, statusClass, riskClass, progressBarClass,
@@ -51,6 +52,7 @@ const editing = ref<Project | null>(null);
 
 const { t } = useI18n({ useScope: 'global' });
 const { ask } = useConfirm();
+const { can } = useCan();
 
 function openCreate() {
     editing.value = null;
@@ -124,10 +126,10 @@ const goalName = computed(() => props.goals.find((g) => g.id === goalFilter.valu
                 <button class="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 px-3 py-2 text-sm hover:bg-slate-50 dark:border-slate-600 dark:hover:bg-slate-700">
                     <Download class="h-4 w-4" /> {{ t('projects.download_template') }}
                 </button>
-                <button class="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 px-3 py-2 text-sm hover:bg-slate-50 dark:border-slate-600 dark:hover:bg-slate-700">
+                <button v-if="can('proyectos.gestionar')" class="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 px-3 py-2 text-sm hover:bg-slate-50 dark:border-slate-600 dark:hover:bg-slate-700">
                     <Upload class="h-4 w-4" /> {{ t('projects.upload_template') }}
                 </button>
-                <button class="inline-flex items-center gap-1.5 rounded-lg bg-brand px-3 py-2 text-sm font-medium text-white hover:opacity-90" @click="openCreate">
+                <button v-if="can('proyectos.gestionar')" class="inline-flex items-center gap-1.5 rounded-lg bg-brand px-3 py-2 text-sm font-medium text-white hover:opacity-90" @click="openCreate">
                     <Plus class="h-4 w-4" /> {{ t('projects.create_project') }}
                 </button>
             </div>
@@ -255,13 +257,16 @@ const goalName = computed(() => props.goals.find((g) => g.id === goalFilter.valu
 
                 <div class="mt-6 flex items-center justify-between">
                     <button
+                        v-if="can('proyectos.gestionar')"
                         class="inline-flex items-center gap-1.5 rounded-lg border border-red-300 px-3 py-2 text-sm text-red-700 hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/30"
                         @click="confirmDelete(selected)"
                     >
                         <Trash2 class="h-4 w-4" /> {{ t('actions.delete') }}
                     </button>
+                    <span v-else></span>
                     <div class="flex gap-2">
                         <button
+                            v-if="can('proyectos.gestionar')"
                             class="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 px-4 py-2 text-sm hover:bg-slate-50 dark:border-slate-600 dark:hover:bg-slate-700"
                             @click="openEdit(selected)"
                         >

@@ -5,7 +5,9 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Institution;
 use App\Models\User;
+use App\Rules\NotInPasswordHistory;
 use App\Support\ExportName;
+use App\Support\PasswordPolicy;
 use App\Support\SheetExport;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -72,6 +74,7 @@ class UserController extends Controller
             'blocked_at' => ($data['blocked'] ?? false) ? now() : null,
         ]);
 
+        PasswordPolicy::record($user, $user->password);
         $user->syncRoles($data['roles'] ?? []);
 
         return back()->with('success', __('messages.user.created'));
@@ -92,11 +95,17 @@ class UserController extends Controller
             'blocked_at' => ($data['blocked'] ?? false) ? ($user->blocked_at ?? now()) : null,
         ]);
 
-        if (filled($data['password'] ?? null)) {
+        $passwordChanged = filled($data['password'] ?? null);
+        if ($passwordChanged) {
             $user->password = Hash::make($data['password']);
         }
 
         $user->save();
+
+        if ($passwordChanged) {
+            PasswordPolicy::record($user, $user->password);
+        }
+
         $user->syncRoles($data['roles'] ?? []);
 
         return back()->with('success', __('messages.user.updated'));
@@ -136,7 +145,7 @@ class UserController extends Controller
         return $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user?->id)],
-            'password' => [$user ? 'nullable' : 'required', 'nullable', 'string', 'min:8'],
+            'password' => [$user ? 'nullable' : 'required', 'string', PasswordPolicy::rule(), new NotInPasswordHistory($user)],
             'institution_id' => ['nullable', 'exists:institutions,id'],
             'roles' => ['array'],
             'roles.*' => ['string', 'exists:roles,name'],

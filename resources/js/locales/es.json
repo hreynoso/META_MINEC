@@ -29,6 +29,12 @@
     "footer": {
         "credits": "Developed by CityWorks, Powered by Google Cloud Platform"
     },
+    "session": {
+        "idle_title": "¿Sigues ahí?",
+        "idle_message": "Por seguridad, tu sesión se cerrará por inactividad en {seconds} s.",
+        "stay_connected": "Seguir conectado",
+        "logout_now": "Cerrar sesión"
+    },
     "actions": {
         "confirm": "Confirmar",
         "cancel": "Cancelar",

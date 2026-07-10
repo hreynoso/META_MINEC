@@ -36,11 +36,43 @@ return [
         'window_minutes' => (int) env('SECURITY_SINGLE_DEVICE_WINDOW', 0),
     ],
 
-    // Historial de contrasenas (PasswordHistory)
+    // A.8.3 Rol por defecto para usuarios SSO nuevos (sin rol asignado). Es de
+    // solo lectura (least privilege); un administrador lo eleva luego.
+    'default_role' => env('SECURITY_DEFAULT_ROLE', 'Consultor'),
+
+    // A.5.17 Política de contraseñas (cuentas locales: Super Admin/demo).
+    'password_policy' => [
+        'min' => (int) env('SECURITY_PASSWORD_MIN', 12),
+        'mixed_case' => (bool) env('SECURITY_PASSWORD_MIXED', true),
+        'numbers' => (bool) env('SECURITY_PASSWORD_NUMBERS', true),
+        'symbols' => (bool) env('SECURITY_PASSWORD_SYMBOLS', true),
+    ],
+
+    // Historial de contrasenas (PasswordHistory): no reutilizar las últimas N.
     'password_history' => [
         'enabled' => true,
-        'remember' => 5,
+        'remember' => (int) env('SECURITY_PASSWORD_HISTORY', 5),
     ],
+
+    // A.8.5/A.8.9 Cierre de sesión por inactividad (frontend + servidor).
+    'session_idle' => [
+        'enabled' => (bool) env('SECURITY_IDLE_ENABLED', true),
+        'minutes' => (int) env('SECURITY_IDLE_MINUTES', 30),
+        'warn_seconds' => (int) env('SECURITY_IDLE_WARN_SECONDS', 60),
+    ],
+
+    // A.8.16 Alertas de eventos de seguridad (correo a administradores).
+    'alerts' => [
+        'enabled' => (bool) env('SECURITY_ALERTS', true),
+        // Correos adicionales (coma). Vacío = todos los Administrador/Super Admin.
+        'recipients' => array_values(array_filter(array_map(
+            fn ($e) => strtolower(trim((string) $e)),
+            explode(',', (string) env('SECURITY_ALERT_RECIPIENTS', '')),
+        ))),
+    ],
+
+    // A.8.10 Retención de la bitácora de actividad (días). Se purga a diario.
+    'log_retention_days' => (int) env('SECURITY_LOG_RETENTION_DAYS', 365),
 
     // Cabeceras de seguridad (middleware SecurityHeaders)
     'headers' => [

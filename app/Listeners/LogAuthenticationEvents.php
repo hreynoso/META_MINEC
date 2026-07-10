@@ -44,9 +44,20 @@ class LogAuthenticationEvents
 
     public function handleLockout(Lockout $event): void
     {
-        $this->record('Bloqueo por exceso de intentos', null, [
-            'email' => $event->request->input('email'),
-        ]);
+        $email = $event->request->input('email');
+        $ip = $event->request->ip();
+
+        $this->record('Bloqueo por exceso de intentos', null, ['email' => $email]);
+
+        // A.8.16 — alerta a administradores por posible ataque de fuerza bruta.
+        \App\Support\SecurityAlert::notify(
+            'META · Alerta de seguridad: bloqueo por intentos fallidos',
+            "Se bloqueó temporalmente un acceso por exceso de intentos fallidos.\n\n"
+            ."Correo: ".($email ?: '—')."\n"
+            ."IP: ".($ip ?: '—')."\n"
+            ."Fecha (UTC): ".now()->toDateTimeString()."\n\n"
+            ."Si no reconoce esta actividad, revise la bitácora en Logs del Sistema."
+        );
     }
 
     /**

@@ -6,8 +6,10 @@ import { FileText, Download, Eye } from 'lucide-vue-next';
 import { currency, number } from '@/Composables/useProjectFormat';
 import { matchesAllTokens } from '@/Composables/useTokenSearch';
 import GridToolbar, { type GridColumn } from '@/Components/GridToolbar.vue';
+import { useCan } from '@/Composables/useCan';
 
 const { t } = useI18n({ useScope: 'global' });
+const { can } = useCan();
 
 interface InstitutionRow {
     code: string; name: string; short_name: string;
@@ -84,6 +86,7 @@ const visibleRows = computed(() => filtered.value.slice(0, pageSize.value));
                 <p class="mt-1 flex-1 text-sm text-slate-500">{{ r.description }}</p>
                 <div class="mt-4 flex gap-2">
                     <a
+                        v-if="can('reportes.generar')"
                         :href="route('reportes.download', r.slug)"
                         class="inline-flex items-center gap-1.5 rounded-lg bg-brand px-3 py-2 text-sm font-medium text-white hover:opacity-90"
                     >
@@ -111,6 +114,7 @@ const visibleRows = computed(() => filtered.value.slice(0, pageSize.value));
                 :total="filtered.length"
                 :search-placeholder="t('reports.search_institution_placeholder')"
                 :export-url="route('reportes.institution-export')"
+                :show-export="can('reportes.generar')"
             />
             <div class="overflow-x-auto">
                 <table class="w-full text-sm">

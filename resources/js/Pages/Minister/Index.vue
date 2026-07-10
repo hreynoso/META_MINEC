@@ -6,7 +6,10 @@ import AppLayout from '@/Layouts/AppLayout.vue';
 import { Crown, TriangleAlert, Sparkles, FileText, FileDown, Check, X, Loader2, ChevronDown, ChevronUp, History } from 'lucide-vue-next';
 import { currency, number } from '@/Composables/useProjectFormat';
 
+import { useCan } from '@/Composables/useCan';
+
 const { t } = useI18n({ useScope: 'global' });
+const { can } = useCan();
 
 interface Kpi { label: string; value: number; unit: string | null; target: number; achievement: number }
 interface Semaforo { code: string; name: string; short_name: string; green: number; amber: number; red: number; status: string }
@@ -302,6 +305,7 @@ async function downloadDocx(text = '') {
 
             <div class="mt-5">
                 <button
+                    v-if="can('ministra.informe')"
                     type="button"
                     :disabled="!canGenerate"
                     class="inline-flex items-center gap-1.5 rounded-lg bg-brand px-4 py-2.5 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50"
