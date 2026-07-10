@@ -183,7 +183,7 @@ function confirmDelete(u: User) {
 
         <!-- Modal crear/editar -->
         <div v-if="open" class="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/40 p-6">
-            <div class="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl dark:bg-slate-800">
+            <div class="w-full max-w-[573px] rounded-2xl bg-white p-6 shadow-xl dark:bg-slate-800">
                 <div class="flex items-start justify-between">
                     <h2 class="text-xl font-semibold">{{ editing ? t('users.edit_user') : t('users.new_user') }}</h2>
                     <button class="rounded p-1 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700" @click="open = false"><X class="h-5 w-5" /></button>

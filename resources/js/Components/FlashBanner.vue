@@ -55,8 +55,10 @@ onBeforeUnmount(() => { if (timer) window.clearTimeout(timer); });
         >
             <div
                 v-if="visible"
-                class="fixed inset-x-0 top-0 z-[100] flex items-center justify-center gap-2 px-10 py-3 text-sm font-medium text-white shadow-lg"
-                :class="type === 'error' ? 'bg-red-600' : 'bg-teal-600'"
+                class="fixed inset-x-0 top-0 z-[100] flex items-center justify-center gap-2 border-b px-10 py-3 text-sm font-medium shadow-md"
+                :class="type === 'error'
+                    ? 'border-red-200 bg-red-50 text-red-700 dark:border-red-900/50 dark:bg-red-900/20 dark:text-red-300'
+                    : 'border-teal-200 bg-teal-50 text-teal-700 dark:border-teal-900/50 dark:bg-teal-900/20 dark:text-teal-300'"
                 role="status"
                 aria-live="polite"
             >
@@ -64,7 +66,7 @@ onBeforeUnmount(() => { if (timer) window.clearTimeout(timer); });
                 <span class="text-center">{{ message }}</span>
                 <button
                     type="button"
-                    class="absolute right-3 top-1/2 -translate-y-1/2 rounded p-1 transition hover:bg-white/20"
+                    class="absolute right-3 top-1/2 -translate-y-1/2 rounded p-1 transition hover:bg-black/5 dark:hover:bg-white/10"
                     aria-label="Cerrar"
                     @click="dismiss"
                 >
