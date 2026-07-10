@@ -53,7 +53,19 @@
         "tabs": {
             "checks": "Automated tests",
             "access": "Access review",
-            "deps": "Dependencies"
+            "deps": "Dependencies",
+            "alerts": "Alerts"
+        },
+        "alerts": {
+            "title": "Security alerts",
+            "subtitle": "Email of the ICT security team that receives notices on incidents (ISO 27001 A.8.16).",
+            "enabled_label": "Send alerts by email",
+            "recipients_label": "Recipient emails",
+            "recipients_hint": "Separate multiple emails with commas. If left empty, administrators are notified.",
+            "events_title": "Events that trigger an alert",
+            "event_lockout": "5 failed password attempts at sign-in (temporary lockout).",
+            "event_blocked": "Temporary lockout due to brute force (attempt email + IP).",
+            "save": "Save alerts"
         },
         "access": {
             "title": "Access review",
@@ -644,6 +656,9 @@
         "col_institution": "Institution",
         "col_roles": "Roles",
         "col_status": "Status",
+        "col_origin": "Origin",
+        "origin_local": "Local",
+        "origin_sso": "SSO",
         "col_last_login": "Last login",
         "col_actions": "Actions",
         "never": "Never",

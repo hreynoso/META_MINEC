@@ -34,6 +34,8 @@ class UserController extends Controller
                 'roles' => $u->roles->pluck('name'),
                 'blocked' => $u->blocked_at !== null,
                 'last_login_at' => \App\Support\LocalTime::format($u->last_login_at),
+                // Origen del acceso: SSO (tiene google_id) o cuenta local.
+                'origin' => filled($u->google_id) ? 'sso' : 'local',
             ]);
 
         return Inertia::render('Admin/Users', [
@@ -52,10 +54,11 @@ class UserController extends Controller
                 $u->institution?->short_name ?? '',
                 $u->roles->pluck('name')->implode(', '),
                 $u->blocked_at !== null ? 'Bloqueado' : 'Activo',
+                filled($u->google_id) ? 'SSO' : 'Local',
                 \App\Support\LocalTime::format($u->last_login_at) ?? __('messages.user.never_logged_in'),
             ])->all();
 
-        return SheetExport::stream(ExportName::make('Usuarios', 'xlsx'), ['Nombres y Apellidos', 'Correo', 'Institución', 'Roles', 'Estado', 'Último acceso'], $rows);
+        return SheetExport::stream(ExportName::make('Usuarios', 'xlsx'), ['Nombres y Apellidos', 'Correo', 'Institución', 'Roles', 'Estado', 'Origen', 'Último acceso'], $rows);
     }
 
     public function store(Request $request): RedirectResponse

@@ -11,7 +11,7 @@ import { Plus, Pencil, Trash2, X, Save, ShieldCheck } from 'lucide-vue-next';
 interface User {
     id: number; name: string; email: string; institution_id: number | null;
     institution: string | null; roles: string[]; blocked: boolean;
-    last_login_at: string | null;
+    last_login_at: string | null; origin: 'local' | 'sso';
 }
 
 const props = defineProps<{
@@ -33,6 +33,7 @@ const columns = ref<GridColumn[]>([
     { key: 'institution', label: t('users.col_institution'), visible: true },
     { key: 'roles', label: t('users.col_roles'), visible: true },
     { key: 'blocked', label: t('users.col_status'), visible: true },
+    { key: 'origin', label: t('users.col_origin'), visible: true },
     { key: 'last_login', label: t('users.col_last_login'), visible: true },
 ]);
 const vis = (k: string) => columns.value.find((c) => c.key === k)?.visible ?? true;
@@ -150,6 +151,7 @@ function confirmDelete(u: User) {
                             <th v-if="vis('institution')" class="px-4 py-3 font-medium">{{ t('users.col_institution') }}</th>
                             <th v-if="vis('roles')" class="px-4 py-3 font-medium">{{ t('users.col_roles') }}</th>
                             <th v-if="vis('blocked')" class="px-4 py-3 font-medium">{{ t('users.col_status') }}</th>
+                            <th v-if="vis('origin')" class="px-4 py-3 font-medium">{{ t('users.col_origin') }}</th>
                             <th v-if="vis('last_login')" class="px-4 py-3 font-medium">{{ t('users.col_last_login') }}</th>
                             <th class="px-4 py-3 text-right font-medium">{{ t('users.col_actions') }}</th>
                         </tr>
@@ -168,6 +170,16 @@ function confirmDelete(u: User) {
                                     {{ u.blocked ? t('users.status_blocked') : t('users.status_active') }}
                                 </span>
                             </td>
+                            <td v-if="vis('origin')" class="px-4 py-3">
+                                <span
+                                    class="rounded-full px-2 py-0.5 text-xs font-medium"
+                                    :class="u.origin === 'sso'
+                                        ? 'bg-sky-100 text-sky-700 dark:bg-sky-900/40 dark:text-sky-300'
+                                        : 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300'"
+                                >
+                                    {{ u.origin === 'sso' ? t('users.origin_sso') : t('users.origin_local') }}
+                                </span>
+                            </td>
                             <td v-if="vis('last_login')" class="px-4 py-3 text-slate-500">{{ u.last_login_at ?? t('users.never') }}</td>
                             <td class="px-4 py-3">
                                 <div class="flex items-center justify-end gap-1">
@@ -176,7 +188,7 @@ function confirmDelete(u: User) {
                                 </div>
                             </td>
                         </tr>
-                        <tr v-if="!filtered.length"><td colspan="7" class="px-4 py-8 text-center text-slate-400">{{ t('users.empty') }}</td></tr>
+                        <tr v-if="!filtered.length"><td colspan="8" class="px-4 py-8 text-center text-slate-400">{{ t('users.empty') }}</td></tr>
                     </tbody>
                 </table>
             </div>

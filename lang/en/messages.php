@@ -81,6 +81,8 @@ return [
 
     'security' => [
         'review_recorded' => 'Access review recorded.',
+        'alerts_saved' => 'Security alert settings updated.',
+        'invalid_email' => 'The email ":email" is not valid.',
     ],
 
     'project' => [

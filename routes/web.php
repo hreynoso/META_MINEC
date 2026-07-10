@@ -114,6 +114,9 @@ Route::middleware(['auth'])->group(function () {
         // A.8.8 Análisis de dependencias
         Route::get('/configuracion/seguridad/dependencias', [SecurityController::class, 'dependencies'])->name('configuracion.seguridad.dependencias');
         Route::post('/configuracion/seguridad/dependencias/ejecutar', [SecurityController::class, 'runDependencies'])->name('configuracion.seguridad.dependencias.ejecutar');
+        // A.8.16 Alertas de seguridad (correo al personal de seguridad TIC)
+        Route::get('/configuracion/seguridad/alertas', [SecurityController::class, 'alerts'])->name('configuracion.seguridad.alertas');
+        Route::post('/configuracion/seguridad/alertas', [SecurityController::class, 'updateAlerts'])->name('configuracion.seguridad.alertas.update');
     });
 
     // ── Máximo privilegio: solo Super Admin (cuenta local break-glass) ──

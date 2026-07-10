@@ -88,6 +88,42 @@ class SecurityController extends Controller
         );
     }
 
+    // ── A.8.16 Alertas de seguridad ───────────────────────────────────────
+
+    public function alerts(): Response
+    {
+        return Inertia::render('Admin/SecurityAlerts', [
+            'settings' => [
+                'enabled' => \App\Support\SecurityAlert::enabled(),
+                'recipients' => \App\Support\SecurityAlert::configuredRecipients(),
+            ],
+        ]);
+    }
+
+    public function updateAlerts(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'enabled' => ['boolean'],
+            'recipients' => ['nullable', 'string', 'max:2000'],
+        ]);
+
+        // Cada correo separado por coma debe ser válido.
+        $emails = collect(explode(',', (string) ($data['recipients'] ?? '')))
+            ->map(fn ($e) => trim($e))
+            ->filter();
+
+        foreach ($emails as $email) {
+            if (! filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                return back()->withErrors(['recipients' => __('messages.security.invalid_email', ['email' => $email])]);
+            }
+        }
+
+        Setting::put(\App\Support\SecurityAlert::ENABLED_KEY, $request->boolean('enabled') ? '1' : '');
+        Setting::put(\App\Support\SecurityAlert::RECIPIENTS_KEY, $emails->implode(', '));
+
+        return back()->with('success', __('messages.security.alerts_saved'));
+    }
+
     // ── A.8.8 Análisis de dependencias ────────────────────────────────────
 
     public function dependencies(DependencyAudit $audit): Response

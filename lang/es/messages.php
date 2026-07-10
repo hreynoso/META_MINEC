@@ -81,6 +81,8 @@ return [
 
     'security' => [
         'review_recorded' => 'Revisión de accesos registrada.',
+        'alerts_saved' => 'Configuración de alertas de seguridad actualizada.',
+        'invalid_email' => 'El correo ":email" no es válido.',
     ],
 
     'project' => [
