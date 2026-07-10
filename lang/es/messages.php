@@ -79,6 +79,10 @@ return [
         'photo_removed' => 'Foto de perfil eliminada.',
     ],
 
+    'security' => [
+        'review_recorded' => 'Revisión de accesos registrada.',
+    ],
+
     'project' => [
         'created' => 'Proyecto creado correctamente.',
         'updated' => 'Proyecto actualizado correctamente.',

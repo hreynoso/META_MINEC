@@ -14,3 +14,9 @@ Schedule::command('activitylog:clean')
     ->dailyAt('03:00')
     ->name('logs:clean')
     ->onOneServer();
+
+// A.8.8 — auditoría de dependencias semanal (composer audit).
+Schedule::command('security:audit')
+    ->weeklyOn(1, '04:00')
+    ->name('security:audit')
+    ->onOneServer();

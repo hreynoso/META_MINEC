@@ -1,0 +1,38 @@
+name: Security audit
+
+# A.8.8 — Gestión de vulnerabilidades técnicas: audita las dependencias PHP y
+# JS en cada push/PR a main y una vez por semana.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '0 6 * * 1' # lunes 06:00 UTC
+  workflow_dispatch:
+
+jobs:
+  composer-audit:
+    name: Composer audit (PHP)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+      - name: Instalar dependencias (sin scripts)
+        run: composer install --no-interaction --no-progress --no-scripts --ignore-platform-reqs
+      - name: Auditar dependencias PHP
+        run: composer audit --no-interaction
+
+  npm-audit:
+    name: npm audit (JS)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Auditar dependencias JS (nivel alto)
+        run: npm audit --audit-level=high

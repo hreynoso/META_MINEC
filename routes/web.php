@@ -105,8 +105,15 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/configuracion/idioma', [LanguageSettingsController::class, 'edit'])->name('configuracion.idioma.edit');
         Route::post('/configuracion/idioma', [LanguageSettingsController::class, 'update'])->name('configuracion.idioma.update');
 
-        // Configuración → Seguridad (pruebas automatizadas / autoevaluación A.8.29)
+        // Configuración → Seguridad
         Route::get('/configuracion/seguridad', [SecurityController::class, 'index'])->name('configuracion.seguridad');
+        // A.5.18 Revisión de accesos
+        Route::get('/configuracion/seguridad/accesos', [SecurityController::class, 'accessReview'])->name('configuracion.seguridad.accesos');
+        Route::get('/configuracion/seguridad/accesos/export', [SecurityController::class, 'accessExport'])->name('configuracion.seguridad.accesos.export');
+        Route::post('/configuracion/seguridad/accesos/revision', [SecurityController::class, 'recordReview'])->name('configuracion.seguridad.accesos.registrar');
+        // A.8.8 Análisis de dependencias
+        Route::get('/configuracion/seguridad/dependencias', [SecurityController::class, 'dependencies'])->name('configuracion.seguridad.dependencias');
+        Route::post('/configuracion/seguridad/dependencias/ejecutar', [SecurityController::class, 'runDependencies'])->name('configuracion.seguridad.dependencias.ejecutar');
     });
 
     // ── Máximo privilegio: solo Super Admin (cuenta local break-glass) ──

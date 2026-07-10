@@ -3,6 +3,7 @@ import { router } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 import { ref } from 'vue';
 import ConfigLayout from '@/Components/ConfigLayout.vue';
+import SecurityTabs from '@/Components/SecurityTabs.vue';
 import { Lock, ShieldCheck, AlertTriangle, XCircle, Info, RefreshCw } from 'lucide-vue-next';
 
 interface Check { key: string; status: 'ok' | 'warn' | 'fail' | 'info'; params: Record<string, unknown> }
@@ -30,6 +31,7 @@ function rerun() {
 
 <template>
     <ConfigLayout section="seguridad">
+        <SecurityTabs />
         <div class="mb-5 flex items-start justify-between gap-4">
             <div>
                 <h2 class="flex items-center gap-2 text-lg font-semibold">
