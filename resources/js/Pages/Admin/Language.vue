@@ -23,8 +23,9 @@ function choose(code: string) {
 const confirmOpen = ref(false);
 const confirmText = ref('');
 
+// Comparación sensible a mayúsculas: debe escribirse exactamente la palabra.
 const canConfirm = computed(
-    () => confirmText.value.trim().toLowerCase() === t('config.language.confirm_word').toLowerCase(),
+    () => confirmText.value.trim() === t('config.language.confirm_word'),
 );
 
 function openConfirm() {
