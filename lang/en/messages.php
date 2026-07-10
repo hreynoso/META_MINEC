@@ -74,6 +74,7 @@ return [
 
     'profile' => [
         'photo_updated' => 'Profile photo updated.',
+        'photo_removed' => 'Profile photo removed.',
     ],
 
     'project' => [

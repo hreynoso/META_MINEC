@@ -1,11 +1,10 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue';
+import { ref, computed } from 'vue';
 import { Link, usePage } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
-import Toast from 'primevue/toast';
-import { useToast } from 'primevue/usetoast';
 import ConfirmDialog from '@/Components/ConfirmDialog.vue';
 import ProfileModal from '@/Components/ProfileModal.vue';
+import FlashBanner from '@/Components/FlashBanner.vue';
 import {
     LayoutDashboard, Crown, FolderKanban, Gauge, FileBarChart,
     Sparkles, BookText, MessagesSquare, Settings, LogOut, ChevronLeft, ChevronRight, ScrollText,
@@ -30,19 +29,8 @@ const themeVars = computed(() => ({
     '--color-brand': colors.value.brand,
 }));
 
-// Toast global de éxito: escucha el flash compartido por el backend. Se observa
-// la referencia del objeto flash (Inertia crea uno nuevo por visita) para que
-// dos acciones con el MISMO mensaje disparen el toast ambas veces.
-const toast = useToast();
-watch(
-    () => page.props.flash,
-    (flash) => {
-        const ok = (flash as any)?.success as string | undefined;
-        const err = (flash as any)?.error as string | undefined;
-        if (ok) toast.add({ severity: 'success', summary: 'Listo', detail: ok, life: 3500 });
-        if (err) toast.add({ severity: 'error', summary: 'Error', detail: err, life: 6000 });
-    },
-);
+// Los mensajes flash del backend se muestran en la barra superior a todo lo
+// ancho (FlashBanner), con duración de 7 s.
 
 // Logo del sidebar administrable desde Configuración (null = usa el ícono).
 const logoSidebar = computed(() => (page.props.branding as any)?.assets?.logo_sidebar as string | undefined);
@@ -197,8 +185,8 @@ function isActive(name: string | null): boolean {
         <!-- Perfil del usuario -->
         <ProfileModal v-if="profileOpen" @close="profileOpen = false" />
 
-        <!-- Servicios globales de UI: confirmaciones y toasts -->
+        <!-- Barra informativa superior (flash) + confirmaciones -->
+        <FlashBanner />
         <ConfirmDialog />
-        <Toast position="top-right" />
     </div>
 </template>

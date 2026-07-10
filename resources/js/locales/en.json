@@ -418,7 +418,8 @@
         "email": "Email address",
         "role": "Role",
         "logout": "Sign out",
-        "save_photo": "Save photo"
+        "save_photo": "Save photo",
+        "remove_photo": "Remove photo"
     },
     "projects": {
         "page_title": "Public investment projects",

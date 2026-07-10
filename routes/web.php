@@ -126,6 +126,7 @@ Route::middleware(['auth'])->group(function () {
 
     // Perfil del usuario (cambio de foto de perfil)
     Route::post('/perfil/foto', [ProfileController::class, 'updatePhoto'])->name('perfil.foto.update');
+    Route::delete('/perfil/foto', [ProfileController::class, 'deletePhoto'])->name('perfil.foto.delete');
 
     // Keep-alive de sesion (cada 15 min desde el cliente)
     Route::post('/keep-alive', [SessionController::class, 'keepAlive'])->name('keep-alive');

@@ -418,7 +418,8 @@
         "email": "Correo electrónico",
         "role": "Rol",
         "logout": "Cerrar sesión",
-        "save_photo": "Guardar foto"
+        "save_photo": "Guardar foto",
+        "remove_photo": "Quitar foto"
     },
     "projects": {
         "page_title": "Proyectos de inversión pública",

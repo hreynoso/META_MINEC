@@ -27,4 +27,18 @@ class ProfileController extends Controller
 
         return back()->with('success', __('messages.profile.photo_updated'));
     }
+
+    /** Quita la foto de perfil del usuario autenticado. */
+    public function deletePhoto(Request $request): RedirectResponse
+    {
+        $user = $request->user();
+
+        if ($user->avatar_path) {
+            Storage::disk('public')->delete($user->avatar_path);
+        }
+
+        $user->forceFill(['avatar_path' => null])->save();
+
+        return back()->with('success', __('messages.profile.photo_removed'));
+    }
 }

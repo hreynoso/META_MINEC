@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
-import { Link, useForm, usePage } from '@inertiajs/vue3';
+import { Link, router, useForm, usePage } from '@inertiajs/vue3';
 import { X, Camera, Save, Mail, ShieldCheck, UserRound, LogOut } from 'lucide-vue-next';
 import { useI18n } from 'vue-i18n';
 
@@ -30,6 +30,22 @@ function submit() {
         onSuccess: () => {
             form.reset();
             preview.value = null;
+            emit('close');
+        },
+    });
+}
+
+// Quitar la foto de perfil actual (vuelve a las iniciales).
+const removing = ref(false);
+
+function removePhoto() {
+    router.delete(route('perfil.foto.delete'), {
+        preserveScroll: true,
+        onStart: () => { removing.value = true; },
+        onFinish: () => { removing.value = false; },
+        onSuccess: () => {
+            preview.value = null;
+            form.reset();
             emit('close');
         },
     });
@@ -67,6 +83,15 @@ function submit() {
                     </label>
                 </div>
                 <p class="mt-2 text-xs text-slate-400">{{ t('profile.change_photo') }}</p>
+                <button
+                    v-if="user.avatar && !preview"
+                    type="button"
+                    :disabled="removing"
+                    class="mt-1 inline-flex items-center gap-1 text-xs font-medium text-red-600 transition hover:underline disabled:opacity-50"
+                    @click="removePhoto"
+                >
+                    <X class="h-3.5 w-3.5" /> {{ t('profile.remove_photo') }}
+                </button>
                 <p v-if="form.errors.photo" class="mt-1 text-xs text-red-600">{{ form.errors.photo }}</p>
             </div>
 
