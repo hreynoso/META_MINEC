@@ -249,8 +249,7 @@ class CloudBackupService
         $cfg = config("database.connections.{$connection}");
         $out = $target.'.sql';
 
-        $process = new Process([
-            $binary,
+        $baseArgs = [
             '-h', (string) ($cfg['host'] ?? '127.0.0.1'),
             '-P', (string) ($cfg['port'] ?? '3306'),
             '-u', (string) ($cfg['username'] ?? 'root'),
@@ -258,26 +257,47 @@ class CloudBackupService
             '--single-transaction',
             '--skip-lock-tables',
             '--no-tablespaces',
-            (string) ($cfg['database'] ?? ''),
-        ]);
-        $process->setTimeout(600);
-        $process->run();
+        ];
+        $database = (string) ($cfg['database'] ?? '');
 
-        if (! $process->isSuccessful()) {
-            $err = trim($process->getErrorOutput()) ?: ('código de salida '.$process->getExitCode());
-            Log::error('backup: dump falló', ['binary' => $binary, 'err' => $err]);
+        // Muchos MySQL/MariaDB gestionados presentan un certificado autofirmado.
+        // 1) TLS sin verificar el certificado (resuelve el "self-signed cert").
+        // 2) Si el servidor rechaza TLS, se fuerza sin TLS (red interna de confianza).
+        $sslModes = [
+            ['--ssl-verify-server-cert=0'],
+            ['--skip-ssl'],
+        ];
 
-            throw new \RuntimeException(basename($binary).': '.$err);
+        $lastError = '';
+        foreach ($sslModes as $sslArgs) {
+            $process = new Process([$binary, ...$baseArgs, ...$sslArgs, $database]);
+            $process->setTimeout(600);
+            $process->run();
+
+            if ($process->isSuccessful()) {
+                file_put_contents($out, $process->getOutput());
+
+                if (is_file($out) && filesize($out) > 0) {
+                    return $out;
+                }
+
+                @unlink($out);
+                $lastError = 'el volcado quedó vacío';
+
+                continue;
+            }
+
+            $lastError = trim($process->getErrorOutput()) ?: ('código de salida '.$process->getExitCode());
+
+            // Si el fallo no es de TLS/SSL, reintentar con otro modo no ayudará.
+            if (stripos($lastError, 'ssl') === false && stripos($lastError, 'tls') === false) {
+                break;
+            }
         }
 
-        file_put_contents($out, $process->getOutput());
+        Log::error('backup: dump falló', ['binary' => $binary, 'err' => $lastError]);
 
-        if (! is_file($out) || filesize($out) === 0) {
-            @unlink($out);
-            throw new \RuntimeException('El volcado de la base de datos quedó vacío.');
-        }
-
-        return $out;
+        throw new \RuntimeException(basename($binary).': '.$lastError);
     }
 
     /** Localiza el binario de volcado disponible (prioriza mariadb-dump). */
