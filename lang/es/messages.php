@@ -96,6 +96,8 @@ return [
         'saved' => 'Configuración de respaldos actualizada.',
         'fail_dump' => 'No se pudo generar el volcado de la base de datos.',
         'fail_upload' => 'No se pudo subir el respaldo al proveedor :provider.',
+        'run_ok' => 'Respaldo generado y subido correctamente.',
+        'run_failed' => 'No se pudo completar el respaldo. Revisa la configuración y la bitácora.',
         'invalid_credentials' => 'El JSON de credenciales no es válido o le faltan campos (client_email / private_key).',
         'test_no_token' => 'Falta el token de acceso de Dropbox.',
         'test_no_gcs' => 'Faltan el bucket o las credenciales de Google Cloud.',

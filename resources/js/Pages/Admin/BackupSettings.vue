@@ -3,7 +3,7 @@ import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { useForm } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 import ConfigLayout from '@/Components/ConfigLayout.vue';
-import { DatabaseBackup, KeyRound, CheckCircle2, AlertTriangle, Loader2, Plug, Cloud, HardDriveUpload, ChevronDown, History, Clock } from 'lucide-vue-next';
+import { DatabaseBackup, KeyRound, CheckCircle2, AlertTriangle, Loader2, Plug, Cloud, HardDriveUpload, ChevronDown, History, Clock, Play } from 'lucide-vue-next';
 
 const { t } = useI18n({ useScope: 'global' });
 
@@ -76,6 +76,12 @@ function submit() {
         preserveScroll: true,
         onSuccess: () => form.reset('dropbox_token', 'gcs_credentials'),
     });
+}
+
+// Respaldo bajo demanda: dispara la copia de inmediato (sin esperar al cron).
+const runForm = useForm({});
+function runNow() {
+    runForm.post(route('configuracion.respaldos.ejecutar'), { preserveScroll: true });
 }
 
 // Prueba de conexión con el proveedor (usa credenciales escritas o guardadas).
@@ -334,6 +340,16 @@ async function testConnection() {
                     <Loader2 v-if="testing" class="h-4 w-4 animate-spin" />
                     <Plug v-else class="h-4 w-4" />
                     {{ testing ? t('backup.testing') : t('backup.test_connection') }}
+                </button>
+                <button
+                    type="button"
+                    :disabled="runForm.processing"
+                    class="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 px-5 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-slate-50 disabled:opacity-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-700"
+                    @click="runNow"
+                >
+                    <Loader2 v-if="runForm.processing" class="h-4 w-4 animate-spin" />
+                    <Play v-else class="h-4 w-4" />
+                    {{ runForm.processing ? t('backup.running') : t('backup.run_now') }}
                 </button>
             </div>
         </form>

@@ -777,6 +777,8 @@
         "history_title": "Completed backups",
         "history_empty": "No automatic backup has run yet.",
         "status_ok": "Success",
-        "status_error": "Failed"
+        "status_error": "Failed",
+        "run_now": "Back up now",
+        "running": "Backing up…"
     }
 }

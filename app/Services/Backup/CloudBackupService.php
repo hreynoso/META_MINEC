@@ -58,13 +58,20 @@ class CloudBackupService
         return (string) Setting::value(self::PROVIDER_KEY, 'dropbox');
     }
 
-    /** Ejecuta el respaldo completo (dump + subida + purga). */
-    public function run(): void
+    /**
+     * Ejecuta el respaldo completo (dump + subida + purga). Devuelve true si se
+     * completó correctamente.
+     *
+     * @param  bool  $manual  Ejecución bajo demanda: corre aunque los respaldos
+     *                        automáticos estén desactivados (pero requiere
+     *                        credenciales del proveedor).
+     */
+    public function run(bool $manual = false): bool
     {
-        if (! $this->enabled()) {
+        if (! $manual && ! $this->enabled()) {
             Log::info('backup: respaldos automáticos desactivados; se omite');
 
-            return;
+            return false;
         }
 
         $connection = config('database.default');
@@ -73,7 +80,7 @@ class CloudBackupService
         if ($dump === null) {
             $this->fail(__('messages.backup.fail_dump'));
 
-            return;
+            return false;
         }
 
         try {
@@ -84,8 +91,12 @@ class CloudBackupService
             $ok
                 ? $this->succeed(basename($dump))
                 : $this->fail(__('messages.backup.fail_upload', ['provider' => $this->provider()]));
+
+            return $ok;
         } catch (Throwable $e) {
             $this->fail($e->getMessage());
+
+            return false;
         } finally {
             @unlink($dump);
         }

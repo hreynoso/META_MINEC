@@ -777,6 +777,8 @@
         "history_title": "Respaldos realizados",
         "history_empty": "Aún no se ha ejecutado ningún respaldo automático.",
         "status_ok": "Correcto",
-        "status_error": "Falló"
+        "status_error": "Falló",
+        "run_now": "Generar respaldo ahora",
+        "running": "Generando respaldo…"
     }
 }

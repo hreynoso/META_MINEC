@@ -128,6 +128,17 @@ class BackupSettingsController extends Controller
         return back()->with('success', __('messages.backup.saved'));
     }
 
+    /** Genera un respaldo bajo demanda (ignora el interruptor de automáticos). */
+    public function runNow(CloudBackupService $backup): RedirectResponse
+    {
+        $ok = $backup->run(manual: true);
+
+        return back()->with(
+            $ok ? 'success' : 'error',
+            $ok ? __('messages.backup.run_ok') : __('messages.backup.run_failed'),
+        );
+    }
+
     /** Prueba la conexión con el proveedor (usa credenciales escritas o guardadas). */
     public function test(Request $request, CloudBackupService $backup): JsonResponse
     {
