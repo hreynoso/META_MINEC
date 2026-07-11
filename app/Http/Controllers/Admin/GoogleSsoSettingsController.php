@@ -51,6 +51,8 @@ class GoogleSsoSettingsController extends Controller
             Setting::put('sso.google.client_secret', $validated['client_secret']);
         }
 
+        \App\Support\SecurityAlert::configChanged('SSO Google Workspace (credenciales OAuth)');
+
         return back()->with('success', __('messages.sso.updated'));
     }
 }

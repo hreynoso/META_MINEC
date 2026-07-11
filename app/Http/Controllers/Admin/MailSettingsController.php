@@ -81,6 +81,8 @@ class MailSettingsController extends Controller
             Setting::put('mail.smtp.password', $data['smtp_password']);
         }
 
+        \App\Support\SecurityAlert::configChanged('Correo (proveedor SMTP / Mailgun)');
+
         return back()->with('success', __('messages.mail.updated'));
     }
 

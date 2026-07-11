@@ -70,6 +70,20 @@ class SecurityAlert
         )));
     }
 
+    /** Alerta estándar de cambio en configuración sensible (A.8.16), con actor e IP. */
+    public static function configChanged(string $area): void
+    {
+        $actor = request()?->user()?->name ?: (request()?->user()?->email ?? 'Sistema');
+
+        self::notify(
+            'META · Alerta de seguridad: cambio de configuración sensible',
+            "Se modificó la configuración: {$area}.\n\n"
+            ."Realizado por: {$actor}\n"
+            ."IP: ".(request()?->ip() ?: '—')."\n"
+            ."Fecha (UTC): ".now()->toDateTimeString(),
+        );
+    }
+
     public static function notify(string $subject, string $body): void
     {
         if (! self::enabled()) {

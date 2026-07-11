@@ -68,6 +68,7 @@
             "event_privilege": "Asignación de un rol administrativo (Super Admin o Administrador).",
             "event_blocked_account": "Bloqueo de una cuenta de usuario.",
             "event_deleted": "Eliminación de una cuenta de usuario.",
+            "event_config": "Cambios en configuración sensible (IA, SSO, correo o las propias alertas).",
             "save": "Guardar alertas"
         },
         "access": {

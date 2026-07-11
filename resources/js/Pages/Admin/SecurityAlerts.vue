@@ -26,6 +26,7 @@ const events = [
     'security.alerts.event_privilege',
     'security.alerts.event_blocked_account',
     'security.alerts.event_deleted',
+    'security.alerts.event_config',
 ];
 </script>
 

@@ -121,6 +121,8 @@ class SecurityController extends Controller
         Setting::put(\App\Support\SecurityAlert::ENABLED_KEY, $request->boolean('enabled') ? '1' : '');
         Setting::put(\App\Support\SecurityAlert::RECIPIENTS_KEY, $emails->implode(', '));
 
+        \App\Support\SecurityAlert::configChanged('Alertas de seguridad (destinatarios / activación)');
+
         return back()->with('success', __('messages.security.alerts_saved'));
     }
 

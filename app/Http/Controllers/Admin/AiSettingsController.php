@@ -50,6 +50,8 @@ class AiSettingsController extends Controller
             Setting::put('ai.api_key', $validated['api_key']);
         }
 
+        \App\Support\SecurityAlert::configChanged('Inteligencia Artificial (proveedor / clave del API)');
+
         return back()->with('success', __('messages.ai.updated'));
     }
 
