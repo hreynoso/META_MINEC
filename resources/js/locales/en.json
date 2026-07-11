@@ -63,8 +63,11 @@
             "recipients_label": "Recipient emails",
             "recipients_hint": "Separate multiple emails with commas. If left empty, administrators are notified.",
             "events_title": "Events that trigger an alert",
-            "event_lockout": "5 failed password attempts at sign-in (temporary lockout).",
-            "event_blocked": "Temporary lockout due to brute force (attempt email + IP).",
+            "event_lockout": "5 failed password attempts at sign-in (brute-force lockout, with email and IP).",
+            "event_break_glass": "Use of local administrative access (break-glass / Super Admin account).",
+            "event_privilege": "Assignment of an administrative role (Super Admin or Administrator).",
+            "event_blocked_account": "Blocking of a user account.",
+            "event_deleted": "Deletion of a user account.",
             "save": "Save alerts"
         },
         "access": {

@@ -80,6 +80,13 @@ class UserController extends Controller
         PasswordPolicy::record($user, $user->password);
         $user->syncRoles($data['roles'] ?? []);
 
+        if ($this->hasAdminRole($data['roles'] ?? [])) {
+            $this->alertSecurity(
+                'META · Alerta de seguridad: rol administrativo asignado',
+                "Se creó el usuario {$user->email} con un rol administrativo.",
+            );
+        }
+
         return back()->with('success', __('messages.user.created'));
     }
 
@@ -90,6 +97,10 @@ class UserController extends Controller
         if ($this->grantsAdminRole($request, $data, $user)) {
             return back()->with('error', __('messages.user.only_admin_can_grant_admin'));
         }
+
+        // Estado previo para detectar cambios sensibles (bloqueo / privilegios).
+        $wasBlocked = $user->blocked_at !== null;
+        $hadAdmin = $user->hasAnyRole(['Super Admin', 'Administrador']);
 
         $user->fill([
             'name' => $data['name'],
@@ -111,6 +122,20 @@ class UserController extends Controller
 
         $user->syncRoles($data['roles'] ?? []);
 
+        if ($user->blocked_at !== null && ! $wasBlocked) {
+            $this->alertSecurity(
+                'META · Alerta de seguridad: cuenta bloqueada',
+                "Se bloqueó la cuenta {$user->email}.",
+            );
+        }
+
+        if ($this->hasAdminRole($data['roles'] ?? []) && ! $hadAdmin) {
+            $this->alertSecurity(
+                'META · Alerta de seguridad: rol administrativo asignado',
+                "Se asignó un rol administrativo a {$user->email}.",
+            );
+        }
+
         return back()->with('success', __('messages.user.updated'));
     }
 
@@ -120,9 +145,32 @@ class UserController extends Controller
             return back()->with('error', __('messages.user.cannot_delete_self'));
         }
 
+        $email = $user->email;
         $user->delete();
 
+        $this->alertSecurity(
+            'META · Alerta de seguridad: cuenta eliminada',
+            "Se eliminó la cuenta {$email}.",
+        );
+
         return back()->with('success', __('messages.user.deleted'));
+    }
+
+    /** @param array<int, string> $roles ¿Incluye algún rol administrativo? */
+    private function hasAdminRole(array $roles): bool
+    {
+        return count(array_intersect($roles, ['Super Admin', 'Administrador'])) > 0;
+    }
+
+    /** Envía una alerta de seguridad al personal TIC (A.8.16), con actor e IP. */
+    private function alertSecurity(string $subject, string $detail): void
+    {
+        $actor = request()->user()?->name ?: (request()->user()?->email ?? 'Sistema');
+
+        \App\Support\SecurityAlert::notify(
+            $subject,
+            $detail."\n\nRealizado por: {$actor}\nIP: ".(request()->ip() ?: '—')."\nFecha (UTC): ".now()->toDateTimeString(),
+        );
     }
 
     /**

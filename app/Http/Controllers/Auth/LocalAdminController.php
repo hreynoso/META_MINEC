@@ -67,6 +67,15 @@ class LocalAdminController extends Controller
         Auth::login($user, remember: true);
         $request->session()->regenerate();
 
+        // A.8.16 — alerta: uso del acceso administrativo local (break-glass).
+        \App\Support\SecurityAlert::notify(
+            'META · Alerta de seguridad: acceso administrativo local',
+            "Se inició sesión mediante el acceso administrativo local (break-glass).\n\n"
+            ."Correo: ".($credentials['email'] ?? '—')."\n"
+            ."IP: ".($request->ip() ?: '—')."\n"
+            ."Fecha (UTC): ".now()->toDateTimeString()
+        );
+
         // Un solo dispositivo: si ya hay otra sesión activa, pide confirmación.
         if ($redirect = \App\Support\DeviceSession::resolveLogin($request, $user)) {
             return $redirect;

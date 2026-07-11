@@ -20,7 +20,13 @@ function submit() {
     form.post(route('configuracion.seguridad.alertas.update'), { preserveScroll: true });
 }
 
-const events = ['security.alerts.event_lockout', 'security.alerts.event_blocked'];
+const events = [
+    'security.alerts.event_lockout',
+    'security.alerts.event_break_glass',
+    'security.alerts.event_privilege',
+    'security.alerts.event_blocked_account',
+    'security.alerts.event_deleted',
+];
 </script>
 
 <template>
