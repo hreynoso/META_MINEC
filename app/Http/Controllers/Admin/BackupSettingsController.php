@@ -23,7 +23,7 @@ use Inertia\Response;
  */
 class BackupSettingsController extends Controller
 {
-    public function edit(): Response
+    public function edit(CloudBackupService $backup): Response
     {
         $lastRunRaw = Setting::value('backup.last_run_at');
 
@@ -46,6 +46,7 @@ class BackupSettingsController extends Controller
                 'last_run_at' => $lastRunRaw ? LocalTime::format(Carbon::parse((string) $lastRunRaw)) : null,
             ],
             'history' => $this->history(),
+            'running' => $backup->isRunning(),
         ]);
     }
 
@@ -134,8 +135,11 @@ class BackupSettingsController extends Controller
      * para no bloquear la petición; el resultado aparece en el historial y, si
      * falla, se notifica a los Super Admin.
      */
-    public function runNow(): RedirectResponse
+    public function runNow(CloudBackupService $backup): RedirectResponse
     {
+        // Se marca "en curso" de inmediato para que la UI lo refleje antes de que
+        // Horizon recoja el Job (el servicio lo vuelve a marcar y lo limpia al final).
+        $backup->markRunning();
         RunBackup::dispatch();
 
         return back()->with('success', __('messages.backup.run_queued'));

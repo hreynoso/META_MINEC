@@ -779,6 +779,7 @@
         "status_ok": "Correcto",
         "status_error": "Falló",
         "run_now": "Generar respaldo ahora",
-        "running": "Generando respaldo…"
+        "running": "Generando respaldo…",
+        "in_progress": "Hay un respaldo en proceso. El historial se actualizará automáticamente al terminar."
     }
 }

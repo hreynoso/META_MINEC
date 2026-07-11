@@ -779,6 +779,7 @@
         "status_ok": "Success",
         "status_error": "Failed",
         "run_now": "Back up now",
-        "running": "Backing up…"
+        "running": "Backing up…",
+        "in_progress": "A backup is in progress. The history will refresh automatically when it finishes."
     }
 }

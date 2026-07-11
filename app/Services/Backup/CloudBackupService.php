@@ -45,8 +45,14 @@ class CloudBackupService
     // Historial y estado de las ejecuciones.
     public const HISTORY_KEY = 'backup.history';
 
+    /** Marca de un respaldo en curso (ISO 8601) para el indicador de la UI. */
+    public const RUNNING_KEY = 'backup.running';
+
     /** Máximo de ejecuciones que se conservan en el historial. */
     private const HISTORY_LIMIT = 90;
+
+    /** Un respaldo en curso más antiguo que esto se considera obsoleto (colgado). */
+    private const RUNNING_STALE_MINUTES = 20;
 
     public function enabled(): bool
     {
@@ -56,6 +62,34 @@ class CloudBackupService
     public function provider(): string
     {
         return (string) Setting::value(self::PROVIDER_KEY, 'dropbox');
+    }
+
+    /** ¿Hay un respaldo en curso (encolado o ejecutándose)? */
+    public function isRunning(): bool
+    {
+        $raw = Setting::value(self::RUNNING_KEY);
+
+        if (! $raw) {
+            return false;
+        }
+
+        // Si la marca quedó "colgada" (Horizon caído, p. ej.), se considera vieja.
+        return (bool) rescue(
+            fn () => \Illuminate\Support\Carbon::parse((string) $raw)
+                ->addMinutes(self::RUNNING_STALE_MINUTES)->isFuture(),
+            false,
+            false,
+        );
+    }
+
+    public function markRunning(): void
+    {
+        Setting::put(self::RUNNING_KEY, now()->toIso8601String());
+    }
+
+    public function clearRunning(): void
+    {
+        Setting::put(self::RUNNING_KEY, '');
     }
 
     /**
@@ -74,31 +108,36 @@ class CloudBackupService
             return false;
         }
 
-        $connection = config('database.default');
-        $dump = $this->makeDump($connection);
-
-        if ($dump === null) {
-            $this->fail(__('messages.backup.fail_dump'));
-
-            return false;
-        }
+        $this->markRunning();
 
         try {
-            $ok = $this->provider() === 'google_cloud'
-                ? $this->uploadGcs($dump, basename($dump))
-                : $this->uploadDropbox($dump, basename($dump));
+            $dump = $this->makeDump(config('database.default'));
 
-            $ok
-                ? $this->succeed(basename($dump))
-                : $this->fail(__('messages.backup.fail_upload', ['provider' => $this->provider()]));
+            if ($dump === null) {
+                $this->fail(__('messages.backup.fail_dump'));
 
-            return $ok;
+                return false;
+            }
+
+            try {
+                $ok = $this->provider() === 'google_cloud'
+                    ? $this->uploadGcs($dump, basename($dump))
+                    : $this->uploadDropbox($dump, basename($dump));
+
+                $ok
+                    ? $this->succeed(basename($dump))
+                    : $this->fail(__('messages.backup.fail_upload', ['provider' => $this->provider()]));
+
+                return $ok;
+            } finally {
+                @unlink($dump);
+            }
         } catch (Throwable $e) {
             $this->fail($e->getMessage());
 
             return false;
         } finally {
-            @unlink($dump);
+            $this->clearRunning();
         }
     }
 

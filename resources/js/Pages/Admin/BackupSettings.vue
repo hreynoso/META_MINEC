@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
-import { useForm } from '@inertiajs/vue3';
+import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue';
+import { useForm, router } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 import ConfigLayout from '@/Components/ConfigLayout.vue';
 import { DatabaseBackup, KeyRound, CheckCircle2, AlertTriangle, Loader2, Plug, Cloud, HardDriveUpload, ChevronDown, History, Clock, Play } from 'lucide-vue-next';
@@ -24,7 +24,22 @@ interface Settings {
 
 interface HistoryEntry { at: string | null; date: string | null; status: string; provider: string; detail: string }
 
-const props = defineProps<{ settings: Settings; history: HistoryEntry[] }>();
+const props = defineProps<{ settings: Settings; history: HistoryEntry[]; running: boolean }>();
+
+// Mientras haya un respaldo en curso, se refresca el estado y el historial cada
+// pocos segundos hasta que termine (sin recargar toda la página).
+let pollTimer: number | undefined;
+function startPolling() {
+    if (pollTimer) return;
+    pollTimer = window.setInterval(() => {
+        router.reload({ only: ['running', 'history', 'settings'] });
+    }, 5000);
+}
+function stopPolling() {
+    if (pollTimer) { window.clearInterval(pollTimer); pollTimer = undefined; }
+}
+watch(() => props.running, (v) => { v ? startPolling() : stopPolling(); }, { immediate: true });
+onBeforeUnmount(stopPolling);
 
 // Reloj en vivo de la hora del servidor (UTC), solo informativo para el admin.
 const utcClock = ref('');
@@ -274,6 +289,12 @@ async function testConnection() {
                 <span>{{ testResult.message }}</span>
             </div>
 
+            <!-- Aviso: respaldo en proceso -->
+            <div v-if="running" class="flex items-center gap-2 rounded-lg border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-700 dark:border-sky-900/50 dark:bg-sky-900/20 dark:text-sky-300">
+                <Loader2 class="h-4 w-4 shrink-0 animate-spin" />
+                <span>{{ t('backup.in_progress') }}</span>
+            </div>
+
             <!-- Historial de respaldos automáticos (colapsable) -->
             <div class="rounded-xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800">
                 <button
@@ -343,13 +364,13 @@ async function testConnection() {
                 </button>
                 <button
                     type="button"
-                    :disabled="runForm.processing"
+                    :disabled="runForm.processing || running"
                     class="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 px-5 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-slate-50 disabled:opacity-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-700"
                     @click="runNow"
                 >
-                    <Loader2 v-if="runForm.processing" class="h-4 w-4 animate-spin" />
+                    <Loader2 v-if="runForm.processing || running" class="h-4 w-4 animate-spin" />
                     <Play v-else class="h-4 w-4" />
-                    {{ runForm.processing ? t('backup.running') : t('backup.run_now') }}
+                    {{ (runForm.processing || running) ? t('backup.running') : t('backup.run_now') }}
                 </button>
             </div>
         </form>
