@@ -238,30 +238,61 @@ class CloudBackupService
             return $out;
         }
 
-        // MySQL / MariaDB via mysqldump (mariadb-client en la imagen runtime).
+        // MySQL / MariaDB. El cliente de MariaDB reciente expone "mariadb-dump"
+        // (el symlink "mysqldump" puede no existir), así que se detecta el binario.
+        $binary = $this->dumpBinary();
+
+        if ($binary === null) {
+            throw new \RuntimeException('No se encontró mariadb-dump ni mysqldump en el servidor (falta el cliente de MariaDB/MySQL).');
+        }
+
         $cfg = config("database.connections.{$connection}");
         $out = $target.'.sql';
 
         $process = new Process([
-            'mysqldump',
+            $binary,
             '-h', (string) ($cfg['host'] ?? '127.0.0.1'),
             '-P', (string) ($cfg['port'] ?? '3306'),
             '-u', (string) ($cfg['username'] ?? 'root'),
             '--password='.(string) ($cfg['password'] ?? ''),
+            '--single-transaction',
+            '--skip-lock-tables',
+            '--no-tablespaces',
             (string) ($cfg['database'] ?? ''),
         ]);
         $process->setTimeout(600);
         $process->run();
 
         if (! $process->isSuccessful()) {
-            Log::error('backup: mysqldump falló', ['err' => $process->getErrorOutput()]);
+            $err = trim($process->getErrorOutput()) ?: ('código de salida '.$process->getExitCode());
+            Log::error('backup: dump falló', ['binary' => $binary, 'err' => $err]);
 
-            return null;
+            throw new \RuntimeException(basename($binary).': '.$err);
         }
 
         file_put_contents($out, $process->getOutput());
 
+        if (! is_file($out) || filesize($out) === 0) {
+            @unlink($out);
+            throw new \RuntimeException('El volcado de la base de datos quedó vacío.');
+        }
+
         return $out;
+    }
+
+    /** Localiza el binario de volcado disponible (prioriza mariadb-dump). */
+    private function dumpBinary(): ?string
+    {
+        $finder = new \Symfony\Component\Process\ExecutableFinder();
+
+        foreach (['mariadb-dump', 'mysqldump'] as $bin) {
+            $path = $finder->find($bin);
+            if ($path !== null) {
+                return $path;
+            }
+        }
+
+        return null;
     }
 
     // ── Subida por proveedor ────────────────────────────────────────────────
