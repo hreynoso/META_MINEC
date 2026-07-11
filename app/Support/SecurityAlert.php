@@ -13,20 +13,16 @@ use Illuminate\Support\Facades\Mail;
  */
 class SecurityAlert
 {
-    public const ENABLED_KEY = 'security.alerts_enabled';
-
     public const RECIPIENTS_KEY = 'security.alert_recipients';
 
+    /**
+     * Las alertas de seguridad están SIEMPRE activas y no pueden desactivarse
+     * (requisito institucional / ISO 27001 A.8.16). No existe interruptor para
+     * apagarlas; solo se configuran los destinatarios.
+     */
     public static function enabled(): bool
     {
-        // Preferir el ajuste guardado (Configuración → Seguridad → Alertas).
-        $setting = Setting::value(self::ENABLED_KEY);
-
-        if ($setting !== null) {
-            return (bool) $setting;
-        }
-
-        return (bool) config('security.alerts.enabled', true);
+        return true;
     }
 
     /** Correos del personal de seguridad TIC configurados en el apartado. */

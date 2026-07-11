@@ -3,16 +3,15 @@ import { useForm } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 import ConfigLayout from '@/Components/ConfigLayout.vue';
 import SecurityTabs from '@/Components/SecurityTabs.vue';
-import { BellRing, Save, TriangleAlert } from 'lucide-vue-next';
+import { BellRing, Save, TriangleAlert, ShieldCheck } from 'lucide-vue-next';
 
 const props = defineProps<{
-    settings: { enabled: boolean; recipients: string };
+    settings: { recipients: string };
 }>();
 
 const { t } = useI18n({ useScope: 'global' });
 
 const form = useForm({
-    enabled: props.settings.enabled,
     recipients: props.settings.recipients,
 });
 
@@ -43,10 +42,10 @@ const events = [
 
         <div class="max-w-2xl space-y-5">
             <div class="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-800">
-                <label class="flex items-center gap-2 text-sm font-medium">
-                    <input v-model="form.enabled" type="checkbox" class="rounded border-slate-300 text-brand focus:ring-brand" />
-                    {{ t('security.alerts.enabled_label') }}
-                </label>
+                <div class="flex items-start gap-2 rounded-lg bg-teal-50 px-3 py-2 text-sm font-medium text-teal-700 dark:bg-teal-900/20 dark:text-teal-300">
+                    <ShieldCheck class="mt-0.5 h-4 w-4 shrink-0" />
+                    <span>{{ t('security.alerts.always_on') }}</span>
+                </div>
 
                 <div class="mt-4">
                     <label class="mb-1 block text-xs font-medium uppercase tracking-wide text-slate-500">

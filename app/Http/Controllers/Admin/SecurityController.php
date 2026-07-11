@@ -6,14 +6,13 @@ use App\Http\Controllers\Controller;
 use App\Models\Setting;
 use App\Models\User;
 use App\Services\Security\DependencyAudit;
-use App\Support\ExportName;
+use App\Services\Security\DependencyAuditReport;
 use App\Support\LocalTime;
-use App\Support\SheetExport;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response as HttpResponse;
 use Inertia\Inertia;
 use Inertia\Response;
-use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
  * Configuración → Seguridad. Agrupa los controles de seguridad:
@@ -23,11 +22,11 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
  */
 class SecurityController extends Controller
 {
-    private const REVIEW_KEY = 'security.access_review';
-
     private const DORMANT_DAYS = 90;
 
     // ── A.8.29 Pruebas automatizadas ──────────────────────────────────────
+    // Nota: la revisión de accesos (A.5.18) vive ahora en Configuración →
+    // Usuarios (App\Http\Controllers\Admin\UserController).
 
     public function index(): Response
     {
@@ -44,57 +43,13 @@ class SecurityController extends Controller
         ]);
     }
 
-    // ── A.5.18 Revisión de accesos ────────────────────────────────────────
-
-    public function accessReview(): Response
-    {
-        return Inertia::render('Admin/SecurityAccess', [
-            'users' => $this->reviewRows(),
-            'lastReview' => $this->lastReview(),
-        ]);
-    }
-
-    /** Registra una atestación de revisión de accesos (evidencia A.5.18). */
-    public function recordReview(Request $request): RedirectResponse
-    {
-        $by = $request->user()?->name ?: ($request->user()?->email ?? 'Sistema');
-
-        Setting::put(self::REVIEW_KEY, json_encode(['at' => now()->toIso8601String(), 'by' => $by]));
-
-        rescue(fn () => activity('security')
-            ->causedBy($request->user())
-            ->log('Revisión de accesos registrada'), null, false);
-
-        return back()->with('success', __('messages.security.review_recorded'));
-    }
-
-    public function accessExport(): StreamedResponse
-    {
-        $rows = collect($this->reviewRows())->map(fn (array $u) => [
-            $u['name'],
-            $u['email'],
-            $u['institution'] ?? '',
-            implode(', ', $u['roles']),
-            $u['blocked'] ? 'Bloqueado' : 'Activo',
-            $u['privileged'] ? 'Sí' : 'No',
-            $u['last_login'] ?? ($u['never'] ? 'Nunca' : '—'),
-            $u['dormant'] ? 'Sí' : 'No',
-        ])->all();
-
-        return SheetExport::stream(
-            ExportName::make('Revision de accesos', 'xlsx'),
-            ['Nombre', 'Correo', 'Institución', 'Roles', 'Estado', 'Privilegiado', 'Último acceso', 'Inactivo 90+ días'],
-            $rows,
-        );
-    }
-
     // ── A.8.16 Alertas de seguridad ───────────────────────────────────────
 
     public function alerts(): Response
     {
         return Inertia::render('Admin/SecurityAlerts', [
             'settings' => [
-                'enabled' => \App\Support\SecurityAlert::enabled(),
+                // Las alertas están SIEMPRE activas y no pueden desactivarse.
                 'recipients' => \App\Support\SecurityAlert::configuredRecipients(),
             ],
         ]);
@@ -102,8 +57,9 @@ class SecurityController extends Controller
 
     public function updateAlerts(Request $request): RedirectResponse
     {
+        // Nota: no se acepta ningún parámetro para desactivar las alertas; están
+        // permanentemente activas (A.8.16). Solo se configuran los destinatarios.
         $data = $request->validate([
-            'enabled' => ['boolean'],
             'recipients' => ['nullable', 'string', 'max:2000'],
         ]);
 
@@ -118,10 +74,9 @@ class SecurityController extends Controller
             }
         }
 
-        Setting::put(\App\Support\SecurityAlert::ENABLED_KEY, $request->boolean('enabled') ? '1' : '');
         Setting::put(\App\Support\SecurityAlert::RECIPIENTS_KEY, $emails->implode(', '));
 
-        \App\Support\SecurityAlert::configChanged('Alertas de seguridad (destinatarios / activación)');
+        \App\Support\SecurityAlert::configChanged('Alertas de seguridad (destinatarios)');
 
         return back()->with('success', __('messages.security.alerts_saved'));
     }
@@ -132,6 +87,12 @@ class SecurityController extends Controller
     {
         return Inertia::render('Admin/SecurityDeps', [
             'audit' => $this->formatAudit($audit->latest()),
+            'schedule' => [
+                'interval_days' => $audit->intervalDays(),
+                'reported_at' => LocalTime::format($audit->reportedAt()),
+                'next_report_at' => LocalTime::format($audit->nextReportAt()),
+                'recipients' => \App\Support\SecurityAlert::recipients(),
+            ],
         ]);
     }
 
@@ -139,58 +100,43 @@ class SecurityController extends Controller
     {
         $audit->run();
 
-        return back();
+        return back()->with('success', __('messages.security.deps_run'));
+    }
+
+    /** Guarda la periodicidad del análisis programado (A.8.8). */
+    public function updateDependencySchedule(Request $request, DependencyAudit $audit): RedirectResponse
+    {
+        $data = $request->validate([
+            'interval_days' => ['required', 'integer', 'min:'.DependencyAudit::MIN_INTERVAL_DAYS, 'max:'.DependencyAudit::MAX_INTERVAL_DAYS],
+        ], [], ['interval_days' => 'periodicidad']);
+
+        $audit->setIntervalDays((int) $data['interval_days']);
+
+        \App\Support\SecurityAlert::configChanged('Análisis de dependencias (periodicidad del análisis programado)');
+
+        return back()->with('success', __('messages.security.deps_schedule_saved'));
+    }
+
+    /** Descarga el informe PDF del último análisis de dependencias. */
+    public function downloadDependencyReport(DependencyAuditReport $report): HttpResponse
+    {
+        return $report->pdf()->download($report->filename());
+    }
+
+    /** Genera el informe y lo envía por correo al equipo de seguridad (bajo demanda). */
+    public function sendDependencyReport(DependencyAudit $audit, DependencyAuditReport $report): RedirectResponse
+    {
+        $audit->run();
+        $sent = $report->send();
+        $audit->markReported();
+
+        return back()->with(
+            $sent ? 'success' : 'error',
+            $sent ? __('messages.security.deps_report_sent') : __('messages.security.deps_report_no_recipients'),
+        );
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────
-
-    /** @return array<int, array<string, mixed>> */
-    private function reviewRows(): array
-    {
-        $threshold = now()->subDays(self::DORMANT_DAYS);
-
-        return User::with(['roles:id,name', 'institution:id,short_name'])
-            ->orderBy('name')
-            ->get()
-            ->map(function (User $u) use ($threshold) {
-                $roles = $u->roles->pluck('name');
-                $never = $u->last_login_at === null;
-
-                return [
-                    'id' => $u->id,
-                    'name' => $u->name,
-                    'email' => $u->email,
-                    'institution' => $u->institution?->short_name,
-                    'roles' => $roles->all(),
-                    'blocked' => $u->blocked_at !== null,
-                    'privileged' => (bool) $roles->intersect(['Super Admin', 'Administrador'])->count(),
-                    'last_login' => LocalTime::format($u->last_login_at),
-                    'never' => $never,
-                    'dormant' => $never || $u->last_login_at->lt($threshold),
-                ];
-            })
-            ->all();
-    }
-
-    private function lastReview(): ?array
-    {
-        $raw = Setting::value(self::REVIEW_KEY);
-
-        if (! $raw) {
-            return null;
-        }
-
-        $data = json_decode((string) $raw, true);
-
-        if (! is_array($data) || empty($data['at'])) {
-            return null;
-        }
-
-        return [
-            'at' => LocalTime::format(\Illuminate\Support\Carbon::parse($data['at'])),
-            'by' => $data['by'] ?? '—',
-        ];
-    }
 
     private function formatAudit(array $audit): array
     {
@@ -236,8 +182,13 @@ class SecurityController extends Controller
         $default = (string) config('security.default_role');
         $checks[] = $this->c('default_role', $default !== '' ? 'ok' : 'warn', ['role' => $default !== '' ? $default : '—']);
 
-        $hasBackup = filled(config('services.dropbox.token') ?? env('DROPBOX_BACKUP_TOKEN'));
-        $checks[] = $this->c('backups', $hasBackup ? 'ok' : 'warn');
+        // A.8.13 — respaldos automáticos: activos y con credenciales del proveedor.
+        $backupEnabled = (bool) Setting::value(\App\Services\Backup\CloudBackupService::ENABLED_KEY);
+        $backupProvider = (string) Setting::value(\App\Services\Backup\CloudBackupService::PROVIDER_KEY, 'dropbox');
+        $backupCreds = $backupProvider === 'google_cloud'
+            ? filled(Setting::value(\App\Services\Backup\CloudBackupService::GCS_CREDENTIALS_KEY)) && filled(Setting::value(\App\Services\Backup\CloudBackupService::GCS_BUCKET_KEY))
+            : filled(Setting::value(\App\Services\Backup\CloudBackupService::DROPBOX_TOKEN_KEY));
+        $checks[] = $this->c('backups', ($backupEnabled && $backupCreds) ? 'ok' : 'warn');
 
         $checks[] = $this->c('log_retention', 'ok', ['days' => (int) config('security.log_retention_days', 365)]);
 

@@ -6,18 +6,22 @@ import ConfigLayout from '@/Components/ConfigLayout.vue';
 import { useConfirm } from '@/Composables/useConfirm';
 import { matchesAllTokens } from '@/Composables/useTokenSearch';
 import GridToolbar, { type GridColumn } from '@/Components/GridToolbar.vue';
-import { Plus, Pencil, Trash2, X, Save, ShieldCheck } from 'lucide-vue-next';
+import { Plus, Pencil, Trash2, X, Save, ShieldCheck, Lock, LockOpen, ClipboardCheck, ShieldAlert, Clock } from 'lucide-vue-next';
 
 interface User {
     id: number; name: string; email: string; institution_id: number | null;
     institution: string | null; roles: string[]; blocked: boolean;
     last_login_at: string | null; origin: 'local' | 'sso';
+    privileged: boolean; never: boolean; dormant: boolean;
 }
 
 const props = defineProps<{
     users: User[];
     roles: string[];
     institutions: { id: number; short_name: string; name: string }[];
+    currentUserId: number;
+    dormantDays: number;
+    lastReview: { at: string | null; by: string } | null;
 }>();
 
 const { t } = useI18n({ useScope: 'global' });
@@ -33,6 +37,7 @@ const columns = ref<GridColumn[]>([
     { key: 'institution', label: t('users.col_institution'), visible: true },
     { key: 'roles', label: t('users.col_roles'), visible: true },
     { key: 'blocked', label: t('users.col_status'), visible: true },
+    { key: 'review', label: t('users.col_review'), visible: true },
     { key: 'origin', label: t('users.col_origin'), visible: true },
     { key: 'last_login', label: t('users.col_last_login'), visible: true },
 ]);
@@ -43,6 +48,8 @@ const filtered = computed(() =>
         if (fRole.value && !u.roles.includes(fRole.value)) return false;
         if (fStatus.value === 'activo' && u.blocked) return false;
         if (fStatus.value === 'bloqueado' && !u.blocked) return false;
+        if (fStatus.value === 'privilegiado' && !u.privileged) return false;
+        if (fStatus.value === 'inactivo' && !u.dormant) return false;
         if (search.value.trim() && !matchesAllTokens(`${u.name} ${u.email} ${u.institution ?? ''} ${u.roles.join(' ')}`, search.value)) return false;
         return true;
     }),
@@ -100,18 +107,50 @@ function confirmDelete(u: User) {
         accept: () => router.delete(route('configuracion.usuarios.destroy', u.id), { preserveScroll: true }),
     });
 }
+
+// Bloqueo / desbloqueo de la cuenta (revisión de accesos, A.5.18).
+function confirmToggleBlock(u: User) {
+    const blocking = !u.blocked;
+    ask({
+        header: blocking ? t('users.block_header') : t('users.unblock_header'),
+        message: (blocking ? t('users.block_message', { name: u.name }) : t('users.unblock_message', { name: u.name })),
+        acceptLabel: blocking ? t('users.block') : t('users.unblock'),
+        danger: blocking,
+        accept: () => router.post(route('configuracion.usuarios.bloqueo', u.id), {}, { preserveScroll: true }),
+    });
+}
+
+// Atestación de revisión de accesos (evidencia A.5.18).
+const reviewForm = useForm({});
+function recordReview() {
+    reviewForm.post(route('configuracion.usuarios.revision'), { preserveScroll: true });
+}
 </script>
 
 <template>
     <ConfigLayout section="usuarios">
-        <div class="mb-5 flex items-start justify-between">
+        <div class="mb-5 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div>
                 <h2 class="text-lg font-semibold">{{ t('users.page_title') }}</h2>
                 <p class="text-sm text-slate-500">{{ t('users.page_subtitle') }}</p>
+                <p class="mt-1 text-xs text-slate-400">
+                    <template v-if="lastReview">{{ t('users.last_review', { when: lastReview.at, who: lastReview.by }) }}</template>
+                    <template v-else>{{ t('users.no_review') }}</template>
+                </p>
             </div>
-            <button class="inline-flex items-center gap-1.5 rounded-lg bg-brand px-3 py-2 text-sm font-medium text-white hover:opacity-90" @click="openCreate">
-                <Plus class="h-4 w-4" /> {{ t('users.new_user') }}
-            </button>
+            <div class="flex shrink-0 flex-wrap gap-2">
+                <button
+                    type="button"
+                    :disabled="reviewForm.processing"
+                    class="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 px-3 py-2 text-sm hover:bg-slate-50 disabled:opacity-50 dark:border-slate-600 dark:hover:bg-slate-700"
+                    @click="recordReview"
+                >
+                    <ClipboardCheck class="h-4 w-4" /> {{ t('users.record_review') }}
+                </button>
+                <button class="inline-flex items-center gap-1.5 rounded-lg bg-brand px-3 py-2 text-sm font-medium text-white hover:opacity-90" @click="openCreate">
+                    <Plus class="h-4 w-4" /> {{ t('users.new_user') }}
+                </button>
+            </div>
         </div>
 
         <div class="rounded-xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800">
@@ -137,6 +176,8 @@ function confirmDelete(u: User) {
                             <option value="">{{ t('users.all') }}</option>
                             <option value="activo">{{ t('users.status_active') }}</option>
                             <option value="bloqueado">{{ t('users.status_blocked') }}</option>
+                            <option value="privilegiado">{{ t('users.filter_privileged') }}</option>
+                            <option value="inactivo">{{ t('users.filter_dormant') }}</option>
                         </select>
                     </div>
                 </template>
@@ -151,6 +192,7 @@ function confirmDelete(u: User) {
                             <th v-if="vis('institution')" class="px-4 py-3 font-medium">{{ t('users.col_institution') }}</th>
                             <th v-if="vis('roles')" class="px-4 py-3 font-medium">{{ t('users.col_roles') }}</th>
                             <th v-if="vis('blocked')" class="px-4 py-3 font-medium">{{ t('users.col_status') }}</th>
+                            <th v-if="vis('review')" class="px-4 py-3 font-medium">{{ t('users.col_review') }}</th>
                             <th v-if="vis('origin')" class="px-4 py-3 font-medium">{{ t('users.col_origin') }}</th>
                             <th v-if="vis('last_login')" class="px-4 py-3 font-medium">{{ t('users.col_last_login') }}</th>
                             <th class="px-4 py-3 text-right font-medium">{{ t('users.col_actions') }}</th>
@@ -170,6 +212,17 @@ function confirmDelete(u: User) {
                                     {{ u.blocked ? t('users.status_blocked') : t('users.status_active') }}
                                 </span>
                             </td>
+                            <td v-if="vis('review')" class="px-4 py-3">
+                                <div class="flex flex-wrap gap-1">
+                                    <span v-if="u.privileged" class="inline-flex items-center gap-1 rounded-full bg-sky-100 px-2 py-0.5 text-xs text-sky-700 dark:bg-sky-900/40 dark:text-sky-300">
+                                        <ShieldAlert class="h-3 w-3" /> {{ t('users.flag_privileged') }}
+                                    </span>
+                                    <span v-if="u.dormant" class="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs text-amber-700 dark:bg-amber-900/40 dark:text-amber-300">
+                                        <Clock class="h-3 w-3" /> {{ t('users.flag_dormant', { days: dormantDays }) }}
+                                    </span>
+                                    <span v-if="!u.privileged && !u.dormant" class="text-slate-400">—</span>
+                                </div>
+                            </td>
                             <td v-if="vis('origin')" class="px-4 py-3">
                                 <span
                                     class="rounded-full px-2 py-0.5 text-xs font-medium"
@@ -183,12 +236,22 @@ function confirmDelete(u: User) {
                             <td v-if="vis('last_login')" class="px-4 py-3 text-slate-500">{{ u.last_login_at ?? t('users.never') }}</td>
                             <td class="px-4 py-3">
                                 <div class="flex items-center justify-end gap-1">
+                                    <button
+                                        v-if="u.id !== currentUserId"
+                                        class="rounded p-1.5"
+                                        :class="u.blocked ? 'text-teal-600 hover:bg-teal-50 dark:hover:bg-teal-900/30' : 'text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/30'"
+                                        :title="u.blocked ? t('users.unblock') : t('users.block')"
+                                        @click="confirmToggleBlock(u)"
+                                    >
+                                        <LockOpen v-if="u.blocked" class="h-4 w-4" />
+                                        <Lock v-else class="h-4 w-4" />
+                                    </button>
                                     <button class="rounded p-1.5 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700" :title="t('users.edit')" @click="openEdit(u)"><Pencil class="h-4 w-4" /></button>
                                     <button class="rounded p-1.5 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30" :title="t('actions.delete')" @click="confirmDelete(u)"><Trash2 class="h-4 w-4" /></button>
                                 </div>
                             </td>
                         </tr>
-                        <tr v-if="!filtered.length"><td colspan="8" class="px-4 py-8 text-center text-slate-400">{{ t('users.empty') }}</td></tr>
+                        <tr v-if="!filtered.length"><td colspan="9" class="px-4 py-8 text-center text-slate-400">{{ t('users.empty') }}</td></tr>
                     </tbody>
                 </table>
             </div>

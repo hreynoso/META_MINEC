@@ -6,7 +6,6 @@ const { t } = useI18n({ useScope: 'global' });
 
 const tabs = [
     { key: 'checks', route: 'configuracion.seguridad' },
-    { key: 'access', route: 'configuracion.seguridad.accesos' },
     { key: 'deps', route: 'configuracion.seguridad.dependencias' },
     { key: 'alerts', route: 'configuracion.seguridad.alertas' },
 ];

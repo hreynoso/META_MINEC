@@ -3,6 +3,7 @@
 namespace App\Services\Security;
 
 use App\Models\Setting;
+use Illuminate\Support\Carbon;
 use Symfony\Component\Process\Process;
 use Throwable;
 
@@ -16,6 +17,68 @@ use Throwable;
 class DependencyAudit
 {
     public const SETTING_KEY = 'security.deps_audit';
+
+    /** Periodo (en días) entre análisis programados. Configurable en el apartado. */
+    public const INTERVAL_KEY = 'security.deps_interval_days';
+
+    /** Fecha del último informe notificado por correo al equipo de seguridad. */
+    public const REPORTED_KEY = 'security.deps_reported_at';
+
+    public const DEFAULT_INTERVAL_DAYS = 30;
+
+    public const MIN_INTERVAL_DAYS = 1;
+
+    public const MAX_INTERVAL_DAYS = 365;
+
+    /** Periodo configurado (días), acotado a un rango razonable. */
+    public function intervalDays(): int
+    {
+        $days = (int) Setting::value(self::INTERVAL_KEY, self::DEFAULT_INTERVAL_DAYS);
+
+        if ($days < self::MIN_INTERVAL_DAYS) {
+            return self::DEFAULT_INTERVAL_DAYS;
+        }
+
+        return min($days, self::MAX_INTERVAL_DAYS);
+    }
+
+    /** Guarda el periodo entre análisis programados (días). */
+    public function setIntervalDays(int $days): void
+    {
+        $days = max(self::MIN_INTERVAL_DAYS, min($days, self::MAX_INTERVAL_DAYS));
+
+        Setting::put(self::INTERVAL_KEY, (string) $days);
+    }
+
+    /** Fecha del último informe enviado al equipo de seguridad, o null. */
+    public function reportedAt(): ?Carbon
+    {
+        $raw = Setting::value(self::REPORTED_KEY);
+
+        return $raw ? rescue(fn () => Carbon::parse((string) $raw), null, false) : null;
+    }
+
+    /** Marca "ahora" como fecha del último informe notificado. */
+    public function markReported(): void
+    {
+        Setting::put(self::REPORTED_KEY, now()->toIso8601String());
+    }
+
+    /** Próxima ejecución programada del informe (según el periodo configurado). */
+    public function nextReportAt(): Carbon
+    {
+        $last = $this->reportedAt();
+
+        return ($last ?? now())->copy()->addDays($this->intervalDays());
+    }
+
+    /** ¿Toca ya generar y notificar el informe programado? */
+    public function dueForReport(): bool
+    {
+        $last = $this->reportedAt();
+
+        return $last === null || $last->copy()->addDays($this->intervalDays())->isPast();
+    }
 
     /** Ejecuta el análisis y guarda el resultado. Devuelve el resultado. */
     public function run(): array
