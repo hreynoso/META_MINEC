@@ -84,9 +84,9 @@ class BackupSettingsController extends Controller
             'frequency' => ['required', 'in:daily,weekly'],
             'time' => ['required', 'date_format:H:i'],
             'retention_days' => ['required', 'integer', 'min:1', 'max:3650'],
-            // Dropbox
+            // Dropbox (los tokens "sl." pueden superar holgadamente los 1000 chars)
             'dropbox_folder' => ['nullable', 'string', 'max:255'],
-            'dropbox_token' => ['nullable', 'string', 'max:1024'],
+            'dropbox_token' => ['nullable', 'string', 'max:8192'],
             // Google Cloud
             'gcs_bucket' => ['nullable', 'string', 'max:255'],
             'gcs_prefix' => ['nullable', 'string', 'max:255'],
@@ -133,7 +133,7 @@ class BackupSettingsController extends Controller
     {
         $data = $request->validate([
             'provider' => ['required', 'in:dropbox,google_cloud'],
-            'dropbox_token' => ['nullable', 'string', 'max:1024'],
+            'dropbox_token' => ['nullable', 'string', 'max:8192'],
             'gcs_bucket' => ['nullable', 'string', 'max:255'],
             'gcs_credentials' => ['nullable', 'string', 'max:20000'],
         ]);
