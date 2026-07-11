@@ -1,5 +1,6 @@
 <?php
 
+use App\Jobs\RunBackup;
 use App\Models\Setting;
 use App\Services\Backup\CloudBackupService;
 use App\Services\Security\DependencyAudit;
@@ -28,7 +29,8 @@ Schedule::call(function () {
         return;
     }
 
-    $backup->run();
+    // Se ejecuta en segundo plano (cola Horizon) para no bloquear el planificador.
+    RunBackup::dispatch();
 })
     ->everyMinute()
     ->name('backup:auto')

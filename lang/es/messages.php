@@ -98,6 +98,7 @@ return [
         'fail_upload' => 'No se pudo subir el respaldo al proveedor :provider.',
         'run_ok' => 'Respaldo generado y subido correctamente.',
         'run_failed' => 'No se pudo completar el respaldo. Revisa la configuración y la bitácora.',
+        'run_queued' => 'Respaldo iniciado en segundo plano. El resultado aparecerá en el historial en unos momentos.',
         'invalid_credentials' => 'El JSON de credenciales no es válido o le faltan campos (client_email / private_key).',
         'test_no_token' => 'Falta el token de acceso de Dropbox.',
         'test_no_gcs' => 'Faltan el bucket o las credenciales de Google Cloud.',

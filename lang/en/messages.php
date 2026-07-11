@@ -98,6 +98,7 @@ return [
         'fail_upload' => 'The backup could not be uploaded to provider :provider.',
         'run_ok' => 'Backup generated and uploaded successfully.',
         'run_failed' => 'The backup could not be completed. Check the settings and the log.',
+        'run_queued' => 'Backup started in the background. The result will appear in the history shortly.',
         'invalid_credentials' => 'The credentials JSON is invalid or missing fields (client_email / private_key).',
         'test_no_token' => 'The Dropbox access token is missing.',
         'test_no_gcs' => 'The Google Cloud bucket or credentials are missing.',

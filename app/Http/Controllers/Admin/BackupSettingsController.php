@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\RunBackup;
 use App\Models\Setting;
 use App\Services\Backup\CloudBackupService;
 use App\Support\LocalTime;
@@ -128,15 +129,16 @@ class BackupSettingsController extends Controller
         return back()->with('success', __('messages.backup.saved'));
     }
 
-    /** Genera un respaldo bajo demanda (ignora el interruptor de automáticos). */
-    public function runNow(CloudBackupService $backup): RedirectResponse
+    /**
+     * Genera un respaldo bajo demanda. Se ejecuta en segundo plano (cola Horizon)
+     * para no bloquear la petición; el resultado aparece en el historial y, si
+     * falla, se notifica a los Super Admin.
+     */
+    public function runNow(): RedirectResponse
     {
-        $ok = $backup->run(manual: true);
+        RunBackup::dispatch();
 
-        return back()->with(
-            $ok ? 'success' : 'error',
-            $ok ? __('messages.backup.run_ok') : __('messages.backup.run_failed'),
-        );
+        return back()->with('success', __('messages.backup.run_queued'));
     }
 
     /** Prueba la conexión con el proveedor (usa credenciales escritas o guardadas). */
