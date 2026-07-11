@@ -58,6 +58,9 @@ return [
         'deleted' => 'Usuario eliminado correctamente.',
         'never_logged_in' => 'Nunca',
         'password_reused' => 'No puede reutilizar una de sus últimas contraseñas.',
+        'cannot_block_self' => 'No puedes bloquear tu propia cuenta.',
+        'blocked' => 'Cuenta bloqueada correctamente.',
+        'unblocked' => 'Cuenta desbloqueada correctamente.',
     ],
 
     'minister' => [
@@ -81,8 +84,27 @@ return [
 
     'security' => [
         'review_recorded' => 'Revisión de accesos registrada.',
-        'alerts_saved' => 'Configuración de alertas de seguridad actualizada.',
+        'alerts_saved' => 'Destinatarios de las alertas de seguridad actualizados.',
         'invalid_email' => 'El correo ":email" no es válido.',
+        'deps_run' => 'Análisis de dependencias ejecutado.',
+        'deps_schedule_saved' => 'Periodicidad del análisis de dependencias actualizada.',
+        'deps_report_sent' => 'Informe de dependencias generado y enviado al equipo de seguridad.',
+        'deps_report_no_recipients' => 'No hay destinatarios configurados para el informe de seguridad.',
+    ],
+
+    'backup' => [
+        'saved' => 'Configuración de respaldos actualizada.',
+        'fail_dump' => 'No se pudo generar el volcado de la base de datos.',
+        'fail_upload' => 'No se pudo subir el respaldo al proveedor :provider.',
+        'invalid_credentials' => 'El JSON de credenciales no es válido o le faltan campos (client_email / private_key).',
+        'test_no_token' => 'Falta el token de acceso de Dropbox.',
+        'test_no_gcs' => 'Faltan el bucket o las credenciales de Google Cloud.',
+        'test_bad_credentials' => 'Las credenciales de la cuenta de servicio no son válidas.',
+        'test_dropbox_ok' => 'Conexión con Dropbox correcta (:account).',
+        'test_dropbox_failed' => 'No se pudo conectar con Dropbox (código :detail).',
+        'test_gcs_ok' => 'Conexión con Google Cloud correcta (bucket :bucket).',
+        'test_gcs_failed' => 'No se pudo acceder al bucket de Google Cloud (código :detail).',
+        'test_token_failed' => 'No se pudo obtener el token de Google Cloud (código :detail).',
     ],
 
     'project' => [

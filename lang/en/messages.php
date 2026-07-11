@@ -58,6 +58,9 @@ return [
         'deleted' => 'User deleted successfully.',
         'never_logged_in' => 'Never',
         'password_reused' => 'You cannot reuse one of your recent passwords.',
+        'cannot_block_self' => 'You cannot block your own account.',
+        'blocked' => 'Account blocked successfully.',
+        'unblocked' => 'Account unblocked successfully.',
     ],
 
     'minister' => [
@@ -81,8 +84,27 @@ return [
 
     'security' => [
         'review_recorded' => 'Access review recorded.',
-        'alerts_saved' => 'Security alert settings updated.',
+        'alerts_saved' => 'Security alert recipients updated.',
         'invalid_email' => 'The email ":email" is not valid.',
+        'deps_run' => 'Dependency analysis executed.',
+        'deps_schedule_saved' => 'Dependency analysis schedule updated.',
+        'deps_report_sent' => 'Dependency report generated and sent to the security team.',
+        'deps_report_no_recipients' => 'No recipients are configured for the security report.',
+    ],
+
+    'backup' => [
+        'saved' => 'Backup settings updated.',
+        'fail_dump' => 'The database dump could not be generated.',
+        'fail_upload' => 'The backup could not be uploaded to provider :provider.',
+        'invalid_credentials' => 'The credentials JSON is invalid or missing fields (client_email / private_key).',
+        'test_no_token' => 'The Dropbox access token is missing.',
+        'test_no_gcs' => 'The Google Cloud bucket or credentials are missing.',
+        'test_bad_credentials' => 'The service account credentials are not valid.',
+        'test_dropbox_ok' => 'Dropbox connection successful (:account).',
+        'test_dropbox_failed' => 'Could not connect to Dropbox (code :detail).',
+        'test_gcs_ok' => 'Google Cloud connection successful (bucket :bucket).',
+        'test_gcs_failed' => 'Could not access the Google Cloud bucket (code :detail).',
+        'test_token_failed' => 'Could not obtain the Google Cloud token (code :detail).',
     ],
 
     'project' => [

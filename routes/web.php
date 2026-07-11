@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\AiSettingsController;
+use App\Http\Controllers\Admin\BackupSettingsController;
 use App\Http\Controllers\Admin\BrandingController;
 use App\Http\Controllers\Admin\GoogleSsoSettingsController;
 use App\Http\Controllers\Admin\LanguageSettingsController;
@@ -107,13 +108,12 @@ Route::middleware(['auth'])->group(function () {
 
         // Configuración → Seguridad
         Route::get('/configuracion/seguridad', [SecurityController::class, 'index'])->name('configuracion.seguridad');
-        // A.5.18 Revisión de accesos
-        Route::get('/configuracion/seguridad/accesos', [SecurityController::class, 'accessReview'])->name('configuracion.seguridad.accesos');
-        Route::get('/configuracion/seguridad/accesos/export', [SecurityController::class, 'accessExport'])->name('configuracion.seguridad.accesos.export');
-        Route::post('/configuracion/seguridad/accesos/revision', [SecurityController::class, 'recordReview'])->name('configuracion.seguridad.accesos.registrar');
-        // A.8.8 Análisis de dependencias
+        // A.8.8 Análisis de dependencias (programable, con informe PDF por correo)
         Route::get('/configuracion/seguridad/dependencias', [SecurityController::class, 'dependencies'])->name('configuracion.seguridad.dependencias');
         Route::post('/configuracion/seguridad/dependencias/ejecutar', [SecurityController::class, 'runDependencies'])->name('configuracion.seguridad.dependencias.ejecutar');
+        Route::post('/configuracion/seguridad/dependencias/programacion', [SecurityController::class, 'updateDependencySchedule'])->name('configuracion.seguridad.dependencias.programacion');
+        Route::get('/configuracion/seguridad/dependencias/pdf', [SecurityController::class, 'downloadDependencyReport'])->name('configuracion.seguridad.dependencias.pdf');
+        Route::post('/configuracion/seguridad/dependencias/enviar', [SecurityController::class, 'sendDependencyReport'])->name('configuracion.seguridad.dependencias.enviar');
         // A.8.16 Alertas de seguridad (correo al personal de seguridad TIC)
         Route::get('/configuracion/seguridad/alertas', [SecurityController::class, 'alerts'])->name('configuracion.seguridad.alertas');
         Route::post('/configuracion/seguridad/alertas', [SecurityController::class, 'updateAlerts'])->name('configuracion.seguridad.alertas.update');
@@ -121,12 +121,15 @@ Route::middleware(['auth'])->group(function () {
 
     // ── Máximo privilegio: solo Super Admin (cuenta local break-glass) ──
     Route::middleware('role:Super Admin')->group(function () {
-        // Configuración → Usuarios
+        // Configuración → Usuarios (incluye la revisión de accesos, A.5.18)
         Route::get('/configuracion/usuarios/export', [UserController::class, 'export'])->name('configuracion.usuarios.export');
         Route::get('/configuracion/usuarios', [UserController::class, 'index'])->name('configuracion.usuarios.index');
         Route::post('/configuracion/usuarios', [UserController::class, 'store'])->name('configuracion.usuarios.store');
         Route::put('/configuracion/usuarios/{user}', [UserController::class, 'update'])->name('configuracion.usuarios.update');
         Route::delete('/configuracion/usuarios/{user}', [UserController::class, 'destroy'])->name('configuracion.usuarios.destroy');
+        // Acciones de acceso: bloquear/desbloquear y registrar la revisión de accesos.
+        Route::post('/configuracion/usuarios/{user}/bloqueo', [UserController::class, 'toggleBlock'])->name('configuracion.usuarios.bloqueo');
+        Route::post('/configuracion/usuarios/revision', [UserController::class, 'recordReview'])->name('configuracion.usuarios.revision');
 
         // Configuración → Roles y permisos
         Route::get('/configuracion/roles', [RoleController::class, 'index'])->name('configuracion.roles.index');
@@ -142,6 +145,11 @@ Route::middleware(['auth'])->group(function () {
         // Configuración → SSO Google Workspace (credenciales OAuth)
         Route::get('/configuracion/sso', [GoogleSsoSettingsController::class, 'edit'])->name('configuracion.sso.edit');
         Route::post('/configuracion/sso', [GoogleSsoSettingsController::class, 'update'])->name('configuracion.sso.update');
+
+        // Configuración → Respaldos automáticos (A.8.13; Dropbox / Google Cloud)
+        Route::get('/configuracion/respaldos', [BackupSettingsController::class, 'edit'])->name('configuracion.respaldos.edit');
+        Route::post('/configuracion/respaldos', [BackupSettingsController::class, 'update'])->name('configuracion.respaldos.update');
+        Route::post('/configuracion/respaldos/prueba', [BackupSettingsController::class, 'test'])->name('configuracion.respaldos.test');
     });
 
     // Perfil del usuario (cambio de foto de perfil)

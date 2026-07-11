@@ -69,7 +69,8 @@
             "event_blocked_account": "Blocking of a user account.",
             "event_deleted": "Deletion of a user account.",
             "event_config": "Changes to sensitive configuration (AI, SSO, email or the alerts themselves).",
-            "save": "Save alerts"
+            "save": "Save alerts",
+            "always_on": "Security alerts are always on and cannot be disabled (ISO 27001 A.8.16)."
         },
         "access": {
             "title": "Access review",
@@ -103,7 +104,19 @@
             "col_package": "Package",
             "col_severity": "Severity",
             "col_title": "Description",
-            "note_ci": "The authoritative audit (PHP and JS) runs on every push and weekly in the CI pipeline."
+            "note_ci": "The authoritative audit (PHP and JS) runs on every push and weekly in the CI pipeline.",
+            "download_pdf": "Download PDF",
+            "schedule_title": "Scheduled analysis",
+            "schedule_subtitle": "How often the analysis runs automatically. When due, a PDF report is generated and emailed to the security team.",
+            "interval_label": "Run every",
+            "days": "days",
+            "send_now": "Generate and send now",
+            "sending": "Sending…",
+            "next_report": "Next report",
+            "last_report": "Last report sent",
+            "never_reported": "No report has been sent yet",
+            "recipients": "Recipients",
+            "no_recipients": "No recipients configured; administrators will be used. Set them up under Alerts."
         },
         "summary": "{ok} passing · {warn} warnings · {fail} critical",
         "status": {
@@ -113,19 +126,58 @@
             "info": "Info"
         },
         "checks": {
-            "https": { "label": "Encryption in transit (HTTPS/HSTS)", "detail": "HSTS forces HTTPS in the browser." },
-            "csp": { "label": "Content-Security-Policy", "detail": "Mitigates XSS and content injection." },
-            "debug": { "label": "Debug mode disabled", "detail": "APP_DEBUG must be false in production." },
-            "sso_domain": { "label": "Restricted SSO domain", "detail": "Allowed domain: {domain}" },
-            "single_device": { "label": "Single session per user", "detail": "Prevents simultaneous sessions on multiple devices." },
-            "idle": { "label": "Idle timeout", "detail": "The session expires after {minutes} min of inactivity." },
-            "password": { "label": "Password policy", "detail": "At least {min} characters, with complexity and history." },
-            "aup": { "label": "Acceptable use notice", "detail": "Must be accepted on first access." },
-            "admins": { "label": "Administrative accounts", "detail": "{count} account(s) with an administrator role." },
-            "default_role": { "label": "Read-only default role", "detail": "New users receive the role: {role}" },
-            "backups": { "label": "Automated backups", "detail": "Daily database backup." },
-            "log_retention": { "label": "Log retention", "detail": "Kept for {days} days and purged daily." },
-            "accounts": { "label": "Account status", "detail": "{blocked} blocked · {dormant} with no access in 90+ days." }
+            "https": {
+                "label": "Encryption in transit (HTTPS/HSTS)",
+                "detail": "HSTS forces HTTPS in the browser."
+            },
+            "csp": {
+                "label": "Content-Security-Policy",
+                "detail": "Mitigates XSS and content injection."
+            },
+            "debug": {
+                "label": "Debug mode disabled",
+                "detail": "APP_DEBUG must be false in production."
+            },
+            "sso_domain": {
+                "label": "Restricted SSO domain",
+                "detail": "Allowed domain: {domain}"
+            },
+            "single_device": {
+                "label": "Single session per user",
+                "detail": "Prevents simultaneous sessions on multiple devices."
+            },
+            "idle": {
+                "label": "Idle timeout",
+                "detail": "The session expires after {minutes} min of inactivity."
+            },
+            "password": {
+                "label": "Password policy",
+                "detail": "At least {min} characters, with complexity and history."
+            },
+            "aup": {
+                "label": "Acceptable use notice",
+                "detail": "Must be accepted on first access."
+            },
+            "admins": {
+                "label": "Administrative accounts",
+                "detail": "{count} account(s) with an administrator role."
+            },
+            "default_role": {
+                "label": "Read-only default role",
+                "detail": "New users receive the role: {role}"
+            },
+            "backups": {
+                "label": "Automated backups",
+                "detail": "Daily database backup."
+            },
+            "log_retention": {
+                "label": "Log retention",
+                "detail": "Kept for {days} days and purged daily."
+            },
+            "accounts": {
+                "label": "Account status",
+                "detail": "{blocked} blocked · {dormant} with no access in 90+ days."
+            }
         }
     },
     "actions": {
@@ -175,7 +227,9 @@
             "seguridad": "Security",
             "seguridad_sub": "Automated security tests",
             "idioma": "Language",
-            "idioma_sub": "Spanish and English"
+            "idioma_sub": "Spanish and English",
+            "respaldos": "Backups",
+            "respaldos_sub": "Cloud backup copy"
         },
         "connected": {
             "title": "Online users",
@@ -674,6 +728,55 @@
         "no_roles": "No roles available. Create them in Roles and permissions.",
         "account_blocked": "Blocked account (prevents access)",
         "delete_header": "Delete user",
-        "delete_message": "Delete \"{name}\"? This action cannot be undone."
+        "delete_message": "Delete \"{name}\"? This action cannot be undone.",
+        "col_review": "Access review",
+        "filter_privileged": "Privileged",
+        "filter_dormant": "Dormant",
+        "flag_privileged": "Privileged",
+        "flag_dormant": "Dormant {days}+ days",
+        "record_review": "Record review",
+        "last_review": "Last review: {when} by {who}.",
+        "no_review": "No access review has been recorded yet.",
+        "block": "Block",
+        "unblock": "Unblock",
+        "block_header": "Block user",
+        "unblock_header": "Unblock user",
+        "block_message": "Block access for \"{name}\"? They will not be able to sign in until unblocked.",
+        "unblock_message": "Unblock access for \"{name}\"?"
+    },
+    "backup": {
+        "title": "Automatic backups",
+        "subtitle": "Automatic database backup to a cloud storage account (ISO 27001 A.8.13).",
+        "enable": "Enable automatic backups",
+        "enable_hint": "When enabled, the system generates and uploads a database copy on the configured schedule.",
+        "frequency_label": "Frequency",
+        "freq_daily": "Daily",
+        "freq_weekly": "Weekly",
+        "time_label": "Time",
+        "retention_label": "Retention (days)",
+        "weekly_hint": "The weekly backup runs on Mondays at the given time.",
+        "provider_section": "Cloud storage provider",
+        "dropbox_token_label": "Dropbox access token",
+        "dropbox_token_hint": "Generate a token in the Dropbox developer console (App → Generated access token) with file write permission.",
+        "dropbox_folder_label": "Destination folder",
+        "gcs_bucket_label": "Bucket",
+        "gcs_prefix_label": "Prefix/folder",
+        "gcs_credentials_label": "Credentials (service account JSON)",
+        "gcs_credentials_hint": "Paste the JSON key of a service account with write permission on the bucket (Storage Object Admin role).",
+        "secret_saved": "•••••••• (saved; leave empty to keep)",
+        "secret_empty": "Enter the value",
+        "configured": "Configured",
+        "not_configured": "Not configured",
+        "last_run": "Last backup: {when}.",
+        "save": "Save settings",
+        "saving": "Saving…",
+        "test_connection": "Test connection",
+        "testing": "Testing…",
+        "test_failed": "The connection could not be tested.",
+        "utc_note": "The time is interpreted in the server time zone (UTC). Current server time:",
+        "history_title": "Completed backups",
+        "history_empty": "No automatic backup has run yet.",
+        "status_ok": "Success",
+        "status_error": "Failed"
     }
 }
