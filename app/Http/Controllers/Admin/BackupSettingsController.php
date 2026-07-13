@@ -37,6 +37,9 @@ class BackupSettingsController extends Controller
                 // Dropbox
                 'dropbox_folder' => (string) Setting::value(CloudBackupService::DROPBOX_FOLDER_KEY, '/META/backups'),
                 'has_dropbox_token' => filled(Setting::value(CloudBackupService::DROPBOX_TOKEN_KEY)),
+                'dropbox_app_key' => (string) Setting::value(CloudBackupService::DROPBOX_APP_KEY_KEY, ''),
+                'has_dropbox_app_secret' => filled(Setting::value(CloudBackupService::DROPBOX_APP_SECRET_KEY)),
+                'has_dropbox_refresh_token' => filled(Setting::value(CloudBackupService::DROPBOX_REFRESH_KEY)),
                 // Google Cloud Storage
                 'gcs_bucket' => (string) Setting::value(CloudBackupService::GCS_BUCKET_KEY, ''),
                 'gcs_prefix' => (string) Setting::value(CloudBackupService::GCS_PREFIX_KEY, 'meta/backups'),
@@ -89,6 +92,9 @@ class BackupSettingsController extends Controller
             // Dropbox (los tokens "sl." pueden superar holgadamente los 1000 chars)
             'dropbox_folder' => ['nullable', 'string', 'max:255'],
             'dropbox_token' => ['nullable', 'string', 'max:8192'],
+            'dropbox_app_key' => ['nullable', 'string', 'max:255'],
+            'dropbox_app_secret' => ['nullable', 'string', 'max:255'],
+            'dropbox_refresh_token' => ['nullable', 'string', 'max:1024'],
             // Google Cloud
             'gcs_bucket' => ['nullable', 'string', 'max:255'],
             'gcs_prefix' => ['nullable', 'string', 'max:255'],
@@ -114,12 +120,19 @@ class BackupSettingsController extends Controller
         Setting::put(CloudBackupService::TIME_KEY, $data['time']);
         Setting::put(CloudBackupService::RETENTION_KEY, (string) $data['retention_days']);
         Setting::put(CloudBackupService::DROPBOX_FOLDER_KEY, $data['dropbox_folder'] ?? '/META/backups');
+        Setting::put(CloudBackupService::DROPBOX_APP_KEY_KEY, $data['dropbox_app_key'] ?? '');
         Setting::put(CloudBackupService::GCS_BUCKET_KEY, $data['gcs_bucket'] ?? '');
         Setting::put(CloudBackupService::GCS_PREFIX_KEY, $data['gcs_prefix'] ?? 'meta/backups');
 
         // Secretos: solo se sobrescriben si el usuario escribió uno nuevo.
         if (filled($data['dropbox_token'] ?? null)) {
             Setting::put(CloudBackupService::DROPBOX_TOKEN_KEY, $data['dropbox_token']);
+        }
+        if (filled($data['dropbox_app_secret'] ?? null)) {
+            Setting::put(CloudBackupService::DROPBOX_APP_SECRET_KEY, $data['dropbox_app_secret']);
+        }
+        if (filled($data['dropbox_refresh_token'] ?? null)) {
+            Setting::put(CloudBackupService::DROPBOX_REFRESH_KEY, $data['dropbox_refresh_token']);
         }
         if (filled($data['gcs_credentials'] ?? null)) {
             Setting::put(CloudBackupService::GCS_CREDENTIALS_KEY, $data['gcs_credentials']);
@@ -151,6 +164,9 @@ class BackupSettingsController extends Controller
         $data = $request->validate([
             'provider' => ['required', 'in:dropbox,google_cloud'],
             'dropbox_token' => ['nullable', 'string', 'max:8192'],
+            'dropbox_app_key' => ['nullable', 'string', 'max:255'],
+            'dropbox_app_secret' => ['nullable', 'string', 'max:255'],
+            'dropbox_refresh_token' => ['nullable', 'string', 'max:1024'],
             'gcs_bucket' => ['nullable', 'string', 'max:255'],
             'gcs_credentials' => ['nullable', 'string', 'max:20000'],
         ]);

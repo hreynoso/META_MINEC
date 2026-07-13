@@ -15,6 +15,9 @@ interface Settings {
     retention_days: number;
     dropbox_folder: string;
     has_dropbox_token: boolean;
+    dropbox_app_key: string;
+    has_dropbox_app_secret: boolean;
+    has_dropbox_refresh_token: boolean;
     gcs_bucket: string;
     gcs_prefix: string;
     has_gcs_credentials: boolean;
@@ -75,6 +78,9 @@ const form = useForm({
     retention_days: props.settings.retention_days ?? 30,
     dropbox_folder: props.settings.dropbox_folder || '/META/backups',
     dropbox_token: '',
+    dropbox_app_key: props.settings.dropbox_app_key || '',
+    dropbox_app_secret: '',
+    dropbox_refresh_token: '',
     gcs_bucket: props.settings.gcs_bucket || '',
     gcs_prefix: props.settings.gcs_prefix || 'meta/backups',
     gcs_credentials: '',
@@ -89,7 +95,7 @@ const label = 'mb-1 block text-xs font-medium uppercase tracking-wide text-slate
 function submit() {
     form.post(route('configuracion.respaldos.update'), {
         preserveScroll: true,
-        onSuccess: () => form.reset('dropbox_token', 'gcs_credentials'),
+        onSuccess: () => form.reset('dropbox_token', 'dropbox_app_secret', 'dropbox_refresh_token', 'gcs_credentials'),
     });
 }
 
@@ -120,6 +126,9 @@ async function testConnection() {
             body: JSON.stringify({
                 provider: form.provider,
                 dropbox_token: form.dropbox_token,
+                dropbox_app_key: form.dropbox_app_key,
+                dropbox_app_secret: form.dropbox_app_secret,
+                dropbox_refresh_token: form.dropbox_refresh_token,
                 gcs_bucket: form.gcs_bucket,
                 gcs_credentials: form.gcs_credentials,
             }),
@@ -212,6 +221,31 @@ async function testConnection() {
 
                 <!-- Campos Dropbox -->
                 <div v-if="isDropbox" class="mt-5 space-y-4">
+                    <!-- Método recomendado: OAuth con refresh token (permanente) -->
+                    <div class="rounded-lg border border-teal-200 bg-teal-50/40 p-3 dark:border-teal-900/40 dark:bg-teal-900/10">
+                        <p class="text-xs font-semibold uppercase tracking-wide text-teal-700 dark:text-teal-300">{{ t('backup.dropbox_oauth_title') }}</p>
+                        <p class="mt-1 text-xs text-slate-500">{{ t('backup.dropbox_oauth_hint') }}</p>
+                        <div class="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                            <div>
+                                <label :class="label">{{ t('backup.dropbox_app_key') }}</label>
+                                <input v-model="form.dropbox_app_key" autocomplete="off" :class="input" />
+                            </div>
+                            <div>
+                                <label :class="label">{{ t('backup.dropbox_app_secret') }}</label>
+                                <input v-model="form.dropbox_app_secret" type="password" autocomplete="off" :class="input" :placeholder="settings.has_dropbox_app_secret ? t('backup.secret_saved') : t('backup.secret_empty')" />
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <label :class="label">{{ t('backup.dropbox_refresh_token') }}</label>
+                            <input v-model="form.dropbox_refresh_token" type="password" autocomplete="off" :class="input" :placeholder="settings.has_dropbox_refresh_token ? t('backup.secret_saved') : t('backup.secret_empty')" />
+                            <p class="mt-1 flex items-center gap-1 text-xs" :class="settings.has_dropbox_refresh_token ? 'text-teal-600' : 'text-slate-400'">
+                                <CheckCircle2 v-if="settings.has_dropbox_refresh_token" class="h-3.5 w-3.5" />
+                                {{ settings.has_dropbox_refresh_token ? t('backup.configured') : t('backup.not_configured') }}
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Alternativa simple: token de acceso directo (temporal) -->
                     <div>
                         <label :class="label">{{ t('backup.dropbox_token_label') }}</label>
                         <div class="flex items-center gap-2 rounded-lg border border-slate-300 bg-slate-50 px-3 focus-within:border-brand focus-within:bg-white dark:border-slate-600 dark:bg-slate-900">
@@ -229,6 +263,7 @@ async function testConnection() {
                         <p class="mt-1 text-xs text-slate-400">{{ t('backup.dropbox_token_hint') }}</p>
                         <p v-if="form.errors.dropbox_token" class="mt-1 text-xs text-red-600">{{ form.errors.dropbox_token }}</p>
                     </div>
+
                     <div>
                         <label :class="label">{{ t('backup.dropbox_folder_label') }}</label>
                         <input v-model="form.dropbox_folder" :class="input" placeholder="/META/backups" />

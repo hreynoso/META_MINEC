@@ -794,7 +794,7 @@
         "weekly_hint": "El respaldo semanal se ejecuta los lunes a la hora indicada.",
         "provider_section": "Proveedor de almacenamiento en la nube",
         "dropbox_token_label": "Token de acceso de Dropbox",
-        "dropbox_token_hint": "Genera un token en la consola de desarrolladores de Dropbox (App → Generated access token) con permiso de escritura de archivos.",
+        "dropbox_token_hint": "Alternativa simple: token de acceso directo. ⚠️ Los \"Generated access token\" de Dropbox caducan (~4 h); para respaldos automáticos usa la conexión permanente de arriba.",
         "dropbox_folder_label": "Carpeta de destino",
         "gcs_bucket_label": "Bucket",
         "gcs_prefix_label": "Prefijo/carpeta",
@@ -817,7 +817,12 @@
         "status_error": "Falló",
         "run_now": "Generar respaldo ahora",
         "running": "Generando respaldo…",
-        "in_progress": "Hay un respaldo en proceso. El historial se actualizará automáticamente al terminar."
+        "in_progress": "Hay un respaldo en proceso. El historial se actualizará automáticamente al terminar.",
+        "dropbox_oauth_title": "Conexión permanente (recomendado)",
+        "dropbox_oauth_hint": "App key + App secret + Refresh token de una app de Dropbox. No caduca: el sistema renueva el acceso en cada respaldo. Obtén el refresh token con el flujo OAuth (token_access_type=offline).",
+        "dropbox_app_key": "App key",
+        "dropbox_app_secret": "App secret",
+        "dropbox_refresh_token": "Refresh token"
     },
     "institutions": {
         "page_title": "Instituciones",

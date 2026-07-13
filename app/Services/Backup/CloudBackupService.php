@@ -35,6 +35,13 @@ class CloudBackupService
 
     public const DROPBOX_FOLDER_KEY = 'backup.dropbox_folder';
 
+    // Dropbox OAuth (refresh token → método permanente)
+    public const DROPBOX_APP_KEY_KEY = 'backup.dropbox_app_key';
+
+    public const DROPBOX_APP_SECRET_KEY = 'backup.dropbox_app_secret';
+
+    public const DROPBOX_REFRESH_KEY = 'backup.dropbox_refresh_token';
+
     // Google Cloud Storage
     public const GCS_BUCKET_KEY = 'backup.gcs_bucket';
 
@@ -315,13 +322,46 @@ class CloudBackupService
 
     // ── Subida por proveedor ────────────────────────────────────────────────
 
-    protected function uploadDropbox(string $path, string $name): void
+    /**
+     * Resuelve el access token de Dropbox: si hay app key + secret + refresh
+     * token, se canjea por uno nuevo (permanente); si no, usa el token directo.
+     *
+     * @param  array<string, mixed>  $o  Overrides (para la prueba antes de guardar).
+     */
+    private function dropboxAccessToken(array $o = []): string
     {
-        $token = (string) Setting::value(self::DROPBOX_TOKEN_KEY);
+        $refresh = (string) ($o['dropbox_refresh_token'] ?? '') ?: (string) Setting::value(self::DROPBOX_REFRESH_KEY);
+        $appKey = (string) ($o['dropbox_app_key'] ?? '') ?: (string) Setting::value(self::DROPBOX_APP_KEY_KEY);
+        $appSecret = (string) ($o['dropbox_app_secret'] ?? '') ?: (string) Setting::value(self::DROPBOX_APP_SECRET_KEY);
+
+        if ($refresh !== '' && $appKey !== '' && $appSecret !== '') {
+            $res = Http::asForm()->withBasicAuth($appKey, $appSecret)->timeout(30)
+                ->post('https://api.dropbox.com/oauth2/token', [
+                    'grant_type' => 'refresh_token',
+                    'refresh_token' => $refresh,
+                ]);
+
+            $token = $res->json('access_token');
+
+            if (! $res->successful() || ! $token) {
+                throw new \RuntimeException('Dropbox OAuth '.$res->status().': '.$this->briefBody($res->body()));
+            }
+
+            return (string) $token;
+        }
+
+        $token = (string) ($o['dropbox_token'] ?? '') ?: (string) Setting::value(self::DROPBOX_TOKEN_KEY);
 
         if ($token === '') {
-            throw new \RuntimeException('Falta el token de acceso de Dropbox.');
+            throw new \RuntimeException('Falta el token de acceso de Dropbox (o las credenciales OAuth: app key, app secret y refresh token).');
         }
+
+        return $token;
+    }
+
+    protected function uploadDropbox(string $path, string $name): void
+    {
+        $token = $this->dropboxAccessToken();
 
         $folder = $this->normalizeFolder((string) Setting::value(self::DROPBOX_FOLDER_KEY, '/META/backups'));
         $remote = $folder.'/'.$name;
@@ -381,10 +421,10 @@ class CloudBackupService
     /** @param array<string, mixed> $o @return array{ok: bool, message: string} */
     protected function testDropbox(array $o): array
     {
-        $token = (string) ($o['dropbox_token'] ?? '') ?: (string) Setting::value(self::DROPBOX_TOKEN_KEY);
-
-        if ($token === '') {
-            return ['ok' => false, 'message' => __('messages.backup.test_no_token')];
+        try {
+            $token = $this->dropboxAccessToken($o);
+        } catch (Throwable $e) {
+            return ['ok' => false, 'message' => $e->getMessage()];
         }
 
         $res = Http::withToken($token)

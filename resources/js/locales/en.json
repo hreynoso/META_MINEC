@@ -794,7 +794,7 @@
         "weekly_hint": "The weekly backup runs on Mondays at the given time.",
         "provider_section": "Cloud storage provider",
         "dropbox_token_label": "Dropbox access token",
-        "dropbox_token_hint": "Generate a token in the Dropbox developer console (App → Generated access token) with file write permission.",
+        "dropbox_token_hint": "Simple alternative: direct access token. ⚠️ Dropbox \"Generated access tokens\" expire (~4 h); for automatic backups use the permanent connection above.",
         "dropbox_folder_label": "Destination folder",
         "gcs_bucket_label": "Bucket",
         "gcs_prefix_label": "Prefix/folder",
@@ -817,7 +817,12 @@
         "status_error": "Failed",
         "run_now": "Back up now",
         "running": "Backing up…",
-        "in_progress": "A backup is in progress. The history will refresh automatically when it finishes."
+        "in_progress": "A backup is in progress. The history will refresh automatically when it finishes.",
+        "dropbox_oauth_title": "Permanent connection (recommended)",
+        "dropbox_oauth_hint": "App key + App secret + Refresh token from a Dropbox app. Never expires: the system refreshes access on each backup. Get the refresh token via the OAuth flow (token_access_type=offline).",
+        "dropbox_app_key": "App key",
+        "dropbox_app_secret": "App secret",
+        "dropbox_refresh_token": "Refresh token"
     },
     "institutions": {
         "page_title": "Institutions",
