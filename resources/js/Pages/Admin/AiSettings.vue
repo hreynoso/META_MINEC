@@ -29,11 +29,12 @@ const PROVIDERS: Provider[] = [
         ],
     },
     {
-        value: 'gemini', label: 'Google Gemini', recommended: 'gemini-1.5-pro',
+        value: 'gemini', label: 'Google Gemini', recommended: 'gemini-2.5-flash',
         models: [
-            { value: 'gemini-1.5-pro', label: 'Gemini 1.5 Pro (recomendado)' },
-            { value: 'gemini-1.5-flash', label: 'Gemini 1.5 Flash' },
+            { value: 'gemini-2.5-flash', label: 'Gemini 2.5 Flash (recomendado)' },
+            { value: 'gemini-2.5-pro', label: 'Gemini 2.5 Pro' },
             { value: 'gemini-2.0-flash', label: 'Gemini 2.0 Flash' },
+            { value: 'gemini-2.0-flash-lite', label: 'Gemini 2.0 Flash-Lite' },
         ],
     },
     {

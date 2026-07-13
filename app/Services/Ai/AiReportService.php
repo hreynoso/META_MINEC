@@ -33,6 +33,12 @@ class AiReportService
         $model = Setting::value('ai.model');
 
         if (filled($model)) {
+            // Los modelos Gemini 1.5 fueron retirados del API; se sustituyen por el
+            // actual para no romper una configuración guardada anteriormente.
+            if ($this->provider() === 'gemini' && str_starts_with((string) $model, 'gemini-1.5')) {
+                return $this->defaultModel('gemini');
+            }
+
             return (string) $model;
         }
 
@@ -43,7 +49,7 @@ class AiReportService
     private function defaultModel(string $provider): string
     {
         return match ($provider) {
-            'gemini' => 'gemini-1.5-pro',
+            'gemini' => 'gemini-2.5-flash',
             'openai' => 'gpt-4o',
             default => (string) config('anthropic.model', 'claude-sonnet-5'),
         };
