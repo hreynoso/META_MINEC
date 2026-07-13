@@ -41,6 +41,7 @@ return [
 
     'notifications' => [
         'updated' => 'Preferencias de notificación actualizadas.',
+        'report_queued' => 'Informe en cola; se enviará por correo en unos momentos.',
     ],
 
     'role' => [

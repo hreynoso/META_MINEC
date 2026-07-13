@@ -41,6 +41,7 @@ return [
 
     'notifications' => [
         'updated' => 'Notification preferences updated.',
+        'report_queued' => 'Report queued; it will be emailed shortly.',
     ],
 
     'role' => [

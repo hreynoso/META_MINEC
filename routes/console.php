@@ -1,8 +1,10 @@
 <?php
 
 use App\Jobs\RunBackup;
+use App\Jobs\SendScheduledReport;
 use App\Models\Setting;
 use App\Services\Backup\CloudBackupService;
+use App\Services\Reports\ScheduledReports;
 use App\Services\Security\DependencyAudit;
 use App\Services\Security\DependencyAuditReport;
 use Illuminate\Support\Facades\Schedule;
@@ -61,4 +63,28 @@ Schedule::call(function () {
 })
     ->dailyAt('04:00')
     ->name('security:audit-report')
+    ->onOneServer();
+
+// Informes/recordatorios programados por correo (Configuración → Notificaciones):
+// revisión de accesos (cada N días), riesgos con IA y informe de la Ministra
+// (diario/semanal/mensual). Se evalúa cada minuto (hora comparada en UTC) y solo
+// se despacha el envío —en cola Horizon— cuando corresponde.
+Schedule::call(function () {
+    $reports = app(ScheduledReports::class);
+
+    if ($reports->dueAccessReview()) {
+        SendScheduledReport::dispatch('access_review');
+    }
+
+    if ($reports->dueRiskReport()) {
+        SendScheduledReport::dispatch('risk');
+    }
+
+    if ($reports->dueMinisterReport()) {
+        SendScheduledReport::dispatch('minister');
+    }
+})
+    ->everyMinute()
+    ->name('notify:scheduled-reports')
+    ->withoutOverlapping()
     ->onOneServer();

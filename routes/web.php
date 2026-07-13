@@ -101,6 +101,7 @@ Route::middleware(['auth'])->group(function () {
         // Configuración → Notificaciones
         Route::get('/configuracion/notificaciones', [NotificationSettingsController::class, 'edit'])->name('configuracion.notificaciones.edit');
         Route::post('/configuracion/notificaciones', [NotificationSettingsController::class, 'update'])->name('configuracion.notificaciones.update');
+        Route::post('/configuracion/notificaciones/enviar', [NotificationSettingsController::class, 'sendNow'])->name('configuracion.notificaciones.enviar');
 
         // Configuración → Idioma (español / inglés)
         Route::get('/configuracion/idioma', [LanguageSettingsController::class, 'edit'])->name('configuracion.idioma.edit');
