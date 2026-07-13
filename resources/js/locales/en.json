@@ -856,7 +856,7 @@
         "f_number": "Number",
         "f_reference": "Reference",
         "f_postal": "Postal code",
-        "f_rnc": "Tax ID (RNC)",
+        "f_rnc": "NIT",
         "f_dependency": "Administrative dependency",
         "f_parent": "Parent institution",
         "f_phone_main": "Main phone",

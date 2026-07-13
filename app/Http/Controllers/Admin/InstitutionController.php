@@ -143,7 +143,7 @@ class InstitutionController extends Controller
 
         return SheetExport::stream(
             ExportName::make('Instituciones', 'xlsx'),
-            ['Código', 'Nombre oficial', 'Siglas', 'Tipo', 'Sector', 'RNC', 'Estado', 'Institución superior', 'Correo', 'Teléfono', 'Máxima autoridad'],
+            ['Código', 'Nombre oficial', 'Siglas', 'Tipo', 'Sector', 'NIT', 'Estado', 'Institución superior', 'Correo', 'Teléfono', 'Máxima autoridad'],
             $rows,
         );
     }
