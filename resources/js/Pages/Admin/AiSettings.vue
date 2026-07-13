@@ -3,7 +3,7 @@ import { ref, computed, watch, onMounted } from 'vue';
 import { useForm } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 import ConfigLayout from '@/Components/ConfigLayout.vue';
-import { Sparkles, KeyRound, CheckCircle2, AlertTriangle, Loader2, Plug } from 'lucide-vue-next';
+import { Sparkles, KeyRound, CheckCircle2, AlertTriangle, Loader2, Plug, RefreshCw } from 'lucide-vue-next';
 
 const { t } = useI18n({ useScope: 'global' });
 
@@ -29,12 +29,12 @@ const PROVIDERS: Provider[] = [
         ],
     },
     {
-        value: 'gemini', label: 'Google Gemini', recommended: 'gemini-2.5-flash',
+        value: 'gemini', label: 'Google Gemini', recommended: 'gemini-2.0-flash',
         models: [
-            { value: 'gemini-2.5-flash', label: 'Gemini 2.5 Flash (recomendado)' },
-            { value: 'gemini-2.5-pro', label: 'Gemini 2.5 Pro' },
-            { value: 'gemini-2.0-flash', label: 'Gemini 2.0 Flash' },
+            { value: 'gemini-2.0-flash', label: 'Gemini 2.0 Flash (recomendado)' },
             { value: 'gemini-2.0-flash-lite', label: 'Gemini 2.0 Flash-Lite' },
+            { value: 'gemini-2.5-flash', label: 'Gemini 2.5 Flash' },
+            { value: 'gemini-2.5-pro', label: 'Gemini 2.5 Pro' },
         ],
     },
     {
@@ -56,16 +56,27 @@ const form = useForm({
 
 const currentModels = computed(() => PROVIDERS.find((p) => p.value === form.provider)?.models ?? []);
 
-// Al cambiar de proveedor, se autoselecciona el modelo recomendado.
+// Modelos detectados con la clave (tienen prioridad sobre la lista estática).
+const detected = ref<string[]>([]);
+const modelOptions = computed<string[]>(() =>
+    detected.value.length ? detected.value : currentModels.value.map((m) => m.value),
+);
+
+// Al cambiar de proveedor: modelo recomendado y se limpia la detección previa.
 watch(() => form.provider, (prov) => {
     const p = PROVIDERS.find((x) => x.value === prov);
     if (p) form.model = p.recommended;
+    detected.value = [];
+    detectResult.value = null;
 });
 
-// Si el modelo guardado no pertenece al proveedor actual, cae al recomendado.
+// Si no hay modelo guardado (o es un Gemini 1.5 retirado), usa el recomendado.
 onMounted(() => {
     const p = PROVIDERS.find((x) => x.value === form.provider);
-    if (p && !p.models.some((m) => m.value === form.model)) form.model = p.recommended;
+    if (!p) return;
+    if (!form.model || (form.provider === 'gemini' && form.model.startsWith('gemini-1.5'))) {
+        form.model = p.recommended;
+    }
 });
 
 const input =
@@ -77,6 +88,41 @@ function submit() {
         preserveScroll: true,
         onSuccess: () => form.reset('api_key'),
     });
+}
+
+// Detección de modelos disponibles para la clave configurada.
+const detecting = ref(false);
+const detectResult = ref<{ ok: boolean; message: string } | null>(null);
+
+async function detectModels() {
+    detecting.value = true;
+    detectResult.value = null;
+    const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? '';
+
+    try {
+        const res = await fetch(route('configuracion.ia.modelos'), {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                Accept: 'application/json',
+                'X-CSRF-TOKEN': token,
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+            body: JSON.stringify({ provider: form.provider, api_key: form.api_key }),
+        });
+        const data = await res.json();
+        if (data.ok && Array.isArray(data.models)) {
+            detected.value = data.models;
+            if (data.models.length && !data.models.includes(form.model)) form.model = data.models[0];
+            detectResult.value = { ok: true, message: t('ai.models_detected', { count: data.models.length }) };
+        } else {
+            detectResult.value = { ok: false, message: data.message || t('ai.detect_failed') };
+        }
+    } catch {
+        detectResult.value = { ok: false, message: t('ai.detect_failed') };
+    } finally {
+        detecting.value = false;
+    }
 }
 
 // Prueba de conexión con el proveedor (usa la clave escrita o la guardada).
@@ -133,10 +179,21 @@ async function testConnection() {
                     </div>
                     <div>
                         <label :class="label">{{ t('ai.model_label') }}</label>
-                        <select v-model="form.model" :class="input">
-                            <option v-for="m in currentModels" :key="m.value" :value="m.value">{{ m.label }}</option>
-                        </select>
-                        <p class="mt-1 text-xs text-slate-400">{{ t('ai.models_hint') }}</p>
+                        <div class="flex gap-2">
+                            <input v-model="form.model" list="ai-models" :class="input" :placeholder="t('ai.model_placeholder')" />
+                            <datalist id="ai-models"><option v-for="m in modelOptions" :key="m" :value="m" /></datalist>
+                            <button
+                                type="button" :disabled="detecting"
+                                class="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-slate-300 px-3 text-sm hover:bg-slate-50 disabled:opacity-50 dark:border-slate-600 dark:hover:bg-slate-700"
+                                :title="t('ai.detect_models')"
+                                @click="detectModels"
+                            >
+                                <Loader2 v-if="detecting" class="h-4 w-4 animate-spin" /><RefreshCw v-else class="h-4 w-4" />
+                            </button>
+                        </div>
+                        <p class="mt-1 text-xs" :class="detectResult ? (detectResult.ok ? 'text-teal-600' : 'text-red-600') : 'text-slate-400'">
+                            {{ detectResult ? detectResult.message : t('ai.models_hint') }}
+                        </p>
                         <p v-if="form.errors.model" class="mt-1 text-xs text-red-600">{{ form.errors.model }}</p>
                     </div>
                 </div>

@@ -291,7 +291,11 @@
         "save_config": "Save settings",
         "testing": "Testing…",
         "test_connection": "Test connection",
-        "test_failed": "The connection test could not be completed."
+        "test_failed": "The connection test could not be completed.",
+        "model_placeholder": "e.g. gemini-2.0-flash",
+        "detect_models": "Detect available models",
+        "models_detected": "{count} model(s) detected for this key.",
+        "detect_failed": "Could not detect models."
     },
     "branding": {
         "title": "Branding",

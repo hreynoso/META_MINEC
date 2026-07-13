@@ -49,7 +49,7 @@ class AiReportService
     private function defaultModel(string $provider): string
     {
         return match ($provider) {
-            'gemini' => 'gemini-2.5-flash',
+            'gemini' => 'gemini-2.0-flash',
             'openai' => 'gpt-4o',
             default => (string) config('anthropic.model', 'claude-sonnet-5'),
         };
@@ -105,6 +105,87 @@ class AiReportService
         } catch (\Throwable $e) {
             return ['ok' => false, 'message' => 'Error de conexión: '.$e->getMessage()];
         }
+    }
+
+    /**
+     * Lista los modelos que la clave del proveedor puede usar (para elegir uno
+     * válido; la disponibilidad varía por clave/proyecto/región). Nunca lanza.
+     *
+     * @return array{ok: bool, models: string[], message: string}
+     */
+    public function listModels(string $provider, ?string $apiKey): array
+    {
+        $apiKey = filled($apiKey) ? (string) $apiKey : (string) $this->apiKey();
+
+        if (blank($apiKey)) {
+            return ['ok' => false, 'models' => [], 'message' => 'No hay clave del API para consultar los modelos.'];
+        }
+
+        try {
+            $models = match ($provider) {
+                'gemini' => $this->geminiModels($apiKey),
+                'openai' => $this->openaiModels($apiKey),
+                default => $this->anthropicModels($apiKey),
+            };
+
+            sort($models);
+
+            return ['ok' => true, 'models' => array_values(array_unique($models)), 'message' => ''];
+        } catch (\Throwable $e) {
+            return ['ok' => false, 'models' => [], 'message' => $e->getMessage()];
+        }
+    }
+
+    /** @return string[] */
+    private function geminiModels(string $apiKey): array
+    {
+        $res = Http::timeout(30)->get('https://generativelanguage.googleapis.com/v1beta/models', [
+            'key' => $apiKey,
+            'pageSize' => 200,
+        ])->throw();
+
+        $models = [];
+        foreach ((array) $res->json('models', []) as $m) {
+            $methods = (array) ($m['supportedGenerationMethods'] ?? []);
+            if (in_array('generateContent', $methods, true)) {
+                // "models/gemini-2.0-flash" → "gemini-2.0-flash"
+                $models[] = preg_replace('#^models/#', '', (string) ($m['name'] ?? ''));
+            }
+        }
+
+        return array_filter($models);
+    }
+
+    /** @return string[] */
+    private function openaiModels(string $apiKey): array
+    {
+        $res = Http::withToken($apiKey)->timeout(30)->get('https://api.openai.com/v1/models')->throw();
+
+        $models = [];
+        foreach ((array) $res->json('data', []) as $m) {
+            $id = (string) ($m['id'] ?? '');
+            if (str_starts_with($id, 'gpt')) {
+                $models[] = $id;
+            }
+        }
+
+        return $models;
+    }
+
+    /** @return string[] */
+    private function anthropicModels(string $apiKey): array
+    {
+        $base = rtrim((string) config('anthropic.base_url', 'https://api.anthropic.com/v1'), '/');
+
+        $res = Http::withHeaders([
+            'x-api-key' => $apiKey,
+            'anthropic-version' => '2023-06-01',
+        ])->timeout(30)->get("{$base}/models", ['limit' => 100])->throw();
+
+        return array_values(array_filter(array_map(
+            fn ($m) => (string) ($m['id'] ?? ''),
+            (array) $res->json('data', []),
+        )));
     }
 
     private function dispatch(string $provider, string $prompt, string $apiKey, string $model): string

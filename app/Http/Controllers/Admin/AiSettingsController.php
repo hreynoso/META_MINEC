@@ -68,4 +68,15 @@ class AiSettingsController extends Controller
             $ai->testConnection($data['provider'], $data['model'] ?? null, $data['api_key'] ?? null)
         );
     }
+
+    /** Detecta los modelos que la clave del proveedor puede usar. */
+    public function models(Request $request, AiReportService $ai): JsonResponse
+    {
+        $data = $request->validate([
+            'provider' => ['required', 'in:anthropic,gemini,openai'],
+            'api_key' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        return response()->json($ai->listModels($data['provider'], $data['api_key'] ?? null));
+    }
 }

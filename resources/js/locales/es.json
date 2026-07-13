@@ -291,7 +291,11 @@
         "save_config": "Guardar configuración",
         "testing": "Probando…",
         "test_connection": "Probar conexión",
-        "test_failed": "No se pudo realizar la prueba de conexión."
+        "test_failed": "No se pudo realizar la prueba de conexión.",
+        "model_placeholder": "Ej.: gemini-2.0-flash",
+        "detect_models": "Detectar modelos disponibles",
+        "models_detected": "{count} modelo(s) detectado(s) para esta clave.",
+        "detect_failed": "No se pudieron detectar los modelos."
     },
     "branding": {
         "title": "Branding",

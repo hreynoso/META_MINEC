@@ -157,6 +157,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/configuracion/ia', [AiSettingsController::class, 'edit'])->name('configuracion.ia.edit');
         Route::post('/configuracion/ia', [AiSettingsController::class, 'update'])->name('configuracion.ia.update');
         Route::post('/configuracion/ia/prueba', [AiSettingsController::class, 'test'])->name('configuracion.ia.test');
+        Route::post('/configuracion/ia/modelos', [AiSettingsController::class, 'models'])->name('configuracion.ia.modelos');
 
         // Configuración → SSO Google Workspace (credenciales OAuth)
         Route::get('/configuracion/sso', [GoogleSsoSettingsController::class, 'edit'])->name('configuracion.sso.edit');
