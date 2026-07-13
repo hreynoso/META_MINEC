@@ -12,8 +12,12 @@ const { t } = useI18n({ useScope: 'global' });
 const { can } = useCan();
 
 interface Kpi { label: string; value: number; unit: string | null; target: number; achievement: number }
-interface Semaforo { code: string; name: string; short_name: string; green: number; amber: number; red: number; status: string }
-interface Alert { name: string; institution: string; physical_progress: number; risk: string; success: number }
+interface SemaforoItem { name: string; code: string; physical_progress: number; status: string }
+interface Semaforo { code: string; name: string; short_name: string; green: number; amber: number; red: number; items: { green: SemaforoItem[]; amber: SemaforoItem[]; red: SemaforoItem[] }; status: string }
+interface Alert {
+    name: string; institution: string; physical_progress: number; risk: string; success: number;
+    recommendation: string; recommendation_source: 'ia' | 'modelo'; recommendation_by: string | null; recommendation_at: string | null;
+}
 interface Recommendation { title: string; detail: string; priority: string }
 
 interface AiRecommendation { project: string; user: string; datetime: string | null; recommendation: string }
@@ -48,6 +52,22 @@ const successClass = (s: number) =>
     s >= 40 ? 'bg-teal-100 text-teal-700 dark:bg-teal-900/40 dark:text-teal-300'
         : s >= 15 ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300'
             : 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300';
+
+// Semáforo: al hacer clic en un color se muestran los proyectos en ese estado.
+const openBucket = ref<string | null>(null);
+const bucketColors = ['green', 'amber', 'red'] as const;
+type BucketColor = typeof bucketColors[number];
+const bucketBtn: Record<BucketColor, string> = {
+    green: 'bg-teal-100 text-teal-700 dark:bg-teal-900/40 dark:text-teal-300',
+    amber: 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300',
+    red: 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300',
+};
+const bucketLabel = (c: BucketColor) => t(`minister.state_${c}`);
+function toggleBucket(code: string, color: BucketColor, count: number) {
+    if (count === 0) return;
+    const key = `${code}:${color}`;
+    openBucket.value = openBucket.value === key ? null : key;
+}
 
 // Formulario del informe presidencial.
 const form = useForm({
@@ -193,75 +213,74 @@ async function downloadDocx(text = '') {
                 </div>
             </section>
 
-            <!-- Semáforo por institución -->
+            <!-- Semáforo por institución (clic en un color para ver sus proyectos) -->
             <section class="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-800">
-                <h2 class="mb-4 text-sm font-semibold text-slate-700 dark:text-slate-200">{{ t('minister.traffic_light_by_institution') }}</h2>
+                <h2 class="mb-1 text-sm font-semibold text-slate-700 dark:text-slate-200">{{ t('minister.traffic_light_by_institution') }}</h2>
+                <p class="mb-4 text-xs text-slate-400">{{ t('minister.traffic_light_hint') }}</p>
                 <div class="space-y-3">
-                    <div v-for="i in byInstitution" :key="i.code" class="flex items-center gap-3">
-                        <span class="h-2.5 w-2.5 shrink-0 rounded-full" :class="statusMeta[i.status].dot" />
-                        <div class="min-w-0 flex-1">
-                            <p class="truncate text-sm font-medium">{{ i.short_name }}</p>
-                            <p class="truncate text-xs text-slate-400">{{ i.name }}</p>
+                    <div v-for="i in byInstitution" :key="i.code">
+                        <div class="flex items-center gap-3">
+                            <span class="h-2.5 w-2.5 shrink-0 rounded-full" :class="statusMeta[i.status].dot" />
+                            <div class="min-w-0 flex-1">
+                                <p class="truncate text-sm font-medium">{{ i.short_name }}</p>
+                                <p class="truncate text-xs text-slate-400">{{ i.name }}</p>
+                            </div>
+                            <div class="flex items-center gap-1 text-xs">
+                                <button
+                                    v-for="c in bucketColors" :key="c" type="button"
+                                    :disabled="i[c] === 0"
+                                    class="rounded px-1.5 py-0.5 font-medium transition disabled:cursor-default disabled:opacity-40"
+                                    :class="[bucketBtn[c], openBucket === `${i.code}:${c}` ? 'ring-2 ring-offset-1 ring-slate-400 dark:ring-offset-slate-800' : '']"
+                                    :title="bucketLabel(c)"
+                                    @click="toggleBucket(i.code, c, i[c])"
+                                >{{ i[c] }}</button>
+                            </div>
+                            <span class="rounded-full border px-2 py-0.5 text-xs" :class="statusMeta[i.status].badge">{{ statusMeta[i.status].label }}</span>
                         </div>
-                        <div class="flex items-center gap-1 text-xs">
-                            <span class="rounded bg-teal-100 px-1.5 py-0.5 text-teal-700 dark:bg-teal-900/40 dark:text-teal-300">{{ i.green }}</span>
-                            <span class="rounded bg-amber-100 px-1.5 py-0.5 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300">{{ i.amber }}</span>
-                            <span class="rounded bg-red-100 px-1.5 py-0.5 text-red-700 dark:bg-red-900/40 dark:text-red-300">{{ i.red }}</span>
+
+                        <!-- Lista de proyectos del color seleccionado -->
+                        <div v-for="c in bucketColors" :key="`list-${i.code}-${c}`">
+                            <ul v-if="openBucket === `${i.code}:${c}`" class="mt-2 space-y-1 rounded-lg bg-slate-50 p-2 dark:bg-slate-900/50">
+                                <li class="px-1 pb-1">
+                                    <span class="rounded px-1.5 py-0.5 text-xs font-medium" :class="bucketBtn[c]">{{ bucketLabel(c) }} · {{ i[c] }}</span>
+                                </li>
+                                <li v-for="(p, pi) in i.items[c]" :key="pi" class="flex items-center justify-between gap-2 rounded px-2 py-1 text-xs">
+                                    <span class="min-w-0 truncate"><span class="font-mono text-slate-400">{{ p.code }}</span> · {{ p.name }}</span>
+                                    <span class="shrink-0 text-slate-400">{{ p.status }} · {{ p.physical_progress }}%</span>
+                                </li>
+                            </ul>
                         </div>
-                        <span class="rounded-full border px-2 py-0.5 text-xs" :class="statusMeta[i.status].badge">{{ statusMeta[i.status].label }}</span>
                     </div>
                 </div>
             </section>
         </div>
 
-        <div class="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
-            <!-- Alertas predictivas -->
-            <section class="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-800">
-                <h2 class="mb-4 flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-200">
-                    <TriangleAlert class="h-4 w-4 text-amber-500" /> {{ t('minister.ai_predictive_alerts') }}
-                </h2>
-                <div class="space-y-3">
-                    <div v-for="(a, idx) in alerts" :key="idx" class="rounded-lg border border-slate-200 p-3 dark:border-slate-700">
-                        <div class="flex items-start justify-between gap-2">
-                            <p class="font-medium">{{ a.name }}</p>
-                            <span class="shrink-0 rounded px-1.5 py-0.5 text-xs font-medium" :class="successClass(a.success)">{{ t('minister.success_badge', { success: a.success }) }}</span>
-                        </div>
-                        <p class="mt-0.5 text-xs text-slate-500">{{ t('minister.alert_meta', { institution: a.institution, progress: a.physical_progress, risk: a.risk }) }}</p>
-                        <p class="mt-1 text-xs text-slate-400">{{ t('minister.failure_risk') }}</p>
+        <!-- Alertas predictivas de IA con su recomendación de acción (fusionado) -->
+        <section class="mt-6 rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-800">
+            <h2 class="mb-4 flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-200">
+                <TriangleAlert class="h-4 w-4 text-amber-500" /> {{ t('minister.ai_predictive_alerts') }}
+            </h2>
+            <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
+                <div v-for="(a, idx) in alerts" :key="idx" class="flex flex-col rounded-lg border border-slate-200 p-3 dark:border-slate-700">
+                    <div class="flex items-start justify-between gap-2">
+                        <p class="font-medium">{{ a.name }}</p>
+                        <span class="shrink-0 rounded px-1.5 py-0.5 text-xs font-medium" :class="successClass(a.success)">{{ t('minister.success_badge', { success: a.success }) }}</span>
                     </div>
-                    <p v-if="!alerts.length" class="text-sm text-slate-400">{{ t('minister.no_projects_at_risk') }}</p>
-                </div>
-            </section>
+                    <p class="mt-0.5 text-xs text-slate-500">{{ t('minister.alert_meta', { institution: a.institution, progress: a.physical_progress, risk: a.risk }) }}</p>
 
-            <!-- Recomendaciones de acción -->
-            <section class="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-800">
-                <h2 class="mb-4 flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-200">
-                    <Sparkles class="h-4 w-4 text-brand" /> {{ t('minister.action_recommendations') }}
-                </h2>
-
-                <!-- Última recomendación generada con IA (IA Predictiva) -->
-                <div v-if="lastAiRecommendation" class="mb-4 rounded-lg border border-sky-200 bg-sky-50/70 p-3 dark:border-sky-900/40 dark:bg-sky-900/10">
-                    <p class="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-brand">
-                        <Sparkles class="h-3.5 w-3.5" /> {{ t('minister.last_ai_recommendation') }}
-                    </p>
-                    <p class="mt-1 text-sm text-slate-700 dark:text-slate-200">{{ lastAiRecommendation.recommendation }}</p>
-                    <p class="mt-1 text-xs text-slate-400">
-                        {{ lastAiRecommendation.project }} · {{ lastAiRecommendation.user }} · {{ lastAiRecommendation.datetime }}
-                    </p>
-                </div>
-
-                <div class="space-y-3">
-                    <div v-for="(r, idx) in recommendations" :key="idx" class="rounded-lg border border-slate-200 p-3 dark:border-slate-700">
-                        <div class="flex items-start justify-between gap-2">
-                            <p class="font-medium">{{ r.title }}</p>
-                            <span class="shrink-0 rounded bg-red-100 px-1.5 py-0.5 text-xs font-medium text-red-700 dark:bg-red-900/40 dark:text-red-300">{{ t('minister.priority_badge', { priority: r.priority }) }}</span>
-                        </div>
-                        <p class="mt-1 text-xs text-slate-500">{{ r.detail }}</p>
+                    <!-- Última recomendación de acción del proyecto -->
+                    <div class="mt-2 rounded-lg border border-sky-200 bg-sky-50/70 p-2.5 dark:border-sky-900/40 dark:bg-sky-900/10">
+                        <p class="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-brand">
+                            <Sparkles class="h-3 w-3" />
+                            {{ a.recommendation_source === 'ia' ? t('minister.rec_ia') : t('minister.rec_model') }}
+                        </p>
+                        <p class="mt-1 text-xs text-slate-700 dark:text-slate-200">{{ a.recommendation }}</p>
+                        <p v-if="a.recommendation_at" class="mt-1 text-[11px] text-slate-400">{{ a.recommendation_by }} · {{ a.recommendation_at }}</p>
                     </div>
-                    <p v-if="!recommendations.length" class="text-sm text-slate-400">{{ t('minister.no_priority_interventions') }}</p>
                 </div>
-            </section>
-        </div>
+                <p v-if="!alerts.length" class="text-sm text-slate-400">{{ t('minister.no_projects_at_risk') }}</p>
+            </div>
+        </section>
 
         <!-- Informe presidencial con IA -->
         <section class="mt-6 rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-800">

@@ -501,7 +501,13 @@
         "generating_report_hint": "Esto puede tardar unos segundos. El informe se descargará automáticamente al finalizar.",
         "presidential_report": "Informe presidencial",
         "download_pdf": "Descargar PDF",
-        "download_docx": "Descargar DOCX"
+        "download_docx": "Descargar DOCX",
+        "traffic_light_hint": "Haz clic en un número de color para ver los proyectos en ese estado.",
+        "state_green": "Óptimos",
+        "state_amber": "En observación",
+        "state_red": "Críticos",
+        "rec_ia": "Recomendación IA",
+        "rec_model": "Recomendación del modelo"
     },
     "network": {
         "title": "Red de Gestores",
@@ -557,7 +563,7 @@
         "freq_monthly": "Mensual",
         "time_utc": "Hora (UTC)",
         "roles_risk": "Se envía a los roles Analista y Gestor de Proyectos, y a los correos adicionales.",
-        "roles_minister": "Se envía al rol Directivo, y a los correos adicionales.",
+        "roles_minister": "Se envía al rol Ministra, y a los correos adicionales.",
         "send_now": "Enviar ahora",
         "last_sent": "Último envío: {when}.",
         "never_sent": "Aún no se ha enviado."

@@ -2,10 +2,12 @@
 
 namespace App\Services\Reports;
 
+use App\Models\AiRecommendation;
 use App\Models\Institution;
 use App\Models\Kpi;
 use App\Models\Project;
 use App\Services\PredictionService;
+use App\Support\LocalTime;
 
 /**
  * Datos del tablero e informe presidencial (Ministra). Extraído de
@@ -56,26 +58,35 @@ class MinisterReportData
         ])->all();
     }
 
-    /** Clasifica cada institución en un semáforo según la salud de sus proyectos. */
+    /**
+     * Clasifica cada institución en un semáforo según la salud de sus proyectos.
+     * Incluye, por color, la lista de proyectos en ese estado (para poder
+     * verlos al hacer clic en el tab de la Ministra).
+     */
     public function semaforo(): array
     {
         return Institution::with('projects')
             ->orderBy('name')
             ->get()
             ->map(function (Institution $i) {
-                $green = 0;
-                $amber = 0;
-                $red = 0;
+                $buckets = ['green' => [], 'amber' => [], 'red' => []];
 
                 foreach ($i->projects as $p) {
-                    if ($p->risk_level === 'alto' || in_array($p->status, ['en_riesgo', 'retrasado'], true)) {
-                        $red++;
-                    } elseif ($p->risk_level === 'medio') {
-                        $amber++;
-                    } else {
-                        $green++;
-                    }
+                    $state = ($p->risk_level === 'alto' || in_array($p->status, ['en_riesgo', 'retrasado'], true))
+                        ? 'red'
+                        : ($p->risk_level === 'medio' ? 'amber' : 'green');
+
+                    $buckets[$state][] = [
+                        'name' => $p->name,
+                        'code' => $p->code,
+                        'physical_progress' => $p->physical_progress,
+                        'status' => self::STATUS_LABEL[$p->status] ?? $p->status,
+                    ];
                 }
+
+                $green = count($buckets['green']);
+                $amber = count($buckets['amber']);
+                $red = count($buckets['red']);
 
                 return [
                     'code' => $i->code,
@@ -84,6 +95,7 @@ class MinisterReportData
                     'green' => $green,
                     'amber' => $amber,
                     'red' => $red,
+                    'items' => $buckets,
                     'status' => $red > 0 ? 'critico' : ($amber > 0 ? 'observacion' : 'optimo'),
                 ];
             })
@@ -92,22 +104,46 @@ class MinisterReportData
             ->all();
     }
 
-    /** Proyectos con riesgo de fracaso, ordenados del más crítico al menos. */
+    /**
+     * Proyectos con riesgo de fracaso (probabilidad de éxito < 60%), del más
+     * crítico al menos. Cada uno trae su última recomendación de acción: la más
+     * reciente generada con IA para ese proyecto, o la del modelo si no hay.
+     */
     public function alerts(): array
     {
-        return Project::with('institution')
+        $atRisk = Project::with('institution')
             ->get()
-            ->map(fn (Project $p) => [
+            ->map(fn (Project $p) => ['p' => $p, 'success' => $this->pred->score($p)])
+            ->filter(fn (array $a) => $a['success'] < 60)
+            ->sortBy('success')
+            ->values();
+
+        $ids = $atRisk->map(fn (array $a) => $a['p']->id)->all();
+
+        $latestRecs = AiRecommendation::with('user')
+            ->whereIn('project_id', $ids)
+            ->latest()
+            ->get()
+            ->unique('project_id')
+            ->keyBy('project_id');
+
+        return $atRisk->map(function (array $a) use ($latestRecs) {
+            /** @var Project $p */
+            $p = $a['p'];
+            $rec = $latestRecs->get($p->id);
+
+            return [
                 'name' => $p->name,
                 'institution' => $p->institution?->short_name ?? '',
                 'physical_progress' => $p->physical_progress,
                 'risk' => self::RISK_LABEL[$p->risk_level] ?? $p->risk_level,
-                'success' => $this->pred->score($p),
-            ])
-            ->filter(fn (array $a) => $a['success'] < 60)
-            ->sortBy('success')
-            ->values()
-            ->all();
+                'success' => $a['success'],
+                'recommendation' => $rec?->recommendation ?: $this->pred->recommendation($p),
+                'recommendation_source' => $rec ? 'ia' : 'modelo',
+                'recommendation_by' => $rec?->user?->name,
+                'recommendation_at' => $rec ? LocalTime::format($rec->created_at) : null,
+            ];
+        })->all();
     }
 
     /** Recomendaciones de intervención para los proyectos más críticos. */

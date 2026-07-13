@@ -53,7 +53,7 @@ class ScheduledReports
     /** Roles destinatarios por informe (además de los correos adicionales). */
     private const ACCESS_ROLES = ['Super Admin'];
     private const RISK_ROLES = ['Analista', 'Gestor de Proyectos'];
-    private const MIN_ROLES = ['Directivo'];
+    private const MIN_ROLES = ['Ministra'];
 
     public function __construct(
         private readonly MinisterReportData $data,

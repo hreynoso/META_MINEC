@@ -501,7 +501,13 @@
         "generating_report_hint": "This may take a few seconds. The report will download automatically when finished.",
         "presidential_report": "Presidential report",
         "download_pdf": "Download PDF",
-        "download_docx": "Download DOCX"
+        "download_docx": "Download DOCX",
+        "traffic_light_hint": "Click a colored number to see the projects in that state.",
+        "state_green": "Optimal",
+        "state_amber": "Watch",
+        "state_red": "Critical",
+        "rec_ia": "AI recommendation",
+        "rec_model": "Model recommendation"
     },
     "network": {
         "title": "Managers Network",
@@ -557,7 +563,7 @@
         "freq_monthly": "Monthly",
         "time_utc": "Time (UTC)",
         "roles_risk": "Sent to the Analyst and Project Manager roles, and the additional emails.",
-        "roles_minister": "Sent to the Executive (Directivo) role, and the additional emails.",
+        "roles_minister": "Sent to the Ministra role, and the additional emails.",
         "send_now": "Send now",
         "last_sent": "Last sent: {when}.",
         "never_sent": "Not sent yet."
