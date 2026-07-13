@@ -120,15 +120,13 @@ class CloudBackupService
             }
 
             try {
-                $ok = $this->provider() === 'google_cloud'
+                $this->provider() === 'google_cloud'
                     ? $this->uploadGcs($dump, basename($dump))
                     : $this->uploadDropbox($dump, basename($dump));
 
-                $ok
-                    ? $this->succeed(basename($dump))
-                    : $this->fail(__('messages.backup.fail_upload', ['provider' => $this->provider()]));
+                $this->succeed(basename($dump));
 
-                return $ok;
+                return true;
             } finally {
                 @unlink($dump);
             }
@@ -317,14 +315,12 @@ class CloudBackupService
 
     // ── Subida por proveedor ────────────────────────────────────────────────
 
-    protected function uploadDropbox(string $path, string $name): bool
+    protected function uploadDropbox(string $path, string $name): void
     {
         $token = (string) Setting::value(self::DROPBOX_TOKEN_KEY);
 
         if ($token === '') {
-            Log::warning('backup: token de Dropbox no configurado; dump conservado localmente');
-
-            return false;
+            throw new \RuntimeException('Falta el token de acceso de Dropbox.');
         }
 
         $folder = $this->normalizeFolder((string) Setting::value(self::DROPBOX_FOLDER_KEY, '/META/backups'));
@@ -341,23 +337,19 @@ class CloudBackupService
         if (! $res->successful()) {
             Log::error('backup: subida a Dropbox falló', ['status' => $res->status(), 'body' => $res->body()]);
 
-            return false;
+            throw new \RuntimeException('Dropbox '.$res->status().': '.$this->briefBody($res->body()));
         }
 
         rescue(fn () => $this->pruneDropbox($token, $folder), null, false);
-
-        return true;
     }
 
-    protected function uploadGcs(string $path, string $name): bool
+    protected function uploadGcs(string $path, string $name): void
     {
         $bucket = (string) Setting::value(self::GCS_BUCKET_KEY);
         $credentials = (string) Setting::value(self::GCS_CREDENTIALS_KEY);
 
         if ($bucket === '' || $credentials === '') {
-            Log::warning('backup: bucket o credenciales de Google Cloud no configurados');
-
-            return false;
+            throw new \RuntimeException('Falta el bucket o las credenciales de Google Cloud.');
         }
 
         $token = $this->gcsAccessToken($credentials);
@@ -372,10 +364,16 @@ class CloudBackupService
         if (! $res->successful()) {
             Log::error('backup: subida a Google Cloud falló', ['status' => $res->status(), 'body' => $res->body()]);
 
-            return false;
+            throw new \RuntimeException('Google Cloud '.$res->status().': '.$this->briefBody($res->body()));
         }
+    }
 
-        return true;
+    /** Recorta el cuerpo de una respuesta de error para el historial/correo. */
+    private function briefBody(string $body): string
+    {
+        $body = trim($body);
+
+        return mb_strlen($body) > 300 ? mb_substr($body, 0, 300).'…' : ($body !== '' ? $body : 'sin detalle');
     }
 
     // ── Pruebas de conexión ─────────────────────────────────────────────────

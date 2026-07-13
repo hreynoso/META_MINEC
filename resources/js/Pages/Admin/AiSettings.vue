@@ -61,6 +61,12 @@ const detected = ref<string[]>([]);
 const modelOptions = computed<string[]>(() =>
     detected.value.length ? detected.value : currentModels.value.map((m) => m.value),
 );
+// El desplegable siempre incluye el modelo actual, aunque no esté en la lista.
+const modelSelectOptions = computed<string[]>(() =>
+    form.model && !modelOptions.value.includes(form.model)
+        ? [form.model, ...modelOptions.value]
+        : modelOptions.value,
+);
 
 // Al cambiar de proveedor: modelo recomendado y se limpia la detección previa.
 watch(() => form.provider, (prov) => {
@@ -180,8 +186,9 @@ async function testConnection() {
                     <div>
                         <label :class="label">{{ t('ai.model_label') }}</label>
                         <div class="flex gap-2">
-                            <input v-model="form.model" list="ai-models" :class="input" :placeholder="t('ai.model_placeholder')" />
-                            <datalist id="ai-models"><option v-for="m in modelOptions" :key="m" :value="m" /></datalist>
+                            <select v-model="form.model" :class="input">
+                                <option v-for="m in modelSelectOptions" :key="m" :value="m">{{ m }}</option>
+                            </select>
                             <button
                                 type="button" :disabled="detecting"
                                 class="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-slate-300 px-3 text-sm hover:bg-slate-50 disabled:opacity-50 dark:border-slate-600 dark:hover:bg-slate-700"
