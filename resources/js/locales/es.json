@@ -888,6 +888,8 @@
         "inactive": "Inactivo (clic para activar)",
         "in_use_hint": "En uso por instituciones; no se puede eliminar.",
         "delete_header": "Eliminar valor",
-        "delete_message": "¿Eliminar \"{label}\" del catálogo?"
+        "delete_message": "¿Eliminar \"{label}\" del catálogo?",
+        "g_province": "Provincias / Departamentos",
+        "g_unit": "Unidades de KPI"
     }
 }

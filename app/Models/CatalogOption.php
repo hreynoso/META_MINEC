@@ -15,15 +15,36 @@ class CatalogOption extends Model
 {
     use LogsActivity;
 
-    /** Grupos de catálogo soportados. */
-    public const GROUPS = ['institution_type', 'institution_sector', 'institution_dependency'];
-
-    /** Columna de `institutions` que usa cada grupo (para renombrar en cascada). */
-    public const COLUMN = [
-        'institution_type' => 'type',
-        'institution_sector' => 'sector',
-        'institution_dependency' => 'admin_dependency',
+    /**
+     * Registro de catálogos: grupo → modelo y columna que lo usan. Añadir un
+     * catálogo nuevo es agregar una entrada aquí (y su título i18n en el front).
+     * Solo deben registrarse columnas de solo presentación (no claves de lógica
+     * como estado/riesgo de proyecto o tendencia de KPI).
+     */
+    public const REGISTRY = [
+        'institution_type' => ['model' => Institution::class, 'column' => 'type'],
+        'institution_sector' => ['model' => Institution::class, 'column' => 'sector'],
+        'institution_dependency' => ['model' => Institution::class, 'column' => 'admin_dependency'],
+        'institution_province' => ['model' => Institution::class, 'column' => 'province'],
+        'kpi_unit' => ['model' => Kpi::class, 'column' => 'unit'],
     ];
+
+    /** @return string[] */
+    public static function groups(): array
+    {
+        return array_keys(self::REGISTRY);
+    }
+
+    /** @return class-string<\Illuminate\Database\Eloquent\Model> */
+    public static function modelFor(string $group): string
+    {
+        return self::REGISTRY[$group]['model'];
+    }
+
+    public static function columnFor(string $group): string
+    {
+        return self::REGISTRY[$group]['column'];
+    }
 
     protected $fillable = ['group', 'label', 'sort', 'active'];
 

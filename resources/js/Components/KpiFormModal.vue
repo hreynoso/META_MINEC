@@ -18,7 +18,7 @@ interface KpiData {
     sort: number;
 }
 
-const props = defineProps<{ kpi: KpiData | null }>();
+const props = defineProps<{ kpi: KpiData | null; units?: string[] }>();
 
 const emit = defineEmits<{ (e: 'close'): void; (e: 'saved'): void }>();
 
@@ -82,7 +82,8 @@ function submit() {
                 </div>
                 <div>
                     <label :class="label">{{ t('kpi_form.label_unit') }}</label>
-                    <input v-model="form.unit" :class="input" :placeholder="t('kpi_form.placeholder_unit')" />
+                    <input v-model="form.unit" list="kpi-units" :class="input" :placeholder="t('kpi_form.placeholder_unit')" />
+                    <datalist id="kpi-units"><option v-for="u in (props.units ?? [])" :key="u" :value="u" /></datalist>
                     <p v-if="form.errors.unit" class="mt-1 text-xs text-red-600">{{ form.errors.unit }}</p>
                 </div>
 

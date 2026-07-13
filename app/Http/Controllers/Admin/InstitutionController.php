@@ -67,6 +67,7 @@ class InstitutionController extends Controller
                 'types' => CatalogOption::values('institution_type'),
                 'sectors' => CatalogOption::values('institution_sector'),
                 'dependencies' => CatalogOption::values('institution_dependency'),
+                'provinces' => CatalogOption::values('institution_province'),
                 'statuses' => Institution::STATUSES,
             ],
             'parents' => Institution::orderBy('short_name')->get(['id', 'short_name', 'name']),

@@ -13,11 +13,16 @@ const props = defineProps<{ groups: Record<string, Option[]> }>();
 const { t } = useI18n({ useScope: 'global' });
 const { ask } = useConfirm();
 
-const meta = [
-    { group: 'institution_type', title: t('catalogs.g_type') },
-    { group: 'institution_sector', title: t('catalogs.g_sector') },
-    { group: 'institution_dependency', title: t('catalogs.g_dependency') },
-];
+// Títulos por grupo; los grupos se descubren de lo que envía el backend, así al
+// registrar un catálogo nuevo aparece aquí sin tocar esta vista (solo su título).
+const titles: Record<string, string> = {
+    institution_type: t('catalogs.g_type'),
+    institution_sector: t('catalogs.g_sector'),
+    institution_dependency: t('catalogs.g_dependency'),
+    institution_province: t('catalogs.g_province'),
+    kpi_unit: t('catalogs.g_unit'),
+};
+const meta = Object.keys(props.groups).map((g) => ({ group: g, title: titles[g] ?? g }));
 
 const input = 'w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-1.5 text-sm outline-none focus:border-brand focus:bg-white dark:border-slate-600 dark:bg-slate-900';
 

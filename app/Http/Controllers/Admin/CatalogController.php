@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\CatalogOption;
-use App\Models\Institution;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -19,8 +18,9 @@ class CatalogController extends Controller
 {
     public function index(): Response
     {
-        $groups = collect(CatalogOption::GROUPS)->mapWithKeys(function (string $group) {
-            $column = CatalogOption::COLUMN[$group];
+        $groups = collect(CatalogOption::groups())->mapWithKeys(function (string $group) {
+            $model = CatalogOption::modelFor($group);
+            $column = CatalogOption::columnFor($group);
 
             $options = CatalogOption::where('group', $group)
                 ->orderBy('sort')->orderBy('label')
@@ -30,7 +30,7 @@ class CatalogController extends Controller
                     'label' => $o->label,
                     'active' => $o->active,
                     'sort' => $o->sort,
-                    'in_use' => Institution::where($column, $o->label)->count(),
+                    'in_use' => $model::where($column, $o->label)->count(),
                 ])
                 ->all();
 
@@ -45,7 +45,7 @@ class CatalogController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $data = $request->validate([
-            'group' => ['required', Rule::in(CatalogOption::GROUPS)],
+            'group' => ['required', Rule::in(CatalogOption::groups())],
             'label' => ['required', 'string', 'max:120'],
         ], [], ['label' => 'valor']);
 
@@ -90,10 +90,11 @@ class CatalogController extends Controller
             'active' => $request->boolean('active'),
         ]);
 
-        // Renombrado en cascada: actualiza las instituciones que usaban el valor.
+        // Renombrado en cascada: actualiza los registros que usaban el valor.
         if ($oldLabel !== $newLabel) {
-            $column = CatalogOption::COLUMN[$catalog->group];
-            Institution::where($column, $oldLabel)->update([$column => $newLabel]);
+            $model = CatalogOption::modelFor($catalog->group);
+            $column = CatalogOption::columnFor($catalog->group);
+            $model::where($column, $oldLabel)->update([$column => $newLabel]);
         }
 
         return back()->with('success', __('messages.catalog.updated'));
@@ -101,9 +102,10 @@ class CatalogController extends Controller
 
     public function destroy(CatalogOption $catalog): RedirectResponse
     {
-        $column = CatalogOption::COLUMN[$catalog->group];
+        $model = CatalogOption::modelFor($catalog->group);
+        $column = CatalogOption::columnFor($catalog->group);
 
-        if (Institution::where($column, $catalog->label)->exists()) {
+        if ($model::where($column, $catalog->label)->exists()) {
             return back()->with('error', __('messages.catalog.in_use'));
         }
 

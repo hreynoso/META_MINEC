@@ -19,7 +19,7 @@ interface Institution {
 
 const props = defineProps<{
     institutions: Institution[];
-    catalogs: { types: string[]; sectors: string[]; dependencies: string[]; statuses: string[] };
+    catalogs: { types: string[]; sectors: string[]; dependencies: string[]; provinces: string[]; statuses: string[] };
     parents: { id: number; short_name: string; name: string }[];
 }>();
 
@@ -324,7 +324,11 @@ function confirmDelete(i: Institution) {
                     <!-- 2. Ubicación -->
                     <div v-show="tab === 'location'" class="space-y-4">
                         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                            <div><label :class="label">{{ t('institutions.f_province') }}</label><input v-model="form.province" :class="input" /></div>
+                            <div>
+                                <label :class="label">{{ t('institutions.f_province') }}</label>
+                                <input v-model="form.province" list="inst-provinces" :class="input" />
+                                <datalist id="inst-provinces"><option v-for="p in catalogs.provinces" :key="p" :value="p" /></datalist>
+                            </div>
                             <div><label :class="label">{{ t('institutions.f_addr_sector') }}</label><input v-model="form.addr_sector" :class="input" /></div>
                         </div>
                         <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">

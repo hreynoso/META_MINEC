@@ -33,6 +33,7 @@ class KpiController extends Controller
 
         return Inertia::render('Kpis/Index', [
             'kpis' => $kpis,
+            'units' => \App\Models\CatalogOption::values('kpi_unit'),
         ]);
     }
 

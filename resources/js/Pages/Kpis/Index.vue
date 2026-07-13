@@ -17,7 +17,7 @@ interface Kpi {
     target: number; achievement: number; trend: string; strategic: boolean; sort: number;
 }
 
-const props = defineProps<{ kpis: Kpi[] }>();
+const props = defineProps<{ kpis: Kpi[]; units: string[] }>();
 
 const { t } = useI18n({ useScope: 'global' });
 
@@ -199,6 +199,7 @@ function confirmDelete(k: Kpi) {
             v-if="formOpen"
             :key="editing?.id ?? 'new'"
             :kpi="editing"
+            :units="props.units"
             @close="formOpen = false"
             @saved="onSaved"
         />
