@@ -83,6 +83,11 @@ onMounted(() => {
     if (!form.model || (form.provider === 'gemini' && form.model.startsWith('gemini-1.5'))) {
         form.model = p.recommended;
     }
+    // Gemini con clave guardada: detecta automáticamente los modelos que la clave
+    // puede usar y descarta el guardado si ya no está disponible (evita el 404).
+    if (form.provider === 'gemini' && props.settings.has_key) {
+        detectModels();
+    }
 });
 
 const input =
@@ -119,7 +124,13 @@ async function detectModels() {
         const data = await res.json();
         if (data.ok && Array.isArray(data.models)) {
             detected.value = data.models;
-            if (data.models.length && !data.models.includes(form.model)) form.model = data.models[0];
+            // Si el modelo actual no está disponible, elige uno sensato (flash reciente).
+            if (data.models.length && !data.models.includes(form.model)) {
+                const models: string[] = data.models;
+                form.model = models.find((m) => /gemini-2\.\d.*flash/.test(m))
+                    || models.find((m) => m.includes('flash'))
+                    || models[0];
+            }
             detectResult.value = { ok: true, message: t('ai.models_detected', { count: data.models.length }) };
         } else {
             detectResult.value = { ok: false, message: data.message || t('ai.detect_failed') };
