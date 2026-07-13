@@ -323,6 +323,37 @@ class CloudBackupService
     // ── Subida por proveedor ────────────────────────────────────────────────
 
     /**
+     * Canjea un código de autorización de Dropbox por un refresh token
+     * (flujo OAuth con token_access_type=offline). Nunca lanza.
+     *
+     * @return array{ok: bool, refresh_token?: string, message: string}
+     */
+    public function exchangeDropboxCode(string $appKey, string $appSecret, string $code): array
+    {
+        if ($appKey === '' || $appSecret === '' || $code === '') {
+            return ['ok' => false, 'message' => 'Faltan App key, App secret o el código de autorización.'];
+        }
+
+        try {
+            $res = Http::asForm()->withBasicAuth($appKey, $appSecret)->timeout(30)
+                ->post('https://api.dropbox.com/oauth2/token', [
+                    'grant_type' => 'authorization_code',
+                    'code' => $code,
+                ]);
+
+            $refresh = $res->json('refresh_token');
+
+            if (! $res->successful() || ! $refresh) {
+                return ['ok' => false, 'message' => 'Dropbox '.$res->status().': '.$this->briefBody($res->body())];
+            }
+
+            return ['ok' => true, 'refresh_token' => (string) $refresh, 'message' => ''];
+        } catch (Throwable $e) {
+            return ['ok' => false, 'message' => $e->getMessage()];
+        }
+    }
+
+    /**
      * Resuelve el access token de Dropbox: si hay app key + secret + refresh
      * token, se canjea por uno nuevo (permanente); si no, usa el token directo.
      *

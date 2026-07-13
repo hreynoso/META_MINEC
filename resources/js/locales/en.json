@@ -822,7 +822,16 @@
         "dropbox_oauth_hint": "App key + App secret + Refresh token from a Dropbox app. Never expires: the system refreshes access on each backup. Get the refresh token via the OAuth flow (token_access_type=offline).",
         "dropbox_app_key": "App key",
         "dropbox_app_secret": "App secret",
-        "dropbox_refresh_token": "Refresh token"
+        "dropbox_refresh_token": "Refresh token",
+        "oauth_assistant": "Assistant: get the refresh token (no terminal)",
+        "oauth_step1": "Enter your App key and App secret above.",
+        "oauth_step2": "Click \"Authorize in Dropbox\", grant access and copy the code it shows.",
+        "oauth_step3": "Paste the code here and click \"Exchange and save\".",
+        "oauth_authorize": "Authorize in Dropbox",
+        "oauth_need_key": "Enter the App key first.",
+        "oauth_code": "Dropbox authorization code",
+        "oauth_exchange": "Exchange and save",
+        "oauth_save_first": "If you entered a new App secret, the assistant uses it directly; no need to save first."
     },
     "institutions": {
         "page_title": "Institutions",

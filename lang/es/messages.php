@@ -100,6 +100,8 @@ return [
         'run_ok' => 'Respaldo generado y subido correctamente.',
         'run_failed' => 'No se pudo completar el respaldo. Revisa la configuración y la bitácora.',
         'run_queued' => 'Respaldo iniciado en segundo plano. El resultado aparecerá en el historial en unos momentos.',
+        'oauth_ok' => 'Dropbox conectado: refresh token guardado. Los respaldos ya no caducarán.',
+        'oauth_failed' => 'No se pudo obtener el refresh token de Dropbox: :detail',
         'invalid_credentials' => 'El JSON de credenciales no es válido o le faltan campos (client_email / private_key).',
         'test_no_token' => 'Falta el token de acceso de Dropbox.',
         'test_no_gcs' => 'Faltan el bucket o las credenciales de Google Cloud.',

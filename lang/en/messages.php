@@ -100,6 +100,8 @@ return [
         'run_ok' => 'Backup generated and uploaded successfully.',
         'run_failed' => 'The backup could not be completed. Check the settings and the log.',
         'run_queued' => 'Backup started in the background. The result will appear in the history shortly.',
+        'oauth_ok' => 'Dropbox connected: refresh token saved. Backups will no longer expire.',
+        'oauth_failed' => 'Could not obtain the Dropbox refresh token: :detail',
         'invalid_credentials' => 'The credentials JSON is invalid or missing fields (client_email / private_key).',
         'test_no_token' => 'The Dropbox access token is missing.',
         'test_no_gcs' => 'The Google Cloud bucket or credentials are missing.',

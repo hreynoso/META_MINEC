@@ -3,7 +3,7 @@ import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue';
 import { useForm, router } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 import ConfigLayout from '@/Components/ConfigLayout.vue';
-import { DatabaseBackup, KeyRound, CheckCircle2, AlertTriangle, Loader2, Plug, Cloud, HardDriveUpload, ChevronDown, History, Clock, Play } from 'lucide-vue-next';
+import { DatabaseBackup, KeyRound, CheckCircle2, AlertTriangle, Loader2, Plug, Cloud, HardDriveUpload, ChevronDown, History, Clock, Play, ExternalLink } from 'lucide-vue-next';
 
 const { t } = useI18n({ useScope: 'global' });
 
@@ -87,6 +87,24 @@ const form = useForm({
 });
 
 const isDropbox = computed(() => form.provider === 'dropbox');
+
+// Asistente OAuth de Dropbox: enlace de autorización + canje del código.
+const authCode = ref('');
+const authorizing = ref(false);
+const dropboxAuthUrl = computed(() => form.dropbox_app_key
+    ? `https://www.dropbox.com/oauth2/authorize?client_id=${encodeURIComponent(form.dropbox_app_key)}&response_type=code&token_access_type=offline`
+    : '');
+function authorizeDropbox() {
+    authorizing.value = true;
+    router.post(route('configuracion.respaldos.dropbox_oauth'),
+        { dropbox_app_key: form.dropbox_app_key, dropbox_app_secret: form.dropbox_app_secret, code: authCode.value },
+        {
+            preserveScroll: true,
+            onSuccess: () => { authCode.value = ''; form.reset('dropbox_app_secret', 'dropbox_refresh_token'); },
+            onFinish: () => { authorizing.value = false; },
+        },
+    );
+}
 const gcsPlaceholder = '{ "type": "service_account", "project_id": "...", "private_key": "...", "client_email": "..." }';
 
 const input = 'w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-brand focus:bg-white dark:border-slate-600 dark:bg-slate-900';
@@ -242,6 +260,38 @@ async function testConnection() {
                                 <CheckCircle2 v-if="settings.has_dropbox_refresh_token" class="h-3.5 w-3.5" />
                                 {{ settings.has_dropbox_refresh_token ? t('backup.configured') : t('backup.not_configured') }}
                             </p>
+                        </div>
+
+                        <!-- Asistente: obtener el refresh token sin terminal -->
+                        <div class="mt-3 border-t border-teal-200/60 pt-3 dark:border-teal-900/40">
+                            <p class="text-xs font-medium text-slate-600 dark:text-slate-300">{{ t('backup.oauth_assistant') }}</p>
+                            <ol class="mt-1 ml-4 list-decimal space-y-0.5 text-xs text-slate-500">
+                                <li>{{ t('backup.oauth_step1') }}</li>
+                                <li>{{ t('backup.oauth_step2') }}</li>
+                                <li>{{ t('backup.oauth_step3') }}</li>
+                            </ol>
+                            <div class="mt-2 flex flex-wrap items-center gap-2">
+                                <a
+                                    :href="dropboxAuthUrl || undefined" target="_blank" rel="noopener"
+                                    class="inline-flex items-center gap-1.5 rounded-lg border border-brand px-3 py-1.5 text-sm font-medium text-brand transition hover:bg-brand hover:text-white"
+                                    :class="!dropboxAuthUrl ? 'pointer-events-none opacity-50' : ''"
+                                >
+                                    <ExternalLink class="h-4 w-4" /> {{ t('backup.oauth_authorize') }}
+                                </a>
+                                <span v-if="!form.dropbox_app_key" class="text-xs text-amber-600">{{ t('backup.oauth_need_key') }}</span>
+                            </div>
+                            <div class="mt-2 flex gap-2">
+                                <input v-model="authCode" :class="input" :placeholder="t('backup.oauth_code')" />
+                                <button
+                                    type="button" :disabled="authorizing || !authCode || !form.dropbox_app_key"
+                                    class="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-brand px-3 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50"
+                                    @click="authorizeDropbox"
+                                >
+                                    <Loader2 v-if="authorizing" class="h-4 w-4 animate-spin" /><KeyRound v-else class="h-4 w-4" />
+                                    {{ t('backup.oauth_exchange') }}
+                                </button>
+                            </div>
+                            <p class="mt-1 text-xs text-slate-400">{{ t('backup.oauth_save_first') }}</p>
                         </div>
                     </div>
 

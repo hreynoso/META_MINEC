@@ -169,6 +169,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/configuracion/respaldos', [BackupSettingsController::class, 'update'])->name('configuracion.respaldos.update');
         Route::post('/configuracion/respaldos/prueba', [BackupSettingsController::class, 'test'])->name('configuracion.respaldos.test');
         Route::post('/configuracion/respaldos/ejecutar', [BackupSettingsController::class, 'runNow'])->name('configuracion.respaldos.ejecutar');
+        Route::post('/configuracion/respaldos/dropbox-oauth', [BackupSettingsController::class, 'authorizeDropbox'])->name('configuracion.respaldos.dropbox_oauth');
     });
 
     // Perfil del usuario (cambio de foto de perfil)

@@ -158,6 +158,35 @@ class BackupSettingsController extends Controller
         return back()->with('success', __('messages.backup.run_queued'));
     }
 
+    /** Canjea el código de autorización de Dropbox por un refresh token y lo guarda. */
+    public function authorizeDropbox(Request $request, CloudBackupService $backup): RedirectResponse
+    {
+        $data = $request->validate([
+            'dropbox_app_key' => ['required', 'string', 'max:255'],
+            'dropbox_app_secret' => ['nullable', 'string', 'max:255'],
+            'code' => ['required', 'string', 'max:1024'],
+        ], [], ['dropbox_app_key' => 'App key', 'code' => 'código de autorización']);
+
+        // App secret: el escrito o el guardado previamente.
+        $appSecret = filled($data['dropbox_app_secret'] ?? null)
+            ? (string) $data['dropbox_app_secret']
+            : (string) Setting::value(CloudBackupService::DROPBOX_APP_SECRET_KEY);
+
+        $result = $backup->exchangeDropboxCode($data['dropbox_app_key'], $appSecret, $data['code']);
+
+        if (! $result['ok']) {
+            return back()->with('error', __('messages.backup.oauth_failed', ['detail' => $result['message']]));
+        }
+
+        Setting::put(CloudBackupService::DROPBOX_APP_KEY_KEY, $data['dropbox_app_key']);
+        if (filled($appSecret)) {
+            Setting::put(CloudBackupService::DROPBOX_APP_SECRET_KEY, $appSecret);
+        }
+        Setting::put(CloudBackupService::DROPBOX_REFRESH_KEY, $result['refresh_token']);
+
+        return back()->with('success', __('messages.backup.oauth_ok'));
+    }
+
     /** Prueba la conexión con el proveedor (usa credenciales escritas o guardadas). */
     public function test(Request $request, CloudBackupService $backup): JsonResponse
     {
