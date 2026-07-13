@@ -111,6 +111,13 @@ return [
         'test_token_failed' => 'No se pudo obtener el token de Google Cloud (código :detail).',
     ],
 
+    'institution' => [
+        'created' => 'Institución creada correctamente.',
+        'updated' => 'Institución actualizada correctamente.',
+        'deleted' => 'Institución eliminada correctamente.',
+        'has_projects' => 'No se puede eliminar: la institución tiene proyectos vinculados. Cámbiala a Inactiva.',
+    ],
+
     'project' => [
         'created' => 'Proyecto creado correctamente.',
         'updated' => 'Proyecto actualizado correctamente.',

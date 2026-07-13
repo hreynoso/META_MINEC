@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\AiSettingsController;
 use App\Http\Controllers\Admin\BackupSettingsController;
 use App\Http\Controllers\Admin\BrandingController;
+use App\Http\Controllers\Admin\InstitutionController;
 use App\Http\Controllers\Admin\GoogleSsoSettingsController;
 use App\Http\Controllers\Admin\LanguageSettingsController;
 use App\Http\Controllers\Admin\NotificationSettingsController;
@@ -102,6 +103,13 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/configuracion/notificaciones', [NotificationSettingsController::class, 'edit'])->name('configuracion.notificaciones.edit');
         Route::post('/configuracion/notificaciones', [NotificationSettingsController::class, 'update'])->name('configuracion.notificaciones.update');
         Route::post('/configuracion/notificaciones/enviar', [NotificationSettingsController::class, 'sendNow'])->name('configuracion.notificaciones.enviar');
+
+        // Configuración → Instituciones (mantenimiento; alimenta el desplegable del sistema)
+        Route::get('/configuracion/instituciones/export', [InstitutionController::class, 'export'])->name('configuracion.instituciones.export');
+        Route::get('/configuracion/instituciones', [InstitutionController::class, 'index'])->name('configuracion.instituciones.index');
+        Route::post('/configuracion/instituciones', [InstitutionController::class, 'store'])->name('configuracion.instituciones.store');
+        Route::put('/configuracion/instituciones/{institution}', [InstitutionController::class, 'update'])->name('configuracion.instituciones.update');
+        Route::delete('/configuracion/instituciones/{institution}', [InstitutionController::class, 'destroy'])->name('configuracion.instituciones.destroy');
 
         // Configuración → Idioma (español / inglés)
         Route::get('/configuracion/idioma', [LanguageSettingsController::class, 'edit'])->name('configuracion.idioma.edit');

@@ -42,7 +42,7 @@ class ProjectController extends Controller
                 'benefits' => $p->benefits,
             ]);
 
-        $institutions = Institution::orderBy('name')
+        $institutions = Institution::active()->orderBy('name')
             ->get(['id', 'code', 'short_name', 'name']);
 
         $goals = PresidentialGoal::orderBy('name')->get(['id', 'name']);

@@ -61,7 +61,7 @@ class UserController extends Controller
         return Inertia::render('Admin/Users', [
             'users' => $users,
             'roles' => Role::orderBy('name')->pluck('name'),
-            'institutions' => Institution::orderBy('name')->get(['id', 'short_name', 'name']),
+            'institutions' => Institution::active()->orderBy('name')->get(['id', 'short_name', 'name']),
             'currentUserId' => auth()->id(),
             'dormantDays' => self::DORMANT_DAYS,
             'lastReview' => $this->lastReview(),
