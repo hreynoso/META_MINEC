@@ -295,7 +295,8 @@
         "model_placeholder": "e.g. gemini-2.0-flash",
         "detect_models": "Detect available models",
         "models_detected": "{count} model(s) detected for this key.",
-        "detect_failed": "Could not detect models."
+        "detect_failed": "Could not detect models.",
+        "models_updated": "Available models updated: {when}. Click 🔄 to refresh."
     },
     "branding": {
         "title": "Branding",

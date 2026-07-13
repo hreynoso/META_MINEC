@@ -129,11 +129,31 @@ class AiReportService
             };
 
             sort($models);
+            $models = array_values(array_unique($models));
 
-            return ['ok' => true, 'models' => array_values(array_unique($models)), 'message' => ''];
+            // Cachea la lista por proveedor (para mostrarla sin llamada en vivo).
+            Setting::put('ai.models.'.$provider, json_encode($models));
+            Setting::put('ai.models_at.'.$provider, now()->toIso8601String());
+
+            return ['ok' => true, 'models' => $models, 'message' => ''];
         } catch (\Throwable $e) {
             return ['ok' => false, 'models' => [], 'message' => $e->getMessage()];
         }
+    }
+
+    /** Modelos cacheados de un proveedor (última detección). @return string[] */
+    public function cachedModels(string $provider): array
+    {
+        $raw = Setting::value('ai.models.'.$provider);
+        $data = json_decode((string) $raw, true);
+
+        return is_array($data) ? $data : [];
+    }
+
+    /** Fecha ISO de la última detección de modelos de un proveedor, o null. */
+    public function modelsUpdatedAt(string $provider): ?string
+    {
+        return Setting::value('ai.models_at.'.$provider) ?: null;
     }
 
     /** @return string[] */

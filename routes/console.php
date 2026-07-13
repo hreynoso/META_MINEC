@@ -3,6 +3,7 @@
 use App\Jobs\RunBackup;
 use App\Jobs\SendScheduledReport;
 use App\Models\Setting;
+use App\Services\Ai\AiReportService;
 use App\Services\Backup\CloudBackupService;
 use App\Services\Reports\ScheduledReports;
 use App\Services\Security\DependencyAudit;
@@ -87,4 +88,17 @@ Schedule::call(function () {
     ->everyMinute()
     ->name('notify:scheduled-reports')
     ->withoutOverlapping()
+    ->onOneServer();
+
+// Refresco semanal de la lista de modelos de IA del proveedor configurado, para
+// mantener el desplegable al día (también se actualiza al detectar manualmente).
+Schedule::call(function () {
+    $ai = app(AiReportService::class);
+
+    if (filled($ai->apiKey())) {
+        rescue(fn () => $ai->listModels($ai->provider(), null), null, false);
+    }
+})
+    ->weeklyOn(1, '05:00')
+    ->name('ai:refresh-models')
     ->onOneServer();

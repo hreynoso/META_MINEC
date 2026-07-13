@@ -17,7 +17,11 @@ interface Settings {
 interface AiModel { value: string; label: string }
 interface Provider { value: string; label: string; recommended: string; models: AiModel[] }
 
-const props = defineProps<{ settings: Settings }>();
+const props = defineProps<{
+    settings: Settings;
+    cachedModels: Record<string, string[]>;
+    modelsUpdatedAt: Record<string, string | null>;
+}>();
 
 const PROVIDERS: Provider[] = [
     {
@@ -58,9 +62,14 @@ const currentModels = computed(() => PROVIDERS.find((p) => p.value === form.prov
 
 // Modelos detectados con la clave (tienen prioridad sobre la lista estática).
 const detected = ref<string[]>([]);
-const modelOptions = computed<string[]>(() =>
-    detected.value.length ? detected.value : currentModels.value.map((m) => m.value),
-);
+// Prioridad: detección en vivo → lista cacheada del proveedor → lista estática.
+const modelOptions = computed<string[]>(() => {
+    if (detected.value.length) return detected.value;
+    const cached = props.cachedModels?.[form.provider] ?? [];
+    return cached.length ? cached : currentModels.value.map((m) => m.value);
+});
+// Fecha de la última detección del proveedor actual (si hay).
+const modelsUpdatedAt = computed<string | null>(() => props.modelsUpdatedAt?.[form.provider] ?? null);
 // El desplegable siempre incluye el modelo actual, aunque no esté en la lista.
 const modelSelectOptions = computed<string[]>(() =>
     form.model && !modelOptions.value.includes(form.model)
@@ -210,7 +219,7 @@ async function testConnection() {
                             </button>
                         </div>
                         <p class="mt-1 text-xs" :class="detectResult ? (detectResult.ok ? 'text-teal-600' : 'text-red-600') : 'text-slate-400'">
-                            {{ detectResult ? detectResult.message : t('ai.models_hint') }}
+                            {{ detectResult ? detectResult.message : (modelsUpdatedAt ? t('ai.models_updated', { when: modelsUpdatedAt }) : t('ai.models_hint')) }}
                         </p>
                         <p v-if="form.errors.model" class="mt-1 text-xs text-red-600">{{ form.errors.model }}</p>
                     </div>

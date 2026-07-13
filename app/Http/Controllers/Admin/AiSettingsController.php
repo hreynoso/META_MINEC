@@ -13,9 +13,17 @@ use Inertia\Response;
 
 class AiSettingsController extends Controller
 {
-    public function edit(): Response
+    public function edit(AiReportService $ai): Response
     {
         $key = Setting::value('ai.api_key');
+
+        $cachedModels = [];
+        $modelsUpdatedAt = [];
+        foreach (['anthropic', 'gemini', 'openai'] as $p) {
+            $cachedModels[$p] = $ai->cachedModels($p);
+            $at = $ai->modelsUpdatedAt($p);
+            $modelsUpdatedAt[$p] = $at ? \App\Support\LocalTime::format(\Illuminate\Support\Carbon::parse($at)) : null;
+        }
 
         return Inertia::render('Admin/AiSettings', [
             'settings' => [
@@ -25,6 +33,8 @@ class AiSettingsController extends Controller
                 // Nunca se envía la clave completa al cliente; solo si existe.
                 'has_key' => filled($key),
             ],
+            'cachedModels' => $cachedModels,
+            'modelsUpdatedAt' => $modelsUpdatedAt,
         ]);
     }
 
