@@ -114,6 +114,7 @@ Route::middleware(['auth'])->group(function () {
 
         // Configuración → Catálogos administrables (tipos, sectores, dependencias)
         Route::get('/configuracion/catalogos', [CatalogController::class, 'index'])->name('configuracion.catalogos.index');
+        Route::post('/configuracion/catalogos/nomenclatura', [CatalogController::class, 'updateCodeFormat'])->name('configuracion.catalogos.nomenclatura');
         Route::post('/configuracion/catalogos', [CatalogController::class, 'store'])->name('configuracion.catalogos.store');
         Route::put('/configuracion/catalogos/{catalog}', [CatalogController::class, 'update'])->name('configuracion.catalogos.update');
         Route::delete('/configuracion/catalogos/{catalog}', [CatalogController::class, 'destroy'])->name('configuracion.catalogos.destroy');

@@ -1,14 +1,14 @@
 <script setup lang="ts">
-import { ref, reactive } from 'vue';
+import { ref, reactive, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { router } from '@inertiajs/vue3';
 import ConfigLayout from '@/Components/ConfigLayout.vue';
 import { useConfirm } from '@/Composables/useConfirm';
-import { ListChecks, Plus, Check, X, Pencil, Trash2, Save } from 'lucide-vue-next';
+import { ListChecks, Plus, Check, X, Pencil, Trash2, Save, Hash } from 'lucide-vue-next';
 
 interface Option { id: number; label: string; active: boolean; sort: number; in_use: number }
 
-const props = defineProps<{ groups: Record<string, Option[]> }>();
+const props = defineProps<{ groups: Record<string, Option[]>; codeFormat: { pattern: string; seq_length: number } }>();
 
 const { t } = useI18n({ useScope: 'global' });
 const { ask } = useConfirm();
@@ -25,6 +25,27 @@ const titles: Record<string, string> = {
 const meta = Object.keys(props.groups).map((g) => ({ group: g, title: titles[g] ?? g }));
 
 const input = 'w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-1.5 text-sm outline-none focus:border-brand focus:bg-white dark:border-slate-600 dark:bg-slate-900';
+
+// Nomenclatura del código de institución.
+const codePattern = ref(props.codeFormat.pattern);
+const codeSeq = ref(props.codeFormat.seq_length);
+const codeSaving = ref(false);
+const codePreview = computed(() => {
+    const year = new Date().getFullYear().toString();
+    const seq = '1'.padStart(Math.max(1, Math.min(codeSeq.value || 4, 10)), '0');
+    return (codePattern.value || '')
+        .replace(/\{SIGLAS\}/g, 'MINEC')
+        .replace(/\{(AÑO|ANIO|ANO|YEAR)\}/g, year)
+        .replace(/\{(AÑO2|ANIO2)\}/g, year.slice(-2))
+        .replace(/\{SEC\}/g, seq);
+});
+function saveCodeFormat() {
+    codeSaving.value = true;
+    router.post(route('configuracion.catalogos.nomenclatura'),
+        { pattern: codePattern.value, seq_length: codeSeq.value },
+        { preserveScroll: true, onFinish: () => { codeSaving.value = false; } },
+    );
+}
 
 // Estado de "nueva opción" por grupo.
 const newLabel = reactive<Record<string, string>>({});
@@ -77,6 +98,37 @@ function remove(o: Option) {
             <h2 class="flex items-center gap-2 text-lg font-semibold"><ListChecks class="h-5 w-5 text-brand" /> {{ t('catalogs.page_title') }}</h2>
             <p class="text-sm text-slate-500">{{ t('catalogs.page_subtitle') }}</p>
         </div>
+
+        <!-- Nomenclatura del código de institución -->
+        <section class="mb-5 rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-800">
+            <h3 class="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-200">
+                <Hash class="h-4 w-4 text-brand" /> {{ t('catalogs.code_title') }}
+            </h3>
+            <p class="mt-1 text-xs text-slate-500">{{ t('catalogs.code_subtitle') }}</p>
+
+            <div class="mt-4 flex flex-col gap-4 sm:flex-row sm:items-end">
+                <div class="flex-1">
+                    <label class="mb-1 block text-xs font-medium uppercase tracking-wide text-slate-500">{{ t('catalogs.code_pattern') }}</label>
+                    <input v-model="codePattern" :class="input" placeholder="{SIGLAS}-{AÑO}-{SEC}" />
+                </div>
+                <div class="w-32">
+                    <label class="mb-1 block text-xs font-medium uppercase tracking-wide text-slate-500">{{ t('catalogs.code_seq') }}</label>
+                    <input v-model.number="codeSeq" type="number" min="1" max="10" :class="input" />
+                </div>
+                <button
+                    type="button" :disabled="codeSaving"
+                    class="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-brand px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50"
+                    @click="saveCodeFormat"
+                >
+                    <Save class="h-4 w-4" /> {{ t('actions.save') }}
+                </button>
+            </div>
+
+            <div class="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500">
+                <span>{{ t('catalogs.code_preview') }}: <strong class="font-mono text-slate-700 dark:text-slate-200">{{ codePreview }}</strong></span>
+                <span class="text-slate-400">{{ t('catalogs.code_tokens') }}</span>
+            </div>
+        </section>
 
         <div class="grid grid-cols-1 gap-5 lg:grid-cols-3">
             <section v-for="m in meta" :key="m.group" class="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-800">

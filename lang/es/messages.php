@@ -117,6 +117,7 @@ return [
         'deleted' => 'Valor eliminado del catálogo.',
         'duplicate' => 'Ese valor ya existe en el catálogo.',
         'in_use' => 'No se puede eliminar: el valor está en uso por una o más instituciones.',
+        'code_saved' => 'Nomenclatura del código de institución actualizada.',
     ],
 
     'institution' => [

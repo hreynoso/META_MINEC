@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\CatalogOption;
+use App\Models\Setting;
+use App\Support\InstitutionCode;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -39,7 +41,25 @@ class CatalogController extends Controller
 
         return Inertia::render('Admin/Catalogs', [
             'groups' => $groups,
+            'codeFormat' => [
+                'pattern' => InstitutionCode::pattern(),
+                'seq_length' => InstitutionCode::seqLength(),
+            ],
         ]);
+    }
+
+    /** Guarda la nomenclatura del código de institución. */
+    public function updateCodeFormat(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'pattern' => ['required', 'string', 'max:120'],
+            'seq_length' => ['required', 'integer', 'min:1', 'max:10'],
+        ], [], ['pattern' => 'nomenclatura', 'seq_length' => 'dígitos de la secuencia']);
+
+        Setting::put(InstitutionCode::PATTERN_KEY, $data['pattern']);
+        Setting::put(InstitutionCode::SEQ_KEY, (string) $data['seq_length']);
+
+        return back()->with('success', __('messages.catalog.code_saved'));
     }
 
     public function store(Request $request): RedirectResponse

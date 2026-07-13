@@ -186,19 +186,10 @@ class InstitutionController extends Controller
         ]);
     }
 
-    /** Genera un código único a partir de las siglas (autogenerado). */
+    /** Genera un código único según la nomenclatura configurada (autogenerado). */
     private function generateCode(string $shortName): string
     {
-        $base = strtoupper(preg_replace('/[^A-Za-z0-9]/', '', $shortName) ?? '');
-        $base = $base !== '' ? substr($base, 0, 12) : 'INST';
-
-        $code = $base;
-        $n = 1;
-        while (Institution::where('code', $code)->exists()) {
-            $code = $base.'-'.(++$n);
-        }
-
-        return $code;
+        return \App\Support\InstitutionCode::generate($shortName);
     }
 
     private function actor(Request $request): string

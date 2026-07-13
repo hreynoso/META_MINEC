@@ -117,6 +117,7 @@ return [
         'deleted' => 'Value removed from the catalog.',
         'duplicate' => 'That value already exists in the catalog.',
         'in_use' => 'Cannot delete: the value is in use by one or more institutions.',
+        'code_saved' => 'Institution code format updated.',
     ],
 
     'institution' => [

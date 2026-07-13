@@ -894,6 +894,12 @@
         "delete_header": "Eliminar valor",
         "delete_message": "¿Eliminar \"{label}\" del catálogo?",
         "g_province": "Provincias / Departamentos",
-        "g_unit": "Unidades de KPI"
+        "g_unit": "Unidades de KPI",
+        "code_title": "Nomenclatura del código de institución",
+        "code_subtitle": "Formato con que se autogenera el código al crear una institución.",
+        "code_pattern": "Plantilla",
+        "code_seq": "Dígitos secuencia",
+        "code_preview": "Vista previa",
+        "code_tokens": "Tokens: {SIGLAS}, {AÑO}, {AÑO2}, {SEC}"
     }
 }

@@ -894,6 +894,12 @@
         "delete_header": "Delete value",
         "delete_message": "Delete \"{label}\" from the catalog?",
         "g_province": "Provinces / Departments",
-        "g_unit": "KPI units"
+        "g_unit": "KPI units",
+        "code_title": "Institution code format",
+        "code_subtitle": "Format used to auto-generate the code when creating an institution.",
+        "code_pattern": "Template",
+        "code_seq": "Sequence digits",
+        "code_preview": "Preview",
+        "code_tokens": "Tokens: {SIGLAS}, {AÑO}, {AÑO2}, {SEC}"
     }
 }
