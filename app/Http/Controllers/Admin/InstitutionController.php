@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\CatalogOption;
 use App\Models\Institution;
 use App\Support\ExportName;
 use App\Support\LocalTime;
@@ -63,9 +64,9 @@ class InstitutionController extends Controller
         return Inertia::render('Admin/Institutions', [
             'institutions' => $rows,
             'catalogs' => [
-                'types' => Institution::TYPES,
-                'sectors' => Institution::SECTORS,
-                'dependencies' => Institution::DEPENDENCIES,
+                'types' => CatalogOption::values('institution_type'),
+                'sectors' => CatalogOption::values('institution_sector'),
+                'dependencies' => CatalogOption::values('institution_dependency'),
                 'statuses' => Institution::STATUSES,
             ],
             'parents' => Institution::orderBy('short_name')->get(['id', 'short_name', 'name']),
@@ -154,13 +155,13 @@ class InstitutionController extends Controller
         return $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'short_name' => ['required', 'string', 'max:60'],
-            'type' => ['required', Rule::in(Institution::TYPES)],
-            'sector' => ['required', Rule::in(Institution::SECTORS)],
+            'type' => ['required', Rule::in(CatalogOption::allLabels('institution_type'))],
+            'sector' => ['required', Rule::in(CatalogOption::allLabels('institution_sector'))],
             'status' => ['required', Rule::in(Institution::STATUSES)],
             'rnc' => ['nullable', 'string', 'max:30'],
             'logo' => ['nullable', 'image', 'mimes:png,jpg,jpeg,webp,svg', 'max:4096'],
             'parent_id' => ['nullable', 'integer', Rule::exists('institutions', 'id')->where(fn ($q) => $institution ? $q->where('id', '!=', $institution->id) : $q)],
-            'admin_dependency' => ['nullable', Rule::in(Institution::DEPENDENCIES)],
+            'admin_dependency' => ['nullable', Rule::in(CatalogOption::allLabels('institution_dependency'))],
             'phone_main' => ['nullable', 'string', 'max:40'],
             'phone_alt' => ['nullable', 'string', 'max:40'],
             'email' => ['nullable', 'email', 'max:255'],

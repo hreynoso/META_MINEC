@@ -111,6 +111,14 @@ return [
         'test_token_failed' => 'Could not obtain the Google Cloud token (code :detail).',
     ],
 
+    'catalog' => [
+        'created' => 'Value added to the catalog.',
+        'updated' => 'Catalog updated.',
+        'deleted' => 'Value removed from the catalog.',
+        'duplicate' => 'That value already exists in the catalog.',
+        'in_use' => 'Cannot delete: the value is in use by one or more institutions.',
+    ],
+
     'institution' => [
         'created' => 'Institution created successfully.',
         'updated' => 'Institution updated successfully.',

@@ -232,7 +232,9 @@
             "respaldos": "Respaldos",
             "respaldos_sub": "Copia de seguridad en la nube",
             "instituciones": "Instituciones",
-            "instituciones_sub": "Mantenimiento de instituciones"
+            "instituciones_sub": "Mantenimiento de instituciones",
+            "catalogos": "Catálogos",
+            "catalogos_sub": "Tipos, sectores y dependencias"
         },
         "connected": {
             "title": "Usuarios conectados",
@@ -872,5 +874,20 @@
         "created_at": "Fecha de registro",
         "updated_at": "Última modificación",
         "linked_projects": "Proyectos vinculados"
+    },
+    "catalogs": {
+        "page_title": "Catálogos",
+        "page_subtitle": "Opciones administrables de los selectores del sistema (mantenimiento de instituciones).",
+        "g_type": "Tipos de institución",
+        "g_sector": "Sectores",
+        "g_dependency": "Dependencias administrativas",
+        "add": "Añadir",
+        "new_placeholder": "Nuevo valor…",
+        "empty": "Sin valores.",
+        "active": "Activo (clic para desactivar)",
+        "inactive": "Inactivo (clic para activar)",
+        "in_use_hint": "En uso por instituciones; no se puede eliminar.",
+        "delete_header": "Eliminar valor",
+        "delete_message": "¿Eliminar \"{label}\" del catálogo?"
     }
 }

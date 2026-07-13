@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\AiSettingsController;
 use App\Http\Controllers\Admin\BackupSettingsController;
 use App\Http\Controllers\Admin\BrandingController;
+use App\Http\Controllers\Admin\CatalogController;
 use App\Http\Controllers\Admin\InstitutionController;
 use App\Http\Controllers\Admin\GoogleSsoSettingsController;
 use App\Http\Controllers\Admin\LanguageSettingsController;
@@ -110,6 +111,12 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/configuracion/instituciones', [InstitutionController::class, 'store'])->name('configuracion.instituciones.store');
         Route::put('/configuracion/instituciones/{institution}', [InstitutionController::class, 'update'])->name('configuracion.instituciones.update');
         Route::delete('/configuracion/instituciones/{institution}', [InstitutionController::class, 'destroy'])->name('configuracion.instituciones.destroy');
+
+        // Configuración → Catálogos administrables (tipos, sectores, dependencias)
+        Route::get('/configuracion/catalogos', [CatalogController::class, 'index'])->name('configuracion.catalogos.index');
+        Route::post('/configuracion/catalogos', [CatalogController::class, 'store'])->name('configuracion.catalogos.store');
+        Route::put('/configuracion/catalogos/{catalog}', [CatalogController::class, 'update'])->name('configuracion.catalogos.update');
+        Route::delete('/configuracion/catalogos/{catalog}', [CatalogController::class, 'destroy'])->name('configuracion.catalogos.destroy');
 
         // Configuración → Idioma (español / inglés)
         Route::get('/configuracion/idioma', [LanguageSettingsController::class, 'edit'])->name('configuracion.idioma.edit');

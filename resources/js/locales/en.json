@@ -232,7 +232,9 @@
             "respaldos": "Backups",
             "respaldos_sub": "Cloud backup copy",
             "instituciones": "Institutions",
-            "instituciones_sub": "Institution maintenance"
+            "instituciones_sub": "Institution maintenance",
+            "catalogos": "Catalogs",
+            "catalogos_sub": "Types, sectors and dependencies"
         },
         "connected": {
             "title": "Online users",
@@ -872,5 +874,20 @@
         "created_at": "Registered on",
         "updated_at": "Last modified",
         "linked_projects": "Linked projects"
+    },
+    "catalogs": {
+        "page_title": "Catalogs",
+        "page_subtitle": "Administrable options for the system selectors (institution maintenance).",
+        "g_type": "Institution types",
+        "g_sector": "Sectors",
+        "g_dependency": "Administrative dependencies",
+        "add": "Add",
+        "new_placeholder": "New value…",
+        "empty": "No values.",
+        "active": "Active (click to deactivate)",
+        "inactive": "Inactive (click to activate)",
+        "in_use_hint": "In use by institutions; cannot be deleted.",
+        "delete_header": "Delete value",
+        "delete_message": "Delete \"{label}\" from the catalog?"
     }
 }

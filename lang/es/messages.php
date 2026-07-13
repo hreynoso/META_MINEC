@@ -111,6 +111,14 @@ return [
         'test_token_failed' => 'No se pudo obtener el token de Google Cloud (código :detail).',
     ],
 
+    'catalog' => [
+        'created' => 'Valor agregado al catálogo.',
+        'updated' => 'Catálogo actualizado.',
+        'deleted' => 'Valor eliminado del catálogo.',
+        'duplicate' => 'Ese valor ya existe en el catálogo.',
+        'in_use' => 'No se puede eliminar: el valor está en uso por una o más instituciones.',
+    ],
+
     'institution' => [
         'created' => 'Institución creada correctamente.',
         'updated' => 'Institución actualizada correctamente.',
