@@ -234,7 +234,9 @@
             "instituciones": "Institutions",
             "instituciones_sub": "Institution maintenance",
             "catalogos": "Catalogs",
-            "catalogos_sub": "Types, sectors and dependencies"
+            "catalogos_sub": "Types, sectors and dependencies",
+            "periodos": "Periods",
+            "periodos_sub": "Execution and planning"
         },
         "connected": {
             "title": "Online users",
@@ -255,6 +257,22 @@
             "confirm_word": "I accept",
             "confirm_input_label": "Type «{word}» to confirm",
             "confirm_ok": "OK"
+        },
+        "periods": {
+            "title": "Period Management",
+            "description": "Define the system's execution period (current year) and planning period (next year).",
+            "current_year_note": "System calendar year: {year}.",
+            "year_label": "Year",
+            "execution_title": "Execution Period",
+            "execution_hint": "Current year. This is the active period on which the portfolio of projects, KPIs and goals is executed and monitored.",
+            "execution_badge": "Active",
+            "planning_title": "Planning Period",
+            "planning_year_note": "Automatically calculated as the execution year + 1.",
+            "activation_label": "Activation date",
+            "activation_hint": "Date from which the planning period becomes active.",
+            "activation_none": "No activation date set.",
+            "status_active": "Active",
+            "status_scheduled": "Scheduled"
         }
     },
     "auth": {

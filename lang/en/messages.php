@@ -44,6 +44,10 @@ return [
         'report_queued' => 'Report queued; it will be emailed shortly.',
     ],
 
+    'periods' => [
+        'updated' => 'Period management updated.',
+    ],
+
     'role' => [
         'created' => 'Role created successfully.',
         'updated' => 'Role updated successfully.',

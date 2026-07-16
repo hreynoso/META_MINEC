@@ -44,6 +44,10 @@ return [
         'report_queued' => 'Informe en cola; se enviará por correo en unos momentos.',
     ],
 
+    'periods' => [
+        'updated' => 'Gestión de períodos actualizada.',
+    ],
+
     'role' => [
         'created' => 'Rol creado correctamente.',
         'updated' => 'Rol actualizado correctamente.',

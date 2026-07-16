@@ -234,7 +234,9 @@
             "instituciones": "Instituciones",
             "instituciones_sub": "Mantenimiento de instituciones",
             "catalogos": "Catálogos",
-            "catalogos_sub": "Tipos, sectores y dependencias"
+            "catalogos_sub": "Tipos, sectores y dependencias",
+            "periodos": "Períodos",
+            "periodos_sub": "Ejecución y planificación"
         },
         "connected": {
             "title": "Usuarios conectados",
@@ -255,6 +257,22 @@
             "confirm_word": "Acepto",
             "confirm_input_label": "Escribe «{word}» para confirmar",
             "confirm_ok": "OK"
+        },
+        "periods": {
+            "title": "Gestión de Períodos",
+            "description": "Defina el período de ejecución (año en curso) y el período de planificación (año próximo) del sistema.",
+            "current_year_note": "Año del calendario del sistema: {year}.",
+            "year_label": "Año",
+            "execution_title": "Período de Ejecución",
+            "execution_hint": "Año en curso. Es el período activo sobre el que se ejecuta y monitorea la cartera de proyectos, KPIs y metas.",
+            "execution_badge": "Activo",
+            "planning_title": "Período de Planificación",
+            "planning_year_note": "Se calcula automáticamente como el año de ejecución + 1.",
+            "activation_label": "Fecha de activación",
+            "activation_hint": "Fecha a partir de la cual el período de planificación queda activo.",
+            "activation_none": "Sin fecha de activación definida.",
+            "status_active": "Activa",
+            "status_scheduled": "Programada"
         }
     },
     "auth": {

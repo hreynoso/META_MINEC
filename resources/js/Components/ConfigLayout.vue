@@ -3,7 +3,7 @@ import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { Link, usePage } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 import AppLayout from '@/Layouts/AppLayout.vue';
-import { Palette, Mail, Users, ShieldCheck, Bell, Sparkles, ChevronRight, KeyRound, X, RefreshCw, Languages, Lock, DatabaseBackup, Building2, ListChecks } from 'lucide-vue-next';
+import { Palette, Mail, Users, ShieldCheck, Bell, Sparkles, ChevronRight, KeyRound, X, RefreshCw, Languages, Lock, DatabaseBackup, Building2, ListChecks, CalendarRange } from 'lucide-vue-next';
 
 interface ConnectedUser { id: number; name: string; email: string; avatar: string | null; initials: string; lastActive: string | null }
 
@@ -23,6 +23,7 @@ const sections = [
     { key: 'branding', icon: Palette, route: 'configuracion.edit' },
     { key: 'instituciones', icon: Building2, route: 'configuracion.instituciones.index' },
     { key: 'catalogos', icon: ListChecks, route: 'configuracion.catalogos.index' },
+    { key: 'periodos', icon: CalendarRange, route: 'configuracion.periodos.edit' },
     { key: 'correo', icon: Mail, route: 'configuracion.correo.edit' },
     { key: 'usuarios', icon: Users, route: 'configuracion.usuarios.index', superOnly: true },
     { key: 'roles', icon: ShieldCheck, route: 'configuracion.roles.index', superOnly: true },

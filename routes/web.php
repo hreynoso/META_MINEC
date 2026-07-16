@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\InstitutionController;
 use App\Http\Controllers\Admin\GoogleSsoSettingsController;
 use App\Http\Controllers\Admin\LanguageSettingsController;
 use App\Http\Controllers\Admin\NotificationSettingsController;
+use App\Http\Controllers\Admin\PeriodSettingsController;
 use App\Http\Controllers\Admin\SecurityController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\UserController;
@@ -118,6 +119,10 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/configuracion/catalogos', [CatalogController::class, 'store'])->name('configuracion.catalogos.store');
         Route::put('/configuracion/catalogos/{catalog}', [CatalogController::class, 'update'])->name('configuracion.catalogos.update');
         Route::delete('/configuracion/catalogos/{catalog}', [CatalogController::class, 'destroy'])->name('configuracion.catalogos.destroy');
+
+        // Configuración → Gestión de Períodos (ejecución / planificación por año)
+        Route::get('/configuracion/periodos', [PeriodSettingsController::class, 'edit'])->name('configuracion.periodos.edit');
+        Route::post('/configuracion/periodos', [PeriodSettingsController::class, 'update'])->name('configuracion.periodos.update');
 
         // Configuración → Idioma (español / inglés)
         Route::get('/configuracion/idioma', [LanguageSettingsController::class, 'edit'])->name('configuracion.idioma.edit');
